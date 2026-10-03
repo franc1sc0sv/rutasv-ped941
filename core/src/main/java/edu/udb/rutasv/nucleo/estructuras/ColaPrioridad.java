@@ -1,6 +1,6 @@
 package edu.udb.rutasv.nucleo.estructuras;
 
-import edu.udb.rutasv.nucleo.error.ColeccionVaciaException;
+import edu.udb.rutasv.nucleo.excepciones.ColeccionVaciaException;
 /**
  * Cola de prioridad. La implementacion recibe un {@code Comparator<T>} en su constructor;
  * el elemento menor segun ese comparador sale primero.

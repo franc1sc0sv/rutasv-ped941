@@ -1,6 +1,6 @@
 package edu.udb.rutasv.nucleo.estructuras;
 
-import edu.udb.rutasv.nucleo.error.ColeccionVaciaException;
+import edu.udb.rutasv.nucleo.excepciones.ColeccionVaciaException;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Comparator;

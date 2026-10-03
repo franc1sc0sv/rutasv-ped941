@@ -1,6 +1,6 @@
 package edu.udb.rutasv.nucleo.archivo;
 
-import edu.udb.rutasv.nucleo.error.PersistenciaException;
+import edu.udb.rutasv.nucleo.excepciones.PersistenciaException;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.AtomicMoveNotSupportedException;

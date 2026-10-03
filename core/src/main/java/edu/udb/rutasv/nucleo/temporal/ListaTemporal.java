@@ -1,7 +1,7 @@
 package edu.udb.rutasv.nucleo.temporal;
 
-import edu.udb.rutasv.nucleo.error.IndiceFueraDeRangoException;
 import edu.udb.rutasv.nucleo.estructuras.Lista;
+import edu.udb.rutasv.nucleo.excepciones.IndiceFueraDeRangoException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
