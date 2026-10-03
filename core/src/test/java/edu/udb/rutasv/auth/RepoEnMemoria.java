@@ -1,7 +1,7 @@
 package edu.udb.rutasv.auth;
 
-import edu.udb.rutasv.persistence.UsuarioRepositorio;
-import edu.udb.rutasv.structures.Lista;
+import edu.udb.rutasv.nucleo.estructuras.Lista;
+import edu.udb.rutasv.nucleo.estructuras.ListaFake;
 
 /** Repositorio de prueba que guarda en memoria. */
 final class RepoEnMemoria implements UsuarioRepositorio {
