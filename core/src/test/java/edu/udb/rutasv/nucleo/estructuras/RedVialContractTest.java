@@ -1,6 +1,6 @@
 package edu.udb.rutasv.nucleo.estructuras;
 
-import edu.udb.rutasv.nucleo.error.ValidacionException;
+import edu.udb.rutasv.nucleo.excepciones.ValidacionException;
 import edu.udb.rutasv.nucleo.modelo.Arista;
 import edu.udb.rutasv.nucleo.modelo.Estacion;
 import static org.junit.jupiter.api.Assertions.*;

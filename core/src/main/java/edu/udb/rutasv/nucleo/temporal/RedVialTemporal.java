@@ -1,8 +1,8 @@
 package edu.udb.rutasv.nucleo.temporal;
 
-import edu.udb.rutasv.nucleo.error.ValidacionException;
 import edu.udb.rutasv.nucleo.estructuras.Lista;
 import edu.udb.rutasv.nucleo.estructuras.RedVial;
+import edu.udb.rutasv.nucleo.excepciones.ValidacionException;
 import edu.udb.rutasv.nucleo.modelo.Arista;
 import edu.udb.rutasv.nucleo.modelo.Estacion;
 import java.util.HashMap;
