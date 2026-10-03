@@ -1,8 +1,9 @@
 package edu.udb.rutasv.auth;
 
-import edu.udb.rutasv.structures.IndiceFueraDeRangoException;
-import edu.udb.rutasv.structures.Lista;
-import edu.udb.rutasv.structures.Mapa;
+import edu.udb.rutasv.nucleo.error.IndiceFueraDeRangoException;
+import edu.udb.rutasv.nucleo.estructuras.Lista;
+import edu.udb.rutasv.nucleo.estructuras.ListaFake;
+import edu.udb.rutasv.nucleo.estructuras.Mapa;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;

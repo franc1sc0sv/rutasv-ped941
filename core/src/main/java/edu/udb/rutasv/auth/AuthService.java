@@ -1,6 +1,6 @@
 package edu.udb.rutasv.auth;
 
-import edu.udb.rutasv.model.ValidacionException;
+import edu.udb.rutasv.nucleo.error.ValidacionException;
 import java.util.Optional;
 
 /** Registro, inicio y cierre de sesion. Es la unica fuente de sesiones validas. */

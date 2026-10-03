@@ -38,13 +38,19 @@ mvn -B test            # solo pruebas
 
 ```
 core/                    modulo Java (edu.udb.rutasv)
-  model/                 registros del dominio
-  structures/            interfaces de las estructuras
-  structures/temporal/   adaptadores temporales (java.util)
-  algorithms/            algoritmos (Dijkstra, etc.)
-  auth/                  registro, login, roles
-  persistence/           repositorios de archivo
-  service/               SistemaTransporte y autorizacion
+  nucleo/                contratos compartidos
+    estructuras/         interfaces (Lista, Pila, Cola, ColaPrioridad, Mapa, IndiceNombres, RedVial)
+    modelo/              registros del dominio
+    error/               excepciones compartidas
+    archivo/             escritura atomica de archivos
+    temporal/            adaptadores temporales (java.util), se reemplazan por los propios
+  auth/                  registro, login, sesion y autorizacion (RN-1)
+  ruta/                  grafo, pila y Dijkstra (rol Ruta)
+  paradas/               tabla hash, directorio y carga CSV (rol Paradas)
+  busqueda/              arbol AVL y autocompletado (rol Busqueda)
+  terminal/              montículo, cola FIFO y despacho (rol Terminal)
+  historial/             lista dinamica, historial y estadisticas (rol Historial)
+  app/                   SistemaTransporte (unica puerta de entrada) y cableado
 data/                    CSV de ejemplo (datos sinteticos)
 docs/                    documentacion del equipo
 api/  frontend/          vacios hasta decidir el framework
@@ -59,6 +65,7 @@ api/  frontend/          vacios hasta decidir el framework
 ## Documentacion
 
 - [CONTRIBUTING.md](CONTRIBUTING.md): flujo de ramas y PR
+- [docs/arquitectura.md](docs/arquitectura.md)
 - [docs/decisiones.md](docs/decisiones.md)
 - [docs/contratos.md](docs/contratos.md)
 - [docs/tareas-por-rol.md](docs/tareas-por-rol.md)
