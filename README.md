@@ -34,6 +34,15 @@ mvn -B verify          # compila y corre todas las pruebas
 mvn -B test            # solo pruebas
 ```
 
+## Empieza aqui (sin reuniones)
+
+1. Elige tu rol y asignate su issue: [Ruta #1](../../issues/1), [Busqueda #2](../../issues/2), [Terminal #3](../../issues/3), [Historial #4](../../issues/4), [Paradas #5](../../issues/5).
+2. Abre la guia de tu modulo: `core/src/main/java/edu/udb/rutasv/<modulo>/LEEME.md`. Dice que archivos ya existen, que te toca crear y en que orden.
+3. Clona, corre `mvn verify` y crea tu rama `feat/<rol>-<tarea>`.
+4. Implementa tu estructura, quita el `@Disabled` de su prueba de contrato y abre un PR chico por tarea.
+
+No necesitas esperar a nadie: `nucleo/temporal` trae versiones con `java.util` de todo lo que dependa de otro rol.
+
 ## Estructura del repositorio
 
 ```
