@@ -1,7 +1,7 @@
 package edu.udb.rutasv.nucleo.temporal;
 
-import edu.udb.rutasv.nucleo.error.ColeccionVaciaException;
 import edu.udb.rutasv.nucleo.estructuras.Pila;
+import edu.udb.rutasv.nucleo.excepciones.ColeccionVaciaException;
 import java.util.ArrayDeque;
 import java.util.Deque;
 

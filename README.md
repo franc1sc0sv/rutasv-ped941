@@ -41,16 +41,21 @@ core/                    modulo Java (edu.udb.rutasv)
   nucleo/                contratos compartidos
     estructuras/         interfaces (Lista, Pila, Cola, ColaPrioridad, Mapa, IndiceNombres, RedVial)
     modelo/              registros del dominio
-    error/               excepciones compartidas
+    excepciones/         excepciones compartidas
     archivo/             escritura atomica de archivos
     temporal/            adaptadores temporales (java.util), se reemplazan por los propios
-  auth/                  registro, login, sesion y autorizacion (RN-1)
-  ruta/                  grafo, pila y Dijkstra (rol Ruta)
-  paradas/               tabla hash, directorio y carga CSV (rol Paradas)
-  busqueda/              arbol AVL y autocompletado (rol Busqueda)
-  terminal/              montículo, cola FIFO y despacho (rol Terminal)
-  historial/             lista dinamica, historial y estadisticas (rol Historial)
-  app/                   SistemaTransporte (unica puerta de entrada) y cableado
+  <modulo>/              auth, ruta, paradas, busqueda, terminal, historial. Cada uno con:
+    interfaces/          contratos del servicio
+    servicios/           logica de negocio
+    repositorios/        guardar y cargar datos
+    modelo/              clases propias del modulo
+    excepciones/         excepciones propias
+    estructuras/         estructuras de datos propias del rol
+    (ruta tambien tiene algoritmos/)
+  app/                   unica puerta de entrada
+    interfaces/          SistemaTransporte
+    servicios/           SistemaTransporteImpl
+    configuracion/       Aplicacion (cableado)
 data/                    CSV de ejemplo (datos sinteticos)
 docs/                    documentacion del equipo
 api/  frontend/          vacios hasta decidir el framework
