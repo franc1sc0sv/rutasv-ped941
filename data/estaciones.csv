@@ -1,0 +1,9 @@
+codigo;nombre;zona;x;y
+E01;Terminal Occidente;Occidente;10;50
+E02;Redondel Masferrer;Centro;30;50
+E03;Plaza Merliot;Sur;50;45
+E04;Metrocentro;Centro;52;50
+E05;Terminal Oriente;Oriente;90;55
+E06;Parque Central;Centro;40;60
+E07;Hospital Norte;Norte;35;80
+E08;Universidad Sur;Sur;55;20
