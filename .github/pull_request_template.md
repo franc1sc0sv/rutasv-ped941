@@ -15,7 +15,7 @@
 - [ ] Si reemplazo una clase Temporal, agregue la subclase del test de contrato
 
 ## Contratos
-- [ ] No cambia ninguna interfaz de `structures`, `service` ni `persistence`
+- [ ] No cambia ninguna interfaz de `nucleo` ni `app`
 - [ ] Cambia un contrato y ya lo avise al equipo (explicar abajo)
 
 ## Seguridad

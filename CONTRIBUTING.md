@@ -13,7 +13,7 @@ Ejemplo: `feat: add linked stack implementation`.
 
 ## Contratos
 
-Las interfaces de `structures`, `persistence` y `service` son contratos del equipo.
+Las interfaces de `nucleo` y `app` son contratos del equipo.
 Solo cambian por PR, y se avisa antes al equipo. Mira `docs/contratos.md`.
 
 ## Seguridad y datos

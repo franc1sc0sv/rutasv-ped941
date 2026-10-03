@@ -1,11 +1,11 @@
 package edu.udb.rutasv.auth;
 
+import edu.udb.rutasv.nucleo.error.ValidacionException;
+import edu.udb.rutasv.nucleo.estructuras.Lista;
+import edu.udb.rutasv.nucleo.estructuras.ListaFake;
+import edu.udb.rutasv.nucleo.estructuras.Mapa;
 import static org.junit.jupiter.api.Assertions.*;
 
-import edu.udb.rutasv.model.ValidacionException;
-import edu.udb.rutasv.persistence.UsuarioRepositorioArchivo;
-import edu.udb.rutasv.structures.Lista;
-import edu.udb.rutasv.structures.Mapa;
 import java.nio.file.Path;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;

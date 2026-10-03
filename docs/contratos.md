@@ -1,10 +1,10 @@
 # Contratos y como reemplazar una clase Temporal
 
-Cada estructura tiene una interfaz en `edu.udb.rutasv.structures` y un adaptador `...Temporal` en `structures.temporal`.
+Cada estructura tiene una interfaz en `edu.udb.rutasv.nucleo.estructuras` y un adaptador `...Temporal` en `nucleo.temporal`.
 
 ## Pasos
 
-1. Crea tu clase en el paquete que corresponda (por ejemplo `structures`) e implementa la interfaz.
+1. Crea tu clase en la carpeta de tu modulo (por ejemplo `paradas/` para la tabla hash) e implementa la interfaz.
 2. Manten la misma forma del constructor que la clase Temporal (por ejemplo, `ColaPrioridad` recibe un `Comparator<T>`).
 3. Busca el test abstracto de tu contrato (por ejemplo `ListaContractTest`) y agrega una subclase de una linea:
 

@@ -1,10 +1,9 @@
 package edu.udb.rutasv.auth;
 
-import edu.udb.rutasv.model.ValidacionException;
-import edu.udb.rutasv.persistence.UsuarioRepositorio;
-import edu.udb.rutasv.structures.Lista;
-import edu.udb.rutasv.structures.Mapa;
-import edu.udb.rutasv.structures.temporal.ListaTemporal;
+import edu.udb.rutasv.nucleo.error.ValidacionException;
+import edu.udb.rutasv.nucleo.estructuras.Lista;
+import edu.udb.rutasv.nucleo.estructuras.Mapa;
+import edu.udb.rutasv.nucleo.temporal.ListaTemporal;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Map;
