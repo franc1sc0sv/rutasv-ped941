@@ -1,0 +1,13 @@
+target/
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+nbproject/
+*.swp
+.DS_Store
+data/usuarios*
+data/historial*
+.env*
