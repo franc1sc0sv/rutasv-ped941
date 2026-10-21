@@ -1,4 +1,4 @@
-package edu.udb.rutasv.paradas;
+package edu.udb.rutasv.paradas.servicios;
 
 import edu.udb.rutasv.estructuras.TablaHash;
 import edu.udb.rutasv.modelo.Estacion;
