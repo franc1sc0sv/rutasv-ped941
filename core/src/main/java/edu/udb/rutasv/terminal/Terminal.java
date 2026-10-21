@@ -18,7 +18,7 @@ public class Terminal {
 
     public Terminal(String nombreTerminal) {
         this.nombreTerminal = nombreTerminal;
-        this.colaDespacho = new ColaPrioridad<>(Comparator.naturalOrder());
+        this.colaDespacho = new ColaPrioridad<UnidadTransporte>(Comparator.naturalOrder());
         this.filaPasajeros = new ColaFIFO<>();
         this.registroUnidadesEnEspera = new TablaHash<>();
     }
