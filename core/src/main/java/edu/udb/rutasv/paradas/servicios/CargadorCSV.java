@@ -1,4 +1,4 @@
-package edu.udb.rutasv.paradas;
+package edu.udb.rutasv.paradas.servicios;
 
 import edu.udb.rutasv.modelo.Estacion;
 import java.io.BufferedReader;
