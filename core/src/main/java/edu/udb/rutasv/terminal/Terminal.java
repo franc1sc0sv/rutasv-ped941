@@ -1,8 +1,8 @@
 package edu.udb.rutasv.terminal;
 
-import edu.udb.rutasv.estructuras.ColaFIFO;
-import edu.udb.rutasv.estructuras.ColaPrioridad;
-import edu.udb.rutasv.paradas.estructuras.TablaHash;
+import edu.udb.rutasv.terminal.estructuras.ColaFIFO;
+import edu.udb.rutasv.terminal.estructuras.ColaPrioridad;
+import edu.udb.rutasv.terminal.estructuras.TablaHash;
 import edu.udb.rutasv.modelo.Pasajero;
 import edu.udb.rutasv.modelo.UnidadTransporte;
 
