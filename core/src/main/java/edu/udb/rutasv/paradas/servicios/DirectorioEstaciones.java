@@ -1,7 +1,5 @@
 package edu.udb.rutasv.paradas.servicios;
 
-package edu.udb.rutasv.paradas.servicios;
-
 import edu.udb.rutasv.estructuras.TablaHash;
 import edu.udb.rutasv.modelo.Estacion;
 import edu.udb.rutasv.util.TextoUtil;
