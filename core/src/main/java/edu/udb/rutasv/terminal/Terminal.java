@@ -5,21 +5,22 @@ import edu.udb.rutasv.nucleo.estructuras.ColaPrioridadTemporal;
 import edu.udb.rutasv.nucleo.estructuras.MapaTemporal;
 import edu.udb.rutasv.modelo.Pasajero;
 import edu.udb.rutasv.modelo.UnidadTransporte;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
 public class Terminal {
     private String nombreTerminal;
-    private ColaPrioridad<UnidadTransporte> colaDespacho;
-    private ColaFIFO<Pasajero> filaPasajeros;
-    private TablaHash<String, UnidadTransporte> registroUnidadesEnEspera;
+    private ColaPrioridadTemporal<UnidadTransporte> colaDespacho;
+    private ColaTemporal<Pasajero> filaPasajeros;
+    private MapaTemporal<String, UnidadTransporte> registroUnidadesEnEspera;
 
     public Terminal(String nombreTerminal) {
         this.nombreTerminal = nombreTerminal;
-        this.colaDespacho = new ColaPrioridad<UnidadTransporte>(Comparator.naturalOrder());
-        this.filaPasajeros = new ColaFIFO<>();
-        this.registroUnidadesEnEspera = new TablaHash<>();
+        this.colaDespacho = new ColaPrioridadTemporal<>(Comparator.naturalOrder());
+        this.filaPasajeros = new ColaTemporal<>();
+        this.registroUnidadesEnEspera = new MapaTemporal<>();
     }
 
     public void registrarUnidad(UnidadTransporte unidad) {
@@ -51,7 +52,7 @@ public class Terminal {
 
     public List<UnidadTransporte> verOrdenDespacho() {
         List<UnidadTransporte> lista = new ArrayList<>();
-        ColaPrioridad<UnidadTransporte> copia = colaDespacho.copia();
+        ColaPrioridadTemporal<UnidadTransporte> copia = colaDespacho.copia();
         while (!copia.estaVacia()) {
             lista.add(copia.sacarMayor());
         }
