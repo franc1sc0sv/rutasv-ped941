@@ -1,11 +1,10 @@
 package edu.udb.rutasv.terminal;
 
-import edu.udb.rutasv.terminal.estructuras.ColaFIFO;
-import edu.udb.rutasv.terminal.estructuras.ColaPrioridad;
-import edu.udb.rutasv.terminal.estructuras.TablaHash;
+import edu.udb.rutasv.nucleo.estructuras.ColaTemporal;
+import edu.udb.rutasv.nucleo.estructuras.ColaPrioridadTemporal;
+import edu.udb.rutasv.nucleo.estructuras.MapaTemporal;
 import edu.udb.rutasv.modelo.Pasajero;
 import edu.udb.rutasv.modelo.UnidadTransporte;
-
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
