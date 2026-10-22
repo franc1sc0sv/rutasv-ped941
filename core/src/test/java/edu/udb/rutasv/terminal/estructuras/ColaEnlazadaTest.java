@@ -1,15 +1,15 @@
-package rutasv.terminal;
+package edu.udb.rutasv.terminal.estructuras;
 
 import org.junit.jupiter.api.Test;
-import rutasv.estructuras.ColaFIFO;
+import edu.udb.rutasv.nucleo.excepciones.ColeccionVaciaException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class ColaFIFOTest {
+class ColaEnlazadaTest {
 
     @Test
     void testOrdenFIFO_FF01() {
-        ColaFIFO<String> cola = new ColaFIFO<>();
+        ColaEnlazada<String> cola = new ColaEnlazada<>();
         cola.encolar("a");
         cola.encolar("b");
         cola.encolar("c");
@@ -21,15 +21,15 @@ class ColaFIFOTest {
 
     @Test
     void testColaVacia_FF02() {
-        ColaFIFO<String> cola = new ColaFIFO<>();
+        ColaEnlazada<String> cola = new ColaEnlazada<>();
         assertTrue(cola.estaVacia());
-        assertNull(cola.desencolar());
-        assertNull(cola.verFrente());
+        assertThrows(ColeccionVaciaException.class, cola::desencolar);
+        assertThrows(ColeccionVaciaException.class, cola::frente);
     }
 
     @Test
     void testReutilizarTrasVaciar_FF03() {
-        ColaFIFO<String> cola = new ColaFIFO<>();
+        ColaEnlazada<String> cola = new ColaEnlazada<>();
         cola.encolar("a");
         assertEquals("a", cola.desencolar());
         assertTrue(cola.estaVacia());
@@ -40,7 +40,7 @@ class ColaFIFOTest {
 
     @Test
     void test1000Elementos_FF04() {
-        ColaFIFO<Integer> cola = new ColaFIFO<>();
+        ColaEnlazada<Integer> cola = new ColaEnlazada<>();
         for (int i = 0; i < 1000; i++) {
             cola.encolar(i);
         }
