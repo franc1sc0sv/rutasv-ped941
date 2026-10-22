@@ -1,43 +1,75 @@
 package edu.udb.rutasv.terminal.estructuras;
 
 import edu.udb.rutasv.nucleo.estructuras.Cola;
-import edu.udb.rutasv.nucleo.excepciones.NoImplementadoException;
+import edu.udb.rutasv.nucleo.excepciones.ColeccionVaciaException;
 
-/**
- * Fila FIFO de abordaje (rol Terminal).
- * ESQUELETO: reemplaza cada TODO por tu implementacion, sin usar java.util para guardar los datos.
- * Cuando pase el test de contrato, quita el @Disabled de la prueba correspondiente.
- */
+/** Cola FIFO con nodos enlazados (rol Terminal). */
 public class ColaEnlazada<T> implements Cola<T> {
 
-    /** Cola FIFO con nodos enlazados. */
+    private static class Nodo<E> {
+        E dato;
+        Nodo<E> siguiente;
+
+        Nodo(E dato) {
+            this.dato = dato;
+            this.siguiente = null;
+        }
+    }
+
+    private Nodo<T> frente;
+    private Nodo<T> fin;
+    private int tamano;
+
     public ColaEnlazada() {
-        // TODO: inicializa tu estructura
+        this.frente = null;
+        this.fin = null;
+        this.tamano = 0;
     }
 
     @Override
     public void encolar(T elemento) {
-        throw new NoImplementadoException("TODO: ColaEnlazada.encolar");
+        if (elemento == null) {
+            throw new IllegalArgumentException("No se permiten elementos nulos");
+        }
+        Nodo<T> nuevo = new Nodo<>(elemento);
+        if (estaVacia()) {
+            frente = nuevo;
+        } else {
+            fin.siguiente = nuevo;
+        }
+        fin = nuevo;
+        tamano++;
     }
 
     @Override
     public T desencolar() {
-        throw new NoImplementadoException("TODO: ColaEnlazada.desencolar");
+        if (estaVacia()) {
+            throw new ColeccionVaciaException("La cola esta vacia");
+        }
+        T dato = frente.dato;
+        frente = frente.siguiente;
+        if (frente == null) {
+            fin = null;
+        }
+        tamano--;
+        return dato;
     }
 
     @Override
     public T frente() {
-        throw new NoImplementadoException("TODO: ColaEnlazada.frente");
+        if (estaVacia()) {
+            throw new ColeccionVaciaException("La cola esta vacia");
+        }
+        return frente.dato;
     }
 
     @Override
     public boolean estaVacia() {
-        throw new NoImplementadoException("TODO: ColaEnlazada.estaVacia");
+        return tamano == 0;
     }
 
     @Override
     public int tamano() {
-        throw new NoImplementadoException("TODO: ColaEnlazada.tamano");
+        return tamano;
     }
-
 }
