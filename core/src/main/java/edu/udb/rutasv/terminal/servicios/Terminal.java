@@ -2,8 +2,13 @@ package edu.udb.rutasv.terminal.servicios;
 
 import edu.udb.rutasv.nucleo.estructuras.Cola;
 import edu.udb.rutasv.nucleo.estructuras.ColaPrioridad;
+import edu.udb.rutasv.nucleo.estructuras.Lista;
+import edu.udb.rutasv.nucleo.estructuras.Mapa;
+import edu.udb.rutasv.nucleo.excepciones.ValidacionException;
 import edu.udb.rutasv.nucleo.modelo.Pasajero;
 import edu.udb.rutasv.nucleo.modelo.UnidadTransporte;
+import edu.udb.rutasv.nucleo.temporal.ListaTemporal;
+import edu.udb.rutasv.nucleo.temporal.MapaTemporal;
 
 /**
  * Una terminal: sus unidades esperan en una cola de prioridad (RN-4) y sus pasajeros en una fila
@@ -14,6 +19,8 @@ public class Terminal {
     private final String nombre;
     private final ColaPrioridad<UnidadTransporte> unidadesDisponibles;
     private final Cola<Pasajero> filaPasajeros;
+    // TODO: reemplazar MapaTemporal por la tabla hash propia cuando llegue (rol Paradas).
+    private final Mapa<String, UnidadTransporte> unidadesEnEspera = new MapaTemporal<>();
 
     public Terminal(
             String nombre, ColaPrioridad<UnidadTransporte> unidadesDisponibles, Cola<Pasajero> filaPasajeros) {
@@ -36,6 +43,10 @@ public class Terminal {
         if (unidad == null) {
             throw new IllegalArgumentException("La unidad no puede ser nula");
         }
+        if (unidadesEnEspera.contiene(unidad.id())) {
+            throw new ValidacionException("La unidad " + unidad.id() + " ya esta registrada en la terminal");
+        }
+        unidadesEnEspera.poner(unidad.id(), unidad);
         unidadesDisponibles.insertar(unidad);
     }
 
@@ -46,7 +57,24 @@ public class Terminal {
 
     /** Despacha la siguiente unidad. Lanza ColeccionVaciaException si no hay. */
     public UnidadTransporte despacharUnidad() {
-        return unidadesDisponibles.extraer();
+        UnidadTransporte unidad = unidadesDisponibles.extraer();
+        unidadesEnEspera.eliminar(unidad.id());
+        return unidad;
+    }
+
+    /**
+     * Unidades pendientes en el orden en que saldrian, sin vaciar la cola real: se extraen todas y
+     * se vuelven a insertar. Pide un comparador sin empates (como {@link ReglaDespacho}).
+     */
+    public Lista<UnidadTransporte> verOrdenDespacho() {
+        Lista<UnidadTransporte> orden = new ListaTemporal<>();
+        while (!unidadesDisponibles.estaVacia()) {
+            orden.agregar(unidadesDisponibles.extraer());
+        }
+        for (UnidadTransporte unidad : orden) {
+            unidadesDisponibles.insertar(unidad);
+        }
+        return orden;
     }
 
     public boolean hayUnidadesDisponibles() {
@@ -72,5 +100,17 @@ public class Terminal {
 
     public int totalPasajerosEnFila() {
         return filaPasajeros.tamano();
+    }
+
+    /** Pasajeros en la fila, en orden de llegada, sin atender a nadie. */
+    public Lista<Pasajero> verFila() {
+        Lista<Pasajero> fila = new ListaTemporal<>();
+        int total = filaPasajeros.tamano();
+        for (int i = 0; i < total; i++) {
+            Pasajero pasajero = filaPasajeros.desencolar();
+            fila.agregar(pasajero);
+            filaPasajeros.encolar(pasajero);
+        }
+        return fila;
     }
 }
