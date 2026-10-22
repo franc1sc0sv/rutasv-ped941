@@ -11,6 +11,8 @@ import edu.udb.rutasv.auth.repositorios.UsuarioRepositorio;
 import edu.udb.rutasv.auth.servicios.AuthServiceImpl;
 import edu.udb.rutasv.auth.servicios.Autorizador;
 import edu.udb.rutasv.auth.servicios.PasswordHasher;
+import edu.udb.rutasv.busqueda.estructuras.ArbolAvl;
+import edu.udb.rutasv.busqueda.servicios.BusquedaService;
 import edu.udb.rutasv.nucleo.estructuras.Lista;
 import edu.udb.rutasv.nucleo.excepciones.NoImplementadoException;
 import edu.udb.rutasv.nucleo.modelo.Estacion;
@@ -21,6 +23,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
@@ -41,7 +46,9 @@ class SistemaTransporteImplTest {
         public void guardar(Lista<Usuario> usuarios) {
         }
     }, hasher);
-    private final SistemaTransporte sistema = new SistemaTransporteImpl(auth, new Autorizador(auth));
+    private final ArbolAvl indice = new ArbolAvl();
+    private final SistemaTransporte sistema =
+            new SistemaTransporteImpl(auth, new Autorizador(auth), new BusquedaService(indice, new MapaTemporal<>()));
     private final Sesion pasajero;
     private final Sesion admin;
 
@@ -50,6 +57,7 @@ class SistemaTransporteImplTest {
         mapa.poner("root", new Usuario("root", sal, hasher.hashear(CLAVE, sal), Rol.ADMIN));
         admin = auth.iniciarSesion("root", CLAVE);
         pasajero = auth.registrar("ana_01", CLAVE);
+        indice.insertar("Centro", new Estacion("E1", "Centro", "Z1", 0, 0, true));
     }
 
     private Executable[] soloAdmin(Sesion s) {
@@ -71,8 +79,6 @@ class SistemaTransporteImplTest {
 
     private Executable[] paraCualquierSesion(Sesion s) {
         return new Executable[] {
-            () -> sistema.sugerirEstaciones(s, "ce"),
-            () -> sistema.busquedasRecientes(s),
             () -> sistema.calcularRuta(s, "A", "B"),
             () -> sistema.miHistorial(s),
             () -> sistema.buscarEstacion(s, "Centro")
@@ -87,6 +93,8 @@ class SistemaTransporteImplTest {
         for (Executable x : paraCualquierSesion(null)) {
             assertThrows(SesionInvalidaException.class, x);
         }
+        assertThrows(SesionInvalidaException.class, () -> sistema.sugerirEstaciones(null, "ce"));
+        assertThrows(SesionInvalidaException.class, () -> sistema.busquedasRecientes(null));
     }
 
     @Test
@@ -115,8 +123,8 @@ class SistemaTransporteImplTest {
     void mensajeNombraElModulo() {
         assertEquals("Pendiente: modulo Terminal",
                 assertThrows(NoImplementadoException.class, () -> sistema.despacharSiguiente(admin)).getMessage());
-        assertEquals("Pendiente: modulo Busqueda",
-                assertThrows(NoImplementadoException.class, () -> sistema.busquedasRecientes(pasajero)).getMessage());
+        assertEquals("Pendiente: modulo Historial",
+                assertThrows(NoImplementadoException.class, () -> sistema.miHistorial(pasajero)).getMessage());
     }
 
     @Test
@@ -124,6 +132,17 @@ class SistemaTransporteImplTest {
         assertSame(Rol.PASAJERO, sistema.registrar("bob_01", CLAVE).rol());
         Sesion s = sistema.iniciarSesion("bob_01", CLAVE);
         assertEquals("bob_01", s.usuario());
-        
+
+    }
+
+    @Test
+    void busquedaDelegaEnElServicioConElUsuarioDeLaSesion() {
+        List<String> sugeridas = new ArrayList<>();
+        for (String nombre : sistema.sugerirEstaciones(pasajero, "ce")) {
+            sugeridas.add(nombre);
+        }
+        assertEquals(List.of("Centro"), sugeridas);
+        assertEquals("ce", sistema.busquedasRecientes(pasajero).obtener(0));
+        assertTrue(sistema.busquedasRecientes(admin).estaVacia());
     }
 }
