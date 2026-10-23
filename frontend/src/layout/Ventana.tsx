@@ -69,7 +69,8 @@ function VentanaAdmin() {
   const ubicacion = useLocation();
   const refBoton = useRef<HTMLButtonElement>(null);
   const refMenu = useRef<HTMLElement>(null);
-  const titulo = [...ENTRADAS_ADMIN, ...ENTRADAS_PASAJERO].find((e) => ubicacion.pathname.startsWith(e.a))?.texto;
+  // El encabezado dice en que lado de la app estas; el nombre de la pantalla ya esta en su h1.
+  const contexto = ubicacion.pathname.startsWith('/admin') ? 'Panel de administración' : 'Vista de pasajero';
 
   useEffect(() => setAbierto(false), [ubicacion.pathname]);
 
@@ -145,7 +146,7 @@ function VentanaAdmin() {
           >
             Menú
           </Boton>
-          <span className="encabezado__titulo">{titulo ?? 'Administración'}</span>
+          <span className="encabezado__titulo">{contexto}</span>
           <Usuario />
         </header>
         <main id="contenido" className="contenido" tabIndex={-1}>

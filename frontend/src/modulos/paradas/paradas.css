@@ -1,4 +1,13 @@
-/* Registro de paradas: tabla densa + formulario lateral. */
+/* Registro de paradas: formulario en una franja + tabla densa a todo el ancho. */
+.paradas__form {
+  display: grid; gap: var(--esp-3) var(--esp-4); align-items: start;
+  grid-template-columns: 110px minmax(0, 2fr) minmax(0, 1.2fr) 120px 120px;
+}
+.paradas__cierre {
+  grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--esp-3);
+}
+.paradas__resultado { grid-column: 1 / -1; }
+
 .paradas__herramientas { display: grid; gap: var(--esp-3); padding: 0 var(--esp-5) var(--esp-4); }
 .paradas__buscar { display: flex; gap: var(--esp-2); align-items: end; }
 .paradas__filtro { flex: 1; }
@@ -10,10 +19,9 @@
 .paradas__acciones { display: flex; gap: var(--esp-1); justify-content: flex-end; }
 .paradas__aviso td { height: auto; padding-top: 0; padding-bottom: var(--esp-3); background: var(--superficie); }
 
-.paradas__par { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--esp-3); }
-
-@container (min-width: 880px) {
-  .paradas__formulario { position: sticky; top: calc(var(--alto-encabezado) + var(--esp-5)); }
+@container (max-width: 759px) {
+  .paradas__form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .paradas__campo-nombre { grid-column: 1 / -1; grid-row: 2; }
 }
 @container (max-width: 679px) {
   .col-zona, .col-xy { display: none; }

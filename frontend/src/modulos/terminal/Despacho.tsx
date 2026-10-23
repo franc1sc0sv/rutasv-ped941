@@ -136,7 +136,7 @@ export function Despacho() {
               <Tabla etiqueta="Orden de salida de las unidades">
                 <thead>
                   <tr>
-                    <th scope="col" className="num">
+                    <th scope="col" className="num despacho__col-turno">
                       Turno
                     </th>
                     <th scope="col">Unidad</th>
@@ -152,7 +152,7 @@ export function Despacho() {
                   ) : (
                     unidades.map((u, i) => (
                       <tr key={u.id} className={[i === 0 && 'es-siguiente', saliendo === u.id && 'es-saliendo'].filter(Boolean).join(' ')}>
-                        <td className="num cifra">{i + 1}</td>
+                        <td className="num cifra despacho__col-turno">{i + 1}</td>
                         <td>
                           <span className="despacho__unidad cifra">{u.id}</span>
                           {i === 0 && <span className="despacho__siguiente">Siguiente</span>}

@@ -1,7 +1,7 @@
 /* Despacho: tablero de salidas + filas FIFO. */
 .tabla tr.es-siguiente td { background: var(--primario-suave); }
 .tabla tr.es-siguiente td:first-child { box-shadow: inset 4px 0 0 var(--primario); }
-.despacho__unidad { font-size: var(--fs-3); }
+.despacho__unidad { font-size: var(--fs-3); white-space: nowrap; }
 .despacho__siguiente {
   margin-left: var(--esp-2); padding: 0 var(--esp-2); border-radius: var(--radio-1);
   background: var(--primario); color: var(--sobre-primario);
@@ -60,4 +60,10 @@
 @container (max-width: 419px) {
   .fila__form { grid-template-columns: minmax(0, 1fr) 88px; }
   .fila__form .boton { grid-column: 1 / -1; }
+}
+
+@container (max-width: 519px) {
+  .despacho__col-turno { display: none; }
+  .tabla tr.es-siguiente td:nth-child(2) { box-shadow: inset 4px 0 0 var(--primario); }
+  .despacho__siguiente { display: block; width: fit-content; margin: 2px 0 0; }
 }
