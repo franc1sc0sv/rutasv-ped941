@@ -1,6 +1,6 @@
 /* Resultado de ruta: tablero con el tiempo + itinerario como diagrama de linea. */
 .ruta__barra { display: flex; align-items: center; justify-content: space-between; gap: var(--esp-3); }
-.ruta__error-detalle { display: inline-flex; flex-wrap: wrap; align-items: center; gap: var(--esp-2); margin-top: var(--esp-2); }
+.ruta__pedir { display: grid; justify-items: start; gap: var(--esp-4); }
 
 /* ---------- Tablero: el tiempo de viaje es lo primero que se lee ---------- */
 .tablero {
