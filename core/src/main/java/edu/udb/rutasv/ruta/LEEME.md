@@ -12,32 +12,29 @@ mvn verify                       # debe terminar en BUILD SUCCESS
 git checkout -b feat/ruta-<tarea>
 ```
 
-## Ya esta creado para ti (esqueletos con `TODO`)
+## Que hay (hecho)
 
-- `estructuras/GrafoListaAdyacencia.java` implementa `RedVial`
-- `estructuras/PilaEnlazada.java` implementa `Pila`
+- `estructuras/GrafoListaAdyacencia.java`: lista de adyacencia sobre tablas hash; RN-2 y RN-3.
+- `estructuras/PilaEnlazada.java`: pila con nodos, O(1).
+- `algoritmos/Dijkstra.java`: cola de prioridad + tablas hash de peso y anterior; salta inactivas; RN-6. O((V + E) log V).
+- `interfaces/RutaService.java` y `servicios/RutaServiceImpl.java`: arma `RutaCalculada` y mide el tiempo con `System.nanoTime`.
+- `interfaces/FabricaColaPrioridad` y `FabricaMapa`: `app` le pasa `MonticuloBinario::new` (Terminal) y, cuando llegue, `TablaHash::new` (Paradas).
+- Conectado en `SistemaTransporteImpl.calcularRuta`, `verRed` y `agregarTramo`.
 
-Las pruebas ``GrafoListaAdyacenciaContratoTest` y `PilaEnlazadaContratoTest`` (en `src/test/.../ruta/estructuras/`) ya estan conectadas y tienen `@Disabled`. Cuando tu clase este lista, quita esa linea: el test de contrato te dice si cumples.
+## Pendiente de otros roles
 
-## Te toca crear
-
-- `algoritmos/Dijkstra.java`
-- `interfaces/RutaService.java` y `servicios/RutaServiceImpl.java`: arma `RutaCalculada` con tramos, minutos, km y tiempo (`System.nanoTime`)
-- Conectalo en `app/servicios/SistemaTransporteImpl.calcularRuta` (hoy lanza `NoImplementadoException`)
-
-## Mientras otros terminan lo suyo
-
-Usa `ListaTemporal`, `MapaTemporal` (pesos y anterior) y `ColaPrioridadTemporal` (con `Comparator`) de `nucleo/temporal`, hasta que lleguen las propias.
+- `MapaTemporal::new` -> `TablaHash::new` en `Aplicacion` cuando Paradas termine.
+- `ListaTemporal` -> `ListaDinamica` en `GrafoListaAdyacencia.nuevaLista` y `Dijkstra.reconstruir` cuando Historial termine.
 
 ## Tus tareas (de la Fase 2)
 
-- [ ] 1. Grafo con lista de adyacencia (`agregarEstacion`, `agregarTramo`, `vecinos`). Rechaza pesos <= 0 (RN-2). Un tramo por sentido (RN-3).
-- [ ] 2. Pila enlazada propia.
-- [ ] 3. Dijkstra con cola de prioridad y tablas hash de peso y anterior. Salta estaciones inactivas. Avisa si no hay ruta (RN-6).
-- [ ] 4. Reconstruccion con la pila y `RutaCalculada`.
-- [ ] 5. Tiempo de calculo con `System.nanoTime`.
+- [x] 1. Grafo con lista de adyacencia (`agregarEstacion`, `agregarTramo`, `vecinos`). Rechaza pesos <= 0 (RN-2). Un tramo por sentido (RN-3).
+- [x] 2. Pila enlazada propia.
+- [x] 3. Dijkstra con cola de prioridad y tablas hash de peso y anterior. Salta estaciones inactivas. Avisa si no hay ruta (RN-6).
+- [x] 4. Reconstruccion con la pila y `RutaCalculada`.
+- [x] 5. Tiempo de calculo con `System.nanoTime`.
 - [ ] 6. Pantalla Resultado de ruta (Fig 6).
-- [ ] 7. Pruebas: Occidente -> Metrocentro 18 min, origen = destino, sin ruta, peso invalido, estacion inactiva.
+- [x] 7. Pruebas: Occidente -> Metrocentro 18 min, origen = destino, sin ruta, peso invalido, estacion inactiva.
 - [ ] 8. Documento: pseudocodigo con la pila, complejidad de Dijkstra, A*, Bellman-Ford.
 
 ## Reglas
