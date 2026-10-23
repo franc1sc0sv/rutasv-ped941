@@ -1,7 +1,7 @@
 # RutaSV · frontend (React)
 
 Interfaz web de RutaSV hecha con Vite 5 + React 18 + TypeScript + react-router 6.
-No usa librerías de componentes ni frameworks de CSS: los estilos son CSS plano con tokens en `src/styles/tokens.css`.
+No usa librerías de componentes ni frameworks de CSS. Los estilos son CSS plano con tokens en `src/styles/tokens.css` y componentes propios en `src/comun/ui/`. La dirección visual, los tokens y las reglas están en [`DESIGN.md`](DESIGN.md).
 
 Habla con la API Java de `api/` según el contrato de [`docs/api.md`](../docs/api.md).
 
@@ -38,14 +38,15 @@ Usuario admin: `admin` / `admin-demo-123`. Los pasajeros se crean desde la panta
 |---|---|---|
 | `src/api/` | `cliente.ts` (fetch + token + errores) y `tipos.ts` (formas JSON de `docs/api.md`) | todos (cambios con aviso) |
 | `src/sesion/` | `SesionContext`, Login/Registro, guardas de ruta (sesión y admin) | Auth |
-| `src/layout/` | Ventana base: menú lateral (admin) o barra inferior (pasajero) | todos |
-| `src/comun/` | `Pendiente`, `Cargando`, `MensajeError`, `MapaRed`, `usePedido`, `useEstaciones`, formatos | todos |
+| `src/layout/` | Ventana base: menú lateral de señal (admin) o barra inferior (pasajero), `Marca` | todos |
+| `src/comun/ui/` | Componentes base: `Boton`, `Campo`/`Entrada`/`Selector`, `Combobox`, `Tabla`, `Tarjeta`, `Aviso`, `Insignia`, `EstadoVacio`, `Cargando`/`Esqueleto`, `Pendiente`, `Pagina`, `Icono` (+ `ui.css`) | todos (cambios con aviso) |
+| `src/comun/` | `MapaRed`, `usePedido`, `useEstaciones`, formatos | todos |
 | `src/modulos/busqueda/` | Buscar ruta (Fig. 5) y el autocompletado | Búsqueda |
 | `src/modulos/ruta/` | Resultado de ruta (Fig. 6) | Ruta |
 | `src/modulos/historial/` | Mi historial (Fig. 7), Red vial (Fig. 8), Historial global (Fig. 11) | Historial |
 | `src/modulos/paradas/` | Registro de paradas (Fig. 9) | Paradas |
 | `src/modulos/terminal/` | Despacho (Fig. 10) | Terminal |
-| `src/styles/` | `tokens.css` (colores, espacios, radios, tipografía, modo oscuro) y `global.css` | todos |
+| `src/styles/` | `tokens.css` (única fuente de colores, tipografía, espacios, radios, elevación y movimiento, con modo oscuro) y `global.css` (base y rejillas) | todos |
 
 Cada pantalla dice al inicio del archivo qué rol la mantiene y qué endpoints usa.
 
@@ -69,7 +70,38 @@ Después de entrar: el pasajero va a Buscar ruta y el admin a Red vial.
 1. Busca tu endpoint en [`docs/api.md`](../docs/api.md). Si devuelve una forma nueva, agrégala a `src/api/tipos.ts`.
 2. Pide los datos con `src/api/cliente.ts`: `api.get<Tipo>('/ruta', { parametro })`, `api.post('/ruta', cuerpo)`, `api.put(...)` o `api.patch(...)`. El token se agrega solo. Cualquier error llega como `ApiError` con `status`, `message` (el texto del backend) y `pendiente`.
 3. Para cargar al abrir la pantalla usa `usePedido(() => api.get<Tipo>('/ruta'), [])`, que te da `datos`, `error`, `cargando` y `recargar`.
-4. Mientras el backend responda 501, la pantalla muestra `<Pendiente rol="..." />`. Cuando tu módulo esté listo, esa tarjeta deja de salir sola, porque solo se pinta si `error.pendiente` es `true`. Revisa entonces que la vista con datos se vea bien y borra lo que ya no haga falta.
+4. Mientras el backend responda 501, la pantalla muestra `<Pendiente rol="..." />` (de `src/comun/ui`). Cuando tu módulo esté listo, esa tarjeta deja de salir sola, porque solo se pinta si `error.pendiente` es `true`. Revisa entonces que la vista con datos se vea bien y borra lo que ya no haga falta.
+
+## Cómo usar el sistema de diseño
+
+Importa todo desde `src/comun/ui` y no escribas estilos que ya existen:
+
+```tsx
+import { Aviso, Boton, Campo, Entrada, Pagina, Pendiente, Tarjeta } from '../../comun/ui';
+
+<Pagina titulo="Mi pantalla" figura="Fig. 7" descripcion="Una frase que diga para qué sirve.">
+  <Tarjeta titulo="Agregar algo">
+    <form className="pila" onSubmit={guardar} noValidate>
+      <Campo etiqueta="Minutos" ayuda="Mayor que 0" error={errorMinutos}>
+        <Entrada type="number" value={min} onChange={(e) => setMin(e.target.value)} />
+      </Campo>
+      {aviso && <Aviso tono={aviso.tono}>{aviso.texto}</Aviso>}
+      <Boton variante="primario" type="submit" icono="mas" cargando={enviando}>Agregar</Boton>
+    </form>
+  </Tarjeta>
+</Pagina>
+```
+
+Al conectar una pantalla, revisa estos puntos:
+
+- **Estados.** Mientras carga, usa `<Esqueleto />` si conoces la forma del contenido y `<Cargando />` si no. Si falla, usa `<Aviso tono="error" titulo="No se pudo …">{error.message}</Aviso>`. Si no hay datos, usa `<EstadoVacio titulo="…" accion={…}>` con el siguiente paso. Mientras el endpoint responda 501, usa `<Pendiente rol="…" />`.
+- **Errores de campo.** Pásalos en `<Campo error="…">`. El campo queda marcado y el lector de pantalla lo anuncia.
+- **Tablas.** Envuelve con `<Tabla etiqueta="…">`, marca las cifras con `className="num"` y muestra la tabla vacía con `<FilaVacia>`.
+- **Tipo de ruta.** Usa `<InsigniaTipo tipo="EXPRES" />`. Para los códigos de estación, usa `<CodigoEstacion codigo="E01" />`.
+- **Rejillas.** Usa `rejilla-2`, `rejilla-2--invertida` o `rejilla-2--pareja`. Se adaptan al ancho del contenido.
+- **CSS de tu módulo.** Solo usa `var(--token)`. Si te falta un color o una medida, agrégalo en `tokens.css` con su valor oscuro y documéntalo en `DESIGN.md`.
+- **Movimiento.** Usa `--dur-*` y `--curva-*`, anima solo `transform` y `opacity`, y mantente por debajo de 300 ms. El modo de movimiento reducido ya está cubierto en `global.css`.
+- **Texto.** Escribe en español, tuteando y en minúscula de oración. Los botones empiezan con un verbo ("Agregar tramo", no "Enviar"). Cada error dice qué pasó y cómo arreglarlo.
 
 ## Limitaciones conocidas
 
