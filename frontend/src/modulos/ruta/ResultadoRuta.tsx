@@ -1,14 +1,13 @@
 // Resultado de ruta (Fig. 6). Rol dueno: Ruta.
 // Endpoints: GET /rutas?origen=E01&destino=E04 (ruta con estaciones y tramos), GET /red (mapa de fondo).
 // Lee origen y destino de la URL; si faltan, vuelve a la ultima ruta vista o invita a buscar una.
-import { Link, Navigate, useSearchParams } from 'react-router-dom';
+// Jerarquia: el tiempo total manda; luego el itinerario como diagrama de linea; luego el mapa.
+import { Navigate, useSearchParams } from 'react-router-dom';
 import { api, ApiError } from '../../api/cliente';
 import type { Red, Ruta } from '../../api/tipos';
-import { Cargando } from '../../comun/Cargando';
 import { km, nsAMs } from '../../comun/formato';
 import { MapaRed } from '../../comun/MapaRed';
-import { MensajeError } from '../../comun/MensajeError';
-import { Pagina } from '../../comun/Pagina';
+import { Aviso, BotonEnlace, CodigoEstacion, Esqueleto, EstadoVacio, Pagina, Tarjeta } from '../../comun/ui';
 import { usePedido } from '../../comun/usePedido';
 import './ruta.css';
 
@@ -23,13 +22,18 @@ export function ResultadoRuta() {
   if (!origen || !destino) {
     if (ultimaConsulta) return <Navigate to={`/ruta?${ultimaConsulta}`} replace />;
     return (
-      <Pagina figura="Fig. 6 · Ruta" titulo="Resultado de ruta">
-        <div className="tarjeta vacio">
-          <p>Todavía no has calculado una ruta.</p>
-          <Link className="boton boton--primario" to="/buscar">
-            Buscar una ruta
-          </Link>
-        </div>
+      <Pagina angosta figura="Fig. 6" titulo="Resultado de ruta">
+        <EstadoVacio
+          icono="ruta"
+          titulo="Aún no calculas una ruta"
+          accion={
+            <BotonEnlace a="/buscar" variante="primario" icono="buscar">
+              Buscar una ruta
+            </BotonEnlace>
+          }
+        >
+          Elige un origen y un destino; aquí verás el tiempo de viaje y cada parada del recorrido.
+        </EstadoVacio>
       </Pagina>
     );
   }
@@ -37,36 +41,41 @@ export function ResultadoRuta() {
   return <Detalle origen={origen} destino={destino} />;
 }
 
+const volver = (
+  <BotonEnlace a="/buscar" icono="atras" tamano="sm">
+    Nueva búsqueda
+  </BotonEnlace>
+);
+
 function Detalle({ origen, destino }: { origen: string; destino: string }) {
   const ruta = usePedido(() => api.get<Ruta>('/rutas', { origen, destino }), [origen, destino]);
   const red = usePedido(() => api.get<Red>('/red'), []);
 
-  const volver = (
-    <Link className="boton" to="/buscar">
-      ← Nueva búsqueda
-    </Link>
-  );
-
   if (ruta.cargando) {
     return (
-      <Pagina figura="Fig. 6 · Ruta" titulo="Resultado de ruta" acciones={volver}>
-        <Cargando texto="Calculando la ruta más corta…" />
+      <Pagina figura="Fig. 6" titulo="Calculando tu ruta…" acciones={volver}>
+        <div className="tarjeta">
+          <Esqueleto lineas={4} etiqueta="Calculando la ruta más corta…" />
+        </div>
       </Pagina>
     );
   }
 
   if (ruta.error || !ruta.datos) {
     const e = ruta.error;
-    const mensaje =
-      e instanceof ApiError && e.status === 404 ? 'No existe ruta entre estas estaciones (RN-6).' : e?.message ?? 'No se pudo calcular la ruta.';
+    const sinRuta = e instanceof ApiError && e.status === 404;
     return (
-      <Pagina figura="Fig. 6 · Ruta" titulo="Resultado de ruta" acciones={volver}>
-        <MensajeError mensaje={mensaje} tono={e?.status === 404 ? 'aviso' : 'error'}>
-          <p className="ruta__error-detalle">
-            Origen <code>{origen}</code> → destino <code>{destino}</code>.{' '}
-            {e?.status === 404 && 'Las estaciones no están conectadas por ningún tramo activo.'}
+      <Pagina figura="Fig. 6" titulo="Resultado de ruta" acciones={volver}>
+        <Aviso tono={sinRuta ? 'aviso' : 'error'} titulo={sinRuta ? 'No hay ruta entre estas estaciones' : 'No se pudo calcular la ruta'}>
+          <p>
+            {sinRuta
+              ? 'Ningún tramo activo conecta el origen con el destino (RN-6). Prueba con otra estación cercana.'
+              : e?.message ?? 'Inténtalo de nuevo en un momento.'}
           </p>
-        </MensajeError>
+          <p className="ruta__error-detalle">
+            Origen <CodigoEstacion codigo={origen} /> · destino <CodigoEstacion codigo={destino} />
+          </p>
+        </Aviso>
       </Pagina>
     );
   }
@@ -74,83 +83,105 @@ function Detalle({ origen, destino }: { origen: string; destino: string }) {
   const r = ruta.datos;
   const primera = r.estaciones[0];
   const ultima = r.estaciones[r.estaciones.length - 1];
+  const nombreOrigen = primera?.nombre ?? r.origen;
+  const nombreDestino = ultima?.nombre ?? r.destino;
+  const paradasIntermedias = Math.max(r.estaciones.length - 2, 0);
+
+  // Minuto acumulado al llegar a cada parada (como en un horario de linea).
+  const acumulado: number[] = [0];
+  r.tramos.forEach((t, i) => acumulado.push(acumulado[i] + t.minutos));
 
   return (
-    <Pagina
-      figura="Fig. 6 · Ruta"
-      titulo={`${primera?.nombre ?? r.origen} → ${ultima?.nombre ?? r.destino}`}
-      descripcion="Ruta más corta por tiempo de viaje (Dijkstra)."
-      acciones={volver}
-    >
-      <section className="kpis" aria-label="Resumen de la ruta">
-        <div className="kpi kpi--acento">
-          <div className="kpi__etiqueta">Tiempo total</div>
-          <div className="kpi__valor" data-prueba="minutos">
-            {r.minutos}
-            <small>min</small>
-          </div>
+    <div className="pagina">
+      <div className="ruta__barra">
+        {volver}
+        <span className="pagina__figura" title="Figura del documento del proyecto">
+          Fig. 6
+        </span>
+      </div>
+
+      <section className="tablero" aria-labelledby="ruta-titulo">
+        <p className="tablero__tiempo" data-prueba="minutos">
+          <span className="tablero__cifra">{r.minutos}</span>
+          <span className="tablero__unidad">min</span>
+        </p>
+        <div className="tablero__trayecto">
+          <h1 id="ruta-titulo" className="tablero__ruta">
+            <span className="tablero__estacion">{nombreOrigen}</span>
+            <span className="oculto-visual"> a </span>
+            <span className="tablero__estacion tablero__estacion--destino">{nombreDestino}</span>
+          </h1>
+          <ul className="tablero__datos lista-limpia" aria-label="Resumen del viaje">
+            <li>
+              <span className="cifra">{km(r.km)}</span>
+            </li>
+            <li>
+              <span className="cifra">{r.tramos.length}</span> {r.tramos.length === 1 ? 'tramo' : 'tramos'}
+            </li>
+            <li>
+              <span className="cifra">{paradasIntermedias}</span> {paradasIntermedias === 1 ? 'parada intermedia' : 'paradas intermedias'}
+            </li>
+          </ul>
         </div>
-        <div className="kpi">
-          <div className="kpi__etiqueta">Distancia</div>
-          <div className="kpi__valor">{km(r.km)}</div>
-        </div>
-        <div className="kpi">
-          <div className="kpi__etiqueta">Tramos</div>
-          <div className="kpi__valor">{r.tramos.length}</div>
-        </div>
-        <div className="kpi">
-          <div className="kpi__etiqueta">Tiempo de cálculo</div>
-          <div className="kpi__valor kpi__valor--chico">{nsAMs(r.tiempoCalculoNs)}</div>
-        </div>
+        <p className="tablero__nota">
+          Ruta más corta por tiempo de viaje (Dijkstra) · calculada en <span className="cifra">{nsAMs(r.tiempoCalculoNs)}</span>
+        </p>
       </section>
 
-      <div className="rejilla-2">
-        <section className="tarjeta tarjeta--relleno" aria-labelledby="mapa-titulo">
-          <h2 id="mapa-titulo">Mapa</h2>
+      <div className="rejilla-2 rejilla-2--invertida ruta__cuerpo">
+        <Tarjeta titulo="Itinerario" detalle={`${r.estaciones.length} paradas`}>
+          <ol className="linea">
+            {r.estaciones.map((e, i) => {
+              const t = r.tramos[i];
+              const esPrimera = i === 0;
+              const esUltima = i === r.estaciones.length - 1;
+              return (
+                <li
+                  key={`${e.codigo}-${i}`}
+                  className={`linea__parada${esPrimera || esUltima ? ' es-extremo' : ''}`}
+                  style={{ ['--i' as string]: i }}
+                >
+                  <span className="linea__punto" aria-hidden="true" />
+                  <div className="linea__estacion">
+                    <span className="linea__nombre">{e.nombre}</span>
+                    <span className="linea__meta">
+                      <CodigoEstacion codigo={e.codigo} /> {e.zona}
+                      {esPrimera && <span className="linea__rotulo">Salida</span>}
+                      {esUltima && <span className="linea__rotulo">Llegada</span>}
+                    </span>
+                  </div>
+                  <span className="linea__acumulado" aria-label={esPrimera ? 'minuto 0' : `minuto ${acumulado[i]} del viaje`}>
+                    {esPrimera ? '0' : `+${acumulado[i]}`}
+                    <small>min</small>
+                  </span>
+                  {t && !esUltima && (
+                    <p className="linea__tramo">
+                      <span className="linea__tramo-min">{t.minutos} min</span>
+                      <span className="linea__tramo-km">{km(t.km)}</span>
+                    </p>
+                  )}
+                </li>
+              );
+            })}
+          </ol>
+        </Tarjeta>
+
+        <Tarjeta titulo="Mapa">
           {red.datos ? (
             <MapaRed
               estaciones={red.datos.estaciones}
               tramos={red.datos.tramos}
               ruta={r.estaciones.map((e) => e.codigo)}
               atenuarRed
-              titulo={`Ruta de ${primera?.nombre} a ${ultima?.nombre} sobre la red vial`}
+              titulo={`Ruta de ${nombreOrigen} a ${nombreDestino} sobre la red vial`}
             />
           ) : red.error ? (
-            <MensajeError mensaje={`No se pudo cargar la red: ${red.error.message}`} />
+            <Aviso tono="error">No se pudo cargar el mapa. {red.error.message}</Aviso>
           ) : (
-            <Cargando texto="Cargando mapa…" />
+            <Esqueleto alto={260} etiqueta="Cargando mapa…" />
           )}
-        </section>
-
-        <section className="tarjeta tarjeta--relleno" aria-labelledby="itinerario-titulo">
-          <h2 id="itinerario-titulo">Itinerario</h2>
-          <ol className="itinerario">
-            {r.estaciones.map((e, i) => {
-              const t = r.tramos[i];
-              const extremo = i === 0 || i === r.estaciones.length - 1;
-              return (
-                <li key={`${e.codigo}-${i}`} className={`itinerario__paso ${extremo ? 'es-extremo' : ''}`}>
-                  <span className="itinerario__punto" aria-hidden="true" />
-                  <div className="itinerario__estacion">
-                    <strong>{e.nombre}</strong>
-                    <span className="texto-suave">
-                      {e.codigo} · {e.zona}
-                      {i === 0 && ' · salida'}
-                      {i === r.estaciones.length - 1 && ' · llegada'}
-                    </span>
-                  </div>
-                  {t && i < r.estaciones.length - 1 && (
-                    <div className="itinerario__tramo">
-                      <span>{t.minutos} min</span>
-                      <span className="texto-suave">{km(t.km)}</span>
-                    </div>
-                  )}
-                </li>
-              );
-            })}
-          </ol>
-        </section>
+        </Tarjeta>
       </div>
-    </Pagina>
+    </div>
   );
 }
