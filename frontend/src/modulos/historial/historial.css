@@ -1,0 +1,55 @@
+/* Historial: lista de viajes, cifras globales y red vial. */
+
+/* ---------- Mi historial: cada viaje como una fila de horario ---------- */
+.viajes { display: grid; gap: var(--esp-2); }
+.viaje {
+  display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: var(--esp-1) var(--esp-4); align-items: center;
+  padding: var(--esp-4) var(--esp-5);
+  background: var(--superficie); border: 1px solid var(--borde); border-radius: var(--radio-3);
+  color: inherit; text-decoration: none;
+  transition: border-color var(--dur-corta) ease, transform var(--dur-presion) var(--curva-salida);
+}
+.viaje:active { transform: scale(0.99); }
+@media (hover: hover) and (pointer: fine) { .viaje:hover { border-color: var(--primario); color: inherit; } }
+.viaje__min { grid-row: 1 / span 2; display: flex; align-items: baseline; gap: 2px; }
+.viaje__min .cifra { font-size: var(--fs-6); font-weight: var(--peso-senal); letter-spacing: -0.03em; line-height: 1; }
+.viaje__min small { font-family: var(--fuente-senal); font-weight: var(--peso-fuerte); color: var(--texto-suave); }
+.viaje__trayecto { display: flex; flex-wrap: wrap; align-items: center; gap: var(--esp-1) var(--esp-2); font-family: var(--fuente-senal); font-weight: var(--peso-fuerte); }
+.viaje__estacion { display: inline-flex; align-items: center; gap: var(--esp-2); }
+.viaje__estacion::before {
+  content: ''; width: 10px; height: 10px; border-radius: var(--radio-redondo);
+  border: 3px solid var(--primario); background: var(--superficie);
+}
+.viaje__estacion--destino::before { background: var(--primario); }
+.viaje__datos { display: flex; flex-wrap: wrap; gap: var(--esp-1) var(--esp-3); font-size: var(--fs-2); color: var(--texto-suave); }
+
+/* ---------- Historial global: cifras ---------- */
+.cifras {
+  margin: 0; display: grid; gap: var(--esp-2);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+.cifras__item {
+  display: grid; gap: var(--esp-2); align-content: start;
+  padding: var(--esp-5); background: var(--superficie); border: 1px solid var(--borde); border-radius: var(--radio-3);
+}
+.cifras__item dt { font-size: var(--fs-2); color: var(--texto-suave); }
+.cifras__item dd { margin: 0; font-size: var(--fs-6); line-height: 1.1; }
+.cifras__item--principal { background: var(--tinta); border-color: var(--tinta); }
+.cifras__item--principal dt { color: var(--sobre-tinta-suave); }
+.cifras__item--principal dd { color: var(--sobre-tinta); font-size: var(--fs-7); }
+.cifras__item dd.cifras__texto { font-family: var(--fuente-senal); font-weight: var(--peso-fuerte); font-size: var(--fs-4); }
+
+.top5 { list-style: none; margin: 0; padding: 0; display: grid; }
+.top5 li { display: flex; align-items: center; gap: var(--esp-4); min-height: 48px; border-bottom: 1px solid var(--borde); }
+.top5 li:last-child { border-bottom: 0; }
+.top5__pos {
+  display: grid; place-items: center; flex: none; width: 28px; height: 28px; border-radius: var(--radio-1);
+  background: var(--tinta); color: var(--sobre-tinta); font-size: var(--fs-2);
+}
+
+/* ---------- Red vial ---------- */
+.red__medidas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--esp-3); }
+.red__celda-estacion { display: inline-flex; align-items: center; gap: var(--esp-2); white-space: nowrap; }
+@container (min-width: 880px) {
+  .red__formulario { position: sticky; top: calc(var(--alto-encabezado) + var(--esp-5)); }
+}
