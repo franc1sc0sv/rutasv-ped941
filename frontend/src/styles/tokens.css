@@ -124,6 +124,11 @@
   --control-alto: 40px;  /* alto de botones y campos (admin) */
 }
 
+/* En pantallas tactiles todos los controles miden al menos 44 px de alto (WCAG 2.5.5). */
+@media (pointer: coarse) {
+  :root { --control-alto: 44px; }
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: dark;
