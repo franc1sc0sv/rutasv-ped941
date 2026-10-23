@@ -118,7 +118,8 @@ public class SistemaTransporteImpl implements SistemaTransporte {
     @Override
     public Lista<RutaCalculada> miHistorial(Sesion sesion) {
         autorizador.exigirSesion(sesion);
-        throw pendiente("Historial");
+        var historial = conectado(m.historial(), "Historial");
+        return leer(() -> historial.deUsuario(sesion.usuario()));
     }
 
     @Override

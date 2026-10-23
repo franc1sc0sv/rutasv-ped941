@@ -71,6 +71,19 @@ class AplicacionTest {
         assertEquals("ter", sistema.busquedasRecientes(s).obtener(0));
     }
 
+    @Test
+    void miHistorialCargaLasRutasDelUsuarioDesdeElArchivo() throws IOException {
+        Files.writeString(dir.resolve("historial.txt"), String.join("\n",
+                "E01;E04;E01>E02>E04;18;7.5;2026-10-22T08:30:15;125000;usuario_prueba",
+                "E04;E05;E04>E05;9;3.0;2026-10-22T09:00:00;90000;otro_usuario"));
+        SistemaTransporte sistema = Aplicacion.crear(dir, Map.of());
+        Sesion s = sistema.registrar("usuario_prueba", "clave-sintetica-1");
+
+        Lista<RutaCalculada> mias = sistema.miHistorial(s);
+        assertEquals(1, mias.tamano());
+        assertEquals(List.of("E01", "E02", "E04"), mias.obtener(0).tramos());
+    }
+
     /** Sistema armado con los CSV de ejemplo de {@code data/} y un admin. */
     private SistemaTransporte conDatosDeEjemplo() throws IOException {
         for (String archivo : new String[] {"estaciones.csv", "tramos.csv"}) {
