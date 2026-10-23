@@ -17,11 +17,11 @@ git checkout -b feat/historial-<tarea>
 - `estructuras/ListaDinamica.java` implementa `Lista` sobre un arreglo que duplica su capacidad al llenarse. `ListaDinamicaContratoTest` ya corre sin `@Disabled`.
 - `repositorios/HistorialRepositorioArchivo.java`: una linea por ruta en `historial.txt` (`origen;destino;E01>E02>E04;minutos;km;fecha;tiempoCalculoNs;usuario`), escrita con `ArchivoAtomico`. Una linea mal formada hace fallar el arranque con su numero de linea, igual que `usuarios.txt`.
 - `servicios/HistorialService.java`: carga el historial al arrancar y devuelve las rutas de cada usuario en orden. Conectado en `Modulos` y en `miHistorial`.
+- `servicios/EstadisticasService.java`: total, ruta mas consultada, top 5 (conteo por par en un `Mapa`, orden con `ColaPrioridad`) y tiempo promedio. `totalBusquedas` cuenta solo las busquedas que encontraron ruta, porque las fallidas no se guardan (RN-6). Conectado en `estadisticas` (solo ADMIN).
 
 ## Te toca crear
 
-- `servicios/`: estadisticas (conteo por par con tabla hash, top 5 con cola de prioridad, tiempo promedio)
-- Conectalo: implementa `estadisticas`, y guarda la ruta en `SistemaTransporteImpl.calcularRuta` solo cuando el `Optional` tenga valor (RN-6 y RN-7; ver el comentario en ese metodo)
+- Guarda la ruta en `SistemaTransporteImpl.calcularRuta` solo cuando el `Optional` tenga valor (RN-6 y RN-7; ver el comentario en ese metodo)
 - La pantalla Red vial usa `verRed` y `agregarTramo`, que ya conecto Ruta
 
 ## Mientras otros terminan lo suyo
@@ -33,10 +33,10 @@ Usa `ListaTemporal`, `MapaTemporal` y `ColaPrioridadTemporal` de `nucleo/tempora
 - [x] 1. Modelo de datos (**ya hecho**; revisalo).
 - [x] 2. Lista dinamica propia.
 - [ ] 3. Historial de rutas por usuario con fecha y tiempo (RN-7). No guarda si no hay ruta (RN-6). Guardar y cargar archivo.
-- [ ] 4. Estadisticas: conteo por par, top 5, tiempo promedio.
+- [x] 4. Estadisticas: conteo por par, top 5, tiempo promedio.
 - [ ] 5. Pantalla Red vial (Fig 8).
 - [ ] 6. Pantallas Mi historial e Historial global (Fig 7 y 11).
-- [ ] 7. Pruebas: la lista crece al pasar su capacidad, 3 rutas quedan en orden, el top 5 sale ordenado.
+- [x] 7. Pruebas: la lista crece al pasar su capacidad, 3 rutas quedan en orden, el top 5 sale ordenado.
 - [ ] 8. Video del equipo y documento (recalcular datos de figuras 7, 8 y 11, M7).
 
 ## Reglas
