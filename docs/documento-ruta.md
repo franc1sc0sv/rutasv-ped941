@@ -63,6 +63,21 @@ Que cambio respecto a la Figura 12 de la Fase 1:
 
 Ejemplo de la Figura 6 (datos de `data/tramos.csv`): Terminal Occidente (E01) -> Metrocentro (E04) = E01, E02, E03, E04 con 8 + 8 + 2 = **18 minutos** y 4.0 + 4.5 + 1.0 = **9.5 km**.
 
+Antes de Dijkstra, `RutaServiceImpl` rechaza un codigo que no existe con un error de validacion (HTTP 400). `SIN_RUTA` queda para estaciones inactivas o inalcanzables (RN-6, HTTP 404).
+
+### Tabla 4 actualizada: estructuras del calculo
+
+| Estructura | Clase | Que resuelve | Cuando |
+|---|---|---|---|
+| Tabla hash de estaciones | `Mapa<String, Estacion>` | Saber si una estacion existe y esta activa | Paso 0, se arma dentro de Dijkstra desde la red |
+| Lista de adyacencia | `GrafoListaAdyacencia` (`RedVial`) | Tramos salientes de cada estacion | Paso 2 |
+| Cola de prioridad | `MonticuloBinario` (`ColaPrioridad`) | Siguiente estacion pendiente de menor peso | Pasos 1 y 2 |
+| Tablas hash de peso, km, anterior y cerradas | `Mapa<String, ...>` | Peso acumulado, km, predecesor y estaciones ya definitivas | Pasos 1 a 3 |
+| Pila | `PilaEnlazada<String>` | Invertir el recorrido destino -> origen | Paso 3 |
+| Lista dinamica | `Lista<String>` | Ruta en orden origen -> destino | Paso 3 |
+
+`Dijkstra` devuelve un `Camino` (codigos, minutos, km). `RutaServiceImpl` lo envuelve en `RutaCalculada` con la fecha, el tiempo de calculo y el usuario; eso es lo que guarda el historial (RN-7).
+
 ## 4.2 Complejidad de las alternativas (se agrega a la Tabla 3)
 
 V es el numero de estaciones y E el de tramos. En una red vial, E crece casi como V (cada parada conecta con pocas vecinas).
@@ -83,5 +98,6 @@ Notas para el texto:
 
 ## 2.1 y 2.5: datos que confirma el codigo
 
-- **Lista de adyacencia (2.1):** `GrafoListaAdyacencia` guarda, por codigo de estacion, la lista de sus tramos salientes; el acceso por codigo es por tabla hash (O(1) promedio). Agregar un tramo es O(grado) porque un segundo tramo A->B reemplaza al primero (RN-3: un tramo por sentido). `vecinos` devuelve una copia en O(grado).
-- **Pila (2.5):** `PilaEnlazada` con nodos; `apilar`, `desapilar` y `cima` son O(1).
+- **Lista de adyacencia (2.1):** `GrafoListaAdyacencia` guarda, por **codigo** de estacion (`String`, no el objeto `Estacion`), la lista de sus tramos salientes; el acceso por codigo es por tabla hash (O(1) promedio). Tabla 1, fila 1: `Mapa<String, Lista<Arista>>`. Agregar un tramo es O(grado) porque un segundo tramo A->B reemplaza al primero (RN-3: un tramo por sentido). `vecinos` devuelve una copia en O(grado).
+- **Pila (2.5):** `PilaEnlazada<String>` con nodos: guarda codigos, no objetos `Estacion`; `apilar`, `desapilar` y `cima` son O(1). Tabla 1, fila 5.
+- **Limites (RN-2):** un tramo dura entre 1 y 1440 minutos y sus km son finitos y no negativos; tampoco puede salir y llegar a la misma estacion.

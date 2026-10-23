@@ -62,7 +62,7 @@ class SistemaTransporteImplTest {
 
     /** Solo Busqueda conectada: el resto de modulos debe responder "Pendiente". */
     private static Modulos soloBusqueda(BusquedaService busqueda) {
-        return new Modulos(busqueda, null, null, null, null, null);
+        return new Modulos(busqueda, null, null, null, null, null, null);
     }
 
     private Executable[] soloAdmin(Sesion s) {

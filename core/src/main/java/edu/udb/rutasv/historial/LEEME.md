@@ -22,7 +22,8 @@ Las pruebas ``ListaDinamicaContratoTest`` (en `src/test/.../historial/estructura
 
 - `repositorios/HistorialRepositorioArchivo.java`: implementa `HistorialRepositorio` (ya existe la interfaz); guarda y carga rutas con fecha y tiempo (RN-7) y usuario; no guarda si no hay ruta (RN-6)
 - `servicios/`: historial por usuario y estadisticas (conteo por par con tabla hash, top 5 con cola de prioridad, tiempo promedio)
-- Conectalo en `SistemaTransporteImpl` (`miHistorial`, `verRed`, `agregarTramo`, `estadisticas`)
+- Conectalo: agrega tu servicio a `app/servicios/Modulos.java` y armalo en `Aplicacion`; implementa `miHistorial` y `estadisticas`, y guarda la ruta en `SistemaTransporteImpl.calcularRuta` solo cuando el `Optional` tenga valor (RN-6 y RN-7; ver el comentario en ese metodo)
+- La pantalla Red vial usa `verRed` y `agregarTramo`, que ya conecto Ruta
 
 ## Mientras otros terminan lo suyo
 
