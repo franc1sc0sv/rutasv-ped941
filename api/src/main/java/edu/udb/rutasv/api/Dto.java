@@ -7,6 +7,7 @@ import edu.udb.rutasv.nucleo.modelo.Arista;
 import edu.udb.rutasv.nucleo.modelo.Estacion;
 import edu.udb.rutasv.nucleo.modelo.RutaCalculada;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -68,13 +69,17 @@ final class Dto {
             List<Tramo> tramos = new ArrayList<>();
             for (int i = 0; i < r.tramos().size(); i++) {
                 String codigo = r.tramos().get(i);
-                estaciones.add(porCodigo.get(codigo));
+                Estacion e = porCodigo.get(codigo);
+                if (e == null) {
+                    throw new IllegalStateException("La ruta usa una estacion que ya no esta en la red: " + codigo);
+                }
+                estaciones.add(e);
                 if (i > 0) {
                     tramos.add(tramo(red, r.tramos().get(i - 1), codigo));
                 }
             }
-            return new Ruta(r.origen(), r.destino(), r.minutos(), r.km(), r.fecha(), r.tiempoCalculoNs(),
-                    r.usuario(), estaciones, tramos);
+            return new Ruta(r.origen(), r.destino(), r.minutos(), r.km(), r.fecha().truncatedTo(ChronoUnit.SECONDS),
+                    r.tiempoCalculoNs(), r.usuario(), estaciones, tramos);
         }
 
         private static Tramo tramo(RedVial red, String desde, String hasta) {
@@ -83,7 +88,7 @@ final class Dto {
                     return new Tramo(desde, hasta, a.minutos(), a.km());
                 }
             }
-            return new Tramo(desde, hasta, 0, 0);
+            throw new IllegalStateException("La ruta usa un tramo que ya no esta en la red: " + desde + "->" + hasta);
         }
     }
 

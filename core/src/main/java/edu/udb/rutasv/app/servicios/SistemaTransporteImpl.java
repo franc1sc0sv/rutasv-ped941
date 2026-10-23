@@ -16,17 +16,24 @@ import edu.udb.rutasv.nucleo.modelo.RutaCalculada;
 import edu.udb.rutasv.nucleo.modelo.TipoRuta;
 import edu.udb.rutasv.nucleo.modelo.UnidadTransporte;
 import java.util.Optional;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Supplier;
 
 
 /**
  * Fachada. Cada metodo valida la autorizacion (RN-1) y delega en el modulo de su rol. Los modulos
  * que aun no estan conectados (ver {@link Modulos}) lanzan {@link NoImplementadoException}.
+ *
+ * <p>Las estructuras propias no son seguras entre hilos y la API atiende pedidos en paralelo, asi que
+ * la fachada las protege con un solo candado: lectura para consultar, escritura para cambiar. El
+ * login no lo usa: {@code AuthServiceImpl} tiene el suyo.
  */
 public class SistemaTransporteImpl implements SistemaTransporte {
 
     private final AuthService auth;
     private final Autorizador autorizador;
     private final Modulos m;
+    private final ReentrantReadWriteLock candado = new ReentrantReadWriteLock();
 
     public SistemaTransporteImpl(AuthService auth, Autorizador autorizador, Modulos modulos) {
         this.auth = auth;
@@ -45,6 +52,31 @@ public class SistemaTransporteImpl implements SistemaTransporte {
         return modulo;
     }
 
+    private <T> T leer(Supplier<T> consulta) {
+        candado.readLock().lock();
+        try {
+            return consulta.get();
+        } finally {
+            candado.readLock().unlock();
+        }
+    }
+
+    private <T> T escribir(Supplier<T> cambio) {
+        candado.writeLock().lock();
+        try {
+            return cambio.get();
+        } finally {
+            candado.writeLock().unlock();
+        }
+    }
+
+    private void escribir(Runnable cambio) {
+        escribir(() -> {
+            cambio.run();
+            return null;
+        });
+    }
+
     @Override
     public Sesion registrar(String usuario, String contrasena) {
         return auth.registrar(usuario, contrasena);
@@ -56,22 +88,31 @@ public class SistemaTransporteImpl implements SistemaTransporte {
     }
 
     @Override
+    public void cerrarSesion(Sesion sesion) {
+        auth.cerrarSesion(sesion);
+    }
+
+    @Override
     public Lista<String> sugerirEstaciones(Sesion sesion, String prefijo) {
         autorizador.exigirSesion(sesion);
-        return conectado(m.busqueda(), "Busqueda").sugerir(sesion.usuario(), prefijo);
+        var busqueda = conectado(m.busqueda(), "Busqueda");
+        // Escritura: sugerir tambien guarda la busqueda reciente.
+        return escribir(() -> busqueda.sugerir(sesion.usuario(), prefijo));
     }
 
     @Override
     public Lista<String> busquedasRecientes(Sesion sesion) {
         autorizador.exigirSesion(sesion);
-        return conectado(m.busqueda(), "Busqueda").recientes(sesion.usuario());
+        var busqueda = conectado(m.busqueda(), "Busqueda");
+        return leer(() -> busqueda.recientes(sesion.usuario()));
     }
 
     @Override
     public Optional<RutaCalculada> calcularRuta(Sesion sesion, String origenCodigo, String destinoCodigo) {
         autorizador.exigirSesion(sesion);
         // RN-7: cuando Historial este conectado, guardar aqui la ruta (solo si existe, RN-6).
-        return conectado(m.ruta(), "Ruta").calcular(origenCodigo, destinoCodigo, sesion.usuario());
+        var ruta = conectado(m.ruta(), "Ruta");
+        return leer(() -> ruta.calcular(origenCodigo, destinoCodigo, sesion.usuario()));
     }
 
     @Override
@@ -83,13 +124,15 @@ public class SistemaTransporteImpl implements SistemaTransporte {
     @Override
     public RedVial verRed(Sesion sesion) {
         autorizador.exigirSesion(sesion);
-        return new RedSoloLectura(conectado(m.red(), "Ruta"));
+        var red = conectado(m.red(), "Ruta");
+        return leer(() -> RedSoloLectura.copiaDe(red));
     }
 
     @Override
     public void agregarTramo(Sesion sesion, String origenCodigo, String destinoCodigo, int minutos, double km) {
         autorizador.exigirAdmin(sesion);
-        conectado(m.red(), "Ruta").agregarTramo(origenCodigo, destinoCodigo, minutos, km);
+        var red = conectado(m.red(), "Ruta");
+        escribir(() -> red.agregarTramo(origenCodigo, destinoCodigo, minutos, km));
     }
 
     @Override
@@ -98,28 +141,35 @@ public class SistemaTransporteImpl implements SistemaTransporte {
         throw pendiente("Historial");
     }
 
-    /** Busca por nombre (sin distinguir mayusculas) y, si no aparece, por codigo. */
     @Override
     public Optional<Estacion> buscarEstacion(Sesion sesion, String texto) {
         autorizador.exigirSesion(sesion);
         var directorio = conectado(m.directorio(), "Paradas");
-        Estacion e = directorio.buscarPorNombre(texto);
-        return Optional.ofNullable(e != null ? e : directorio.buscarPorCodigo(texto));
+        return leer(() -> {
+            Estacion e = directorio.buscarPorNombre(texto);
+            return Optional.ofNullable(e != null ? e : directorio.buscarPorCodigo(texto));
+        });
     }
 
-    /** Da de alta la estacion en el directorio y en la red vial. */
+    /** Da de alta la estacion en el directorio, en la red vial y, si esta activa, en el autocompletado. */
     @Override
     public void crearEstacion(Sesion sesion, Estacion estacion) {
         autorizador.exigirAdmin(sesion);
         var directorio = conectado(m.directorio(), "Paradas");
-        if (estacion == null) {
-            throw new ValidacionException("La estacion es obligatoria");
+        if (estacion == null || estacion.codigo() == null) {
+            throw new ValidacionException("La estacion y su codigo son obligatorios");
         }
-        directorio.darDeAlta(estacion.codigo(), estacion.nombre(), estacion.zona(),
-                estacion.x(), estacion.y(), estacion.activa());
-        if (m.red() != null) {
-            m.red().agregarEstacion(directorio.buscarPorCodigo(estacion.codigo().trim()));
-        }
+        escribir(() -> {
+            directorio.darDeAlta(estacion.codigo(), estacion.nombre(), estacion.zona(),
+                    estacion.x(), estacion.y(), estacion.activa());
+            Estacion guardada = directorio.buscarPorCodigo(estacion.codigo().trim());
+            if (m.red() != null) {
+                m.red().agregarEstacion(guardada);
+            }
+            if (m.indice() != null && guardada.activa()) {
+                m.indice().insertar(guardada.nombre(), guardada);
+            }
+        });
     }
 
     @Override
@@ -141,35 +191,40 @@ public class SistemaTransporteImpl implements SistemaTransporte {
         if (unidad == null || unidad.id() == null || unidad.tipoRuta() == null || unidad.horaProgramada() == null) {
             throw new ValidacionException("La unidad necesita id, tipo de ruta y hora programada");
         }
-        terminal.registrarUnidad(unidad);
+        escribir(() -> terminal.registrarUnidad(unidad));
     }
 
     @Override
     public UnidadTransporte despacharSiguiente(Sesion sesion) {
         autorizador.exigirAdmin(sesion);
-        return conectado(m.terminal(), "Terminal").despacharUnidad();
+        var terminal = conectado(m.terminal(), "Terminal");
+        return escribir(terminal::despacharUnidad);
     }
 
     @Override
     public Lista<UnidadTransporte> verOrdenDespacho(Sesion sesion) {
         autorizador.exigirAdmin(sesion);
-        return conectado(m.terminal(), "Terminal").verOrdenDespacho();
+        var terminal = conectado(m.terminal(), "Terminal");
+        // Escritura: verOrdenDespacho extrae y vuelve a insertar sobre la cola real.
+        return escribir(terminal::verOrdenDespacho);
     }
 
     @Override
     public void encolarPasajero(Sesion sesion, TipoRuta tipo, Pasajero pasajero) {
         autorizador.exigirAdmin(sesion);
         Cola<Pasajero> fila = fila(tipo);
-        if (pasajero == null) {
-            throw new ValidacionException("El pasajero es obligatorio");
+        if (pasajero == null || pasajero.id() == null || pasajero.id().isBlank()
+                || pasajero.nombre() == null || pasajero.nombre().isBlank()) {
+            throw new ValidacionException("El pasajero necesita id y nombre");
         }
-        fila.encolar(pasajero);
+        escribir(() -> fila.encolar(pasajero));
     }
 
     @Override
     public Pasajero atenderPasajero(Sesion sesion, TipoRuta tipo) {
         autorizador.exigirAdmin(sesion);
-        return fila(tipo).desencolar();
+        Cola<Pasajero> fila = fila(tipo);
+        return escribir(fila::desencolar);
     }
 
     private Cola<Pasajero> fila(TipoRuta tipo) {

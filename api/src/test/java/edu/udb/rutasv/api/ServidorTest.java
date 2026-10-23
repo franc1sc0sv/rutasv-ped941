@@ -120,4 +120,59 @@ class ServidorTest {
         assertEquals("U-005", pedir("POST", "/api/terminal/despachar", admin, null).cuerpo().get("id").asText());
         assertEquals(409, pedir("POST", "/api/terminal/despachar", admin, null).estado());
     }
+
+    @Test
+    void sinRutaDevuelve404Rn6() throws Exception {
+        String admin = token("/api/auth/login", "admin", "clave-sintetica-9");
+        assertEquals(201, pedir("POST", "/api/estaciones", admin,
+                "{\"codigo\":\"E30\",\"nombre\":\"Aislada\",\"zona\":\"Sur\",\"x\":1,\"y\":1,\"activa\":true}")
+                .estado());
+        Respuesta r = pedir("GET", "/api/rutas?origen=E01&destino=E30", admin, null);
+        assertEquals(404, r.estado());
+        assertTrue(r.cuerpo().get("error").asText().contains("No existe ruta"));
+    }
+
+    @Test
+    void jsonInvalidoYMinutosFraccionariosDan400() throws Exception {
+        String admin = token("/api/auth/login", "admin", "clave-sintetica-9");
+        assertEquals(400, pedir("POST", "/api/red/tramos", admin, "{no es json").estado());
+        assertEquals(400, pedir("POST", "/api/red/tramos", admin,
+                "{\"origen\":\"E07\",\"destino\":\"E05\",\"minutos\":2.7,\"km\":1}").estado());
+        assertEquals(400, pedir("POST", "/api/terminal/unidades", admin,
+                "{\"id\":\"U-1\",\"tipoRuta\":\"RAPIDA\",\"horaProgramada\":\"06:00\"}").estado());
+        assertEquals(400, pedir("POST", "/api/terminal/unidades", admin,
+                "{\"id\":\"U-1\",\"tipoRuta\":\"NORMAL\",\"horaProgramada\":\"6 am\"}").estado());
+    }
+
+    @Test
+    void logoutInvalidaElToken() throws Exception {
+        String t = token("/api/auth/registro", "ana_01", "clave-sintetica-1");
+        assertEquals(200, pedir("GET", "/api/auth/yo", t, null).estado());
+        assertEquals(204, pedir("POST", "/api/auth/logout", t, null).estado());
+        assertEquals(401, pedir("GET", "/api/auth/yo", t, null).estado());
+    }
+
+    @Test
+    void paradasBuscarYPendientes() throws Exception {
+        String admin = token("/api/auth/login", "admin", "clave-sintetica-9");
+        assertEquals("E04", pedir("GET", "/api/estaciones/buscar?texto=metrocentro", admin, null)
+                .cuerpo().get("codigo").asText());
+        assertEquals(404, pedir("GET", "/api/estaciones/buscar?texto=nada", admin, null).estado());
+        assertEquals(8, pedir("GET", "/api/estaciones", admin, null).cuerpo().size());
+        Respuesta pendiente = pedir("PATCH", "/api/estaciones/E01/estado", admin, "{\"activa\":false}");
+        assertEquals(501, pendiente.estado());
+        assertTrue(pendiente.cuerpo().get("pendiente").asBoolean());
+    }
+
+    @Test
+    void filasDePasajerosSonFifo() throws Exception {
+        String admin = token("/api/auth/login", "admin", "clave-sintetica-9");
+        assertEquals(201, pedir("POST", "/api/terminal/filas/normal/pasajeros", admin,
+                "{\"id\":\"P1\",\"nombre\":\"Ana\"}").estado());
+        assertEquals(201, pedir("POST", "/api/terminal/filas/NORMAL/pasajeros", admin,
+                "{\"id\":\"P2\",\"nombre\":\"Luis\"}").estado());
+        assertEquals("P1", pedir("POST", "/api/terminal/filas/NORMAL/atender", admin, null).cuerpo().get("id").asText());
+        assertEquals(409, pedir("POST", "/api/terminal/filas/EXPRES/atender", admin, null).estado());
+        assertEquals(400, pedir("POST", "/api/terminal/filas/OTRA/atender", admin, null).estado());
+    }
 }

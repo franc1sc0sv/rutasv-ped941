@@ -51,7 +51,9 @@ public final class Servidor {
         return new ObjectMapper()
                 .registerModule(new JavaTimeModule())
                 .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+                .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+                // "minutos": 2.7 no se trunca a 2: es un pedido invalido (RN-2 usa minutos enteros).
+                .disable(DeserializationFeature.ACCEPT_FLOAT_AS_INT);
     }
 
     /** Arma las rutas sobre el sistema dado, sin arrancar el servidor. */
@@ -77,7 +79,10 @@ public final class Servidor {
             ctx.json(Dto.SesionDto.de(s));
         });
         app.post("/api/auth/logout", ctx -> {
-            sesiones.cerrar(ctx);
+            Sesion s = sesiones.cerrar(ctx);
+            if (s != null) {
+                sistema.cerrarSesion(s);
+            }
             ctx.status(HttpStatus.NO_CONTENT);
         });
         app.get("/api/auth/yo", ctx -> ctx.json(Dto.SesionDto.de(sesiones.de(ctx))));
@@ -170,6 +175,11 @@ public final class Servidor {
                 (e, ctx) -> error(ctx, HttpStatus.BAD_REQUEST, e, false));
         app.exception(io.javalin.validation.ValidationException.class,
                 (e, ctx) -> error(ctx, HttpStatus.BAD_REQUEST, e, false));
+        // JSON mal formado, tipos equivocados, enum o fecha invalidos.
+        app.exception(com.fasterxml.jackson.core.JacksonException.class,
+                (e, ctx) -> error(ctx, HttpStatus.BAD_REQUEST, "JSON invalido: revisa los campos y sus tipos"));
+        app.exception(java.time.format.DateTimeParseException.class,
+                (e, ctx) -> error(ctx, HttpStatus.BAD_REQUEST, "Hora invalida: usa HH:mm"));
         app.exception(CredencialesInvalidasException.class, (e, ctx) -> error(ctx, HttpStatus.UNAUTHORIZED, e, false));
         app.exception(SesionInvalidaException.class, (e, ctx) -> error(ctx, HttpStatus.UNAUTHORIZED, e, false));
         app.exception(AccesoDenegadoException.class, (e, ctx) -> error(ctx, HttpStatus.FORBIDDEN, e, false));
@@ -185,5 +195,9 @@ public final class Servidor {
     private static void error(Context ctx, HttpStatus estado, Exception e, boolean pendiente) {
         String mensaje = e.getMessage() == null ? "Pedido invalido" : e.getMessage();
         ctx.status(estado).json(new Dto.Error(mensaje, pendiente));
+    }
+
+    private static void error(Context ctx, HttpStatus estado, String mensaje) {
+        ctx.status(estado).json(new Dto.Error(mensaje, false));
     }
 }
