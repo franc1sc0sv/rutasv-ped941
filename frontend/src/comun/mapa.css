@@ -1,49 +1,72 @@
-.mapa-contenedor { width: 100%; min-width: 0; }
+/* Mapa de la red: diagrama de transito. Colores solo de tokens (claro y oscuro). */
+.mapa-contenedor { width: 100%; min-width: 0; margin: 0; display: grid; gap: var(--esp-3); }
 .mapa {
-  display: block;
-  width: 100%;
-  height: auto;
-  background:
-    radial-gradient(circle, var(--mapa-punto) 1px, transparent 1.2px) 0 0 / 18px 18px,
-    var(--mapa-fondo);
-  border-radius: var(--radio-md);
-  border: 1px solid var(--borde);
+  display: block; width: 100%; height: auto;
+  border: 1px solid var(--borde); border-radius: var(--radio-2);
+  font-family: var(--fuente-senal);
 }
+.mapa__fondo { fill: var(--mapa-fondo); }
+.mapa__reticula { stroke: var(--mapa-reticula); }
+
 .mapa__tramo { stroke: var(--mapa-tramo); stroke-linecap: round; }
-.mapa__tramo.es-inactivo { opacity: 0.6; }
-.mapa__ruta { stroke: var(--acento); stroke-linecap: round; stroke-linejoin: round; }
+.mapa__tramo.es-inactivo { stroke: var(--inactivo); }
+
+.mapa__ruta-halo { stroke: var(--mapa-halo); stroke-linecap: round; stroke-linejoin: round; }
+.mapa__ruta {
+  stroke: var(--mapa-ruta); stroke-linecap: round; stroke-linejoin: round;
+  stroke-dasharray: 1; stroke-dashoffset: 0;
+  animation: trazar-ruta var(--dur-larga) var(--curva-movimiento) both;
+}
+@keyframes trazar-ruta { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
 
 .mapa__min {
-  fill: var(--texto-suave);
-  font-weight: 600;
-  paint-order: stroke;
-  stroke: var(--mapa-fondo);
-  stroke-linejoin: round;
+  fill: var(--texto-suave); font-weight: var(--peso-fuerte); font-variant-numeric: tabular-nums;
+  paint-order: stroke; stroke: var(--mapa-halo); stroke-linejoin: round;
 }
-.mapa__min.es-ruta { fill: var(--acento-fuerte); }
+.mapa__min.es-ruta { fill: var(--primario); font-weight: var(--peso-senal); }
 
 .mapa__estacion circle { fill: var(--superficie); stroke: var(--mapa-estacion); }
-.mapa__estacion.es-ruta circle { stroke: var(--acento); fill: var(--superficie); }
-.mapa__estacion.es-extremo circle { fill: var(--acento); stroke: var(--superficie); }
+.mapa__estacion.es-ruta circle { stroke: var(--mapa-ruta); }
+.mapa__estacion.es-extremo circle { fill: var(--superficie); stroke: var(--mapa-ruta); }
+.mapa__estacion.es-extremo .mapa__centro { fill: var(--mapa-ruta); stroke: none; }
 .mapa__estacion.es-inactiva circle { fill: var(--superficie-2); stroke: var(--inactivo); }
 
 .mapa__nombre {
-  fill: var(--texto);
-  font-weight: 500;
-  paint-order: stroke;
-  stroke: var(--mapa-fondo);
-  stroke-linejoin: round;
+  fill: var(--texto); font-weight: var(--peso-medio);
+  paint-order: stroke; stroke: var(--mapa-halo); stroke-linejoin: round;
 }
-.mapa__estacion.es-inactiva .mapa__nombre { fill: var(--inactivo); font-style: italic; }
-.mapa__estacion.es-extremo .mapa__nombre { font-weight: 700; }
+.mapa__estacion.es-ruta .mapa__nombre { font-weight: var(--peso-fuerte); }
+.mapa__estacion.es-extremo .mapa__nombre { font-weight: var(--peso-senal); }
+.mapa__estacion.es-inactiva .mapa__nombre { fill: var(--texto-suave); font-style: italic; }
 
-.mapa--atenuado .mapa__tramo:not(.es-ruta) { opacity: 0.35; }
-.mapa--atenuado .mapa__min:not(.es-ruta) { opacity: 0.45; }
-.mapa--atenuado .mapa__estacion:not(.es-ruta) { opacity: 0.45; }
-.mapa__codigos {
-  list-style: none; margin: var(--esp-2) 0 0; padding: 0;
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 2px var(--esp-3);
-  font-size: var(--fs-xs); color: var(--texto-suave);
+/* Con ruta: la red de fondo se apaga para que la linea mande. */
+.mapa--atenuado .mapa__tramo:not(.es-ruta) { opacity: 0.45; }
+.mapa--atenuado .mapa__min:not(.es-ruta) { opacity: 0.6; }
+.mapa--atenuado .mapa__estacion:not(.es-ruta) { opacity: 0.55; }
+
+/* Pie: leyenda y codigos. */
+.mapa__pie { display: grid; gap: var(--esp-3); }
+.mapa__leyenda {
+  list-style: none; margin: 0; padding: 0;
+  display: flex; flex-wrap: wrap; gap: var(--esp-2) var(--esp-4);
+  font-size: var(--fs-1); color: var(--texto-suave);
 }
-.mapa__codigos b { font-family: var(--fuente-mono); color: var(--texto); font-weight: 700; margin-right: 4px; }
-.mapa__codigos .es-inactiva { opacity: 0.6; font-style: italic; }
+.mapa__leyenda li { display: inline-flex; align-items: center; gap: var(--esp-2); }
+.leyenda__ruta { width: 24px; height: 6px; border-radius: var(--radio-redondo); background: var(--mapa-ruta); }
+.leyenda__tramo { width: 24px; height: 3px; border-radius: var(--radio-redondo); background: var(--mapa-tramo); }
+.leyenda__estacion {
+  width: 12px; height: 12px; border-radius: var(--radio-redondo);
+  border: 2.5px solid var(--mapa-estacion); background: var(--superficie);
+}
+.leyenda__estacion--inactiva { border-style: dashed; border-color: var(--inactivo); background: var(--superficie-2); }
+
+.mapa__codigos {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--esp-1) var(--esp-3);
+  font-size: var(--fs-1); color: var(--texto-suave);
+}
+.mapa__codigos b {
+  font-family: var(--fuente-senal); font-weight: var(--peso-senal); color: var(--texto);
+  font-variant-numeric: tabular-nums; margin-right: var(--esp-1);
+}
+.mapa__codigos .es-inactiva { font-style: italic; }
