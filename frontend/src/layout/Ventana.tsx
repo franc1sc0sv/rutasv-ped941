@@ -69,6 +69,12 @@ function VentanaAdmin() {
   const ubicacion = useLocation();
   const refBoton = useRef<HTMLButtonElement>(null);
   const refMenu = useRef<HTMLElement>(null);
+
+  // Con el menu abierto en telefono, el resto de la pagina queda inerte: el foco no se escapa detras del velo.
+  useEffect(() => {
+    const hermanos = refMenu.current?.parentElement?.querySelectorAll<HTMLElement>(':scope > :not(#menu-lateral)') ?? [];
+    hermanos.forEach((el) => (abierto ? el.setAttribute('inert', '') : el.removeAttribute('inert')));
+  }, [abierto]);
   // El encabezado dice en que lado de la app estas; el nombre de la pantalla ya esta en su h1.
   const contexto = ubicacion.pathname.startsWith('/admin') ? 'Panel de administración' : 'Vista de pasajero';
 
@@ -81,7 +87,7 @@ function VentanaAdmin() {
     const alTeclear = (ev: KeyboardEvent) => {
       if (ev.key === 'Escape') {
         setAbierto(false);
-        refBoton.current?.focus();
+        window.setTimeout(() => refBoton.current?.focus(), 0);
       }
     };
     window.addEventListener('keydown', alTeclear);
@@ -101,7 +107,7 @@ function VentanaAdmin() {
             aria-label="Cerrar menú"
             onClick={() => {
               setAbierto(false);
-              refBoton.current?.focus();
+              window.setTimeout(() => refBoton.current?.focus(), 0);
             }}
           >
             <Icono nombre="cerrar" />

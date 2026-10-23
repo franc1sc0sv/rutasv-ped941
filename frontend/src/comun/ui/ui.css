@@ -171,7 +171,7 @@ input[type='time'].entrada, input[type='number'].entrada { font-family: var(--fu
 .segmentado__opcion input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
 .segmentado__opcion > span {
   display: flex; align-items: center; justify-content: center; gap: var(--esp-2);
-  min-height: calc(var(--control-alto) - 2px); padding: 0 var(--esp-3);
+  min-height: var(--control-alto); padding: 0 var(--esp-3);
   font-family: var(--fuente-senal); font-size: var(--fs-2); font-weight: var(--peso-fuerte); color: var(--texto-suave);
   background: var(--superficie);
   transition: background-color var(--dur-corta) ease, color var(--dur-corta) ease;
