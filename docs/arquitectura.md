@@ -3,7 +3,7 @@
 El sistema se organiza **por modulo**, uno por rol, mas un `nucleo` compartido y una unica puerta de entrada (`app`).
 
 ```
-                 interfaz (JavaFX o API + React): se decide despues
+            frontend React  --HTTP-->  api/ (Javalin, sin logica)
                                   |
                                   v
                     app.SistemaTransporte  <- unica puerta de entrada
@@ -26,7 +26,7 @@ El sistema se organiza **por modulo**, uno por rol, mas un `nucleo` compartido y
 
 ## Por que asi
 
-- **Abstraccion:** la interfaz de usuario solo habla con `SistemaTransporte`. Con JavaFX se llama directo. Con React se agrega una capa `api/` delgada que traduce HTTP a esas mismas llamadas. El core no cambia en ningun caso.
+- **Abstraccion:** la interfaz de usuario solo habla con `SistemaTransporte`. El frontend React llega por la capa `api/`, que traduce cada pedido HTTP a una llamada de la fachada. El core no conoce ni a React ni a la API.
 - **Menos conflictos:** cada companero trabaja en su carpeta y sus pruebas. Solo `app/` se comparte.
 - **Reemplazo sin dolor:** las versiones `Temporal` de `nucleo/temporal` se sustituyen una por una en `Aplicacion`, y las pruebas de contrato dicen si la nueva cumple.
 
