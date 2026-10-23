@@ -1,44 +1,88 @@
-/* Tokens de diseno de RutaSV. Cambia aqui colores, espacios y tipografia; nunca en cada pantalla. */
+/*
+ * Tokens de RutaSV: la UNICA fuente de colores, tipografia, espacios, radios, elevacion y movimiento.
+ * Direccion "Andén": senaletica vial y de transito (azul senal RAL 5017, amarillo exprés RAL 1023,
+ * tipografia Overpass, derivada de Highway Gothic). Detalle y reglas en frontend/DESIGN.md.
+ *
+ * Regla: ninguna pantalla escribe un color, un tamano de letra o un espacio a mano; usa estas variables.
+ * Si falta algo, se agrega aqui (con su par en modo oscuro) y se documenta en DESIGN.md.
+ */
 :root {
   color-scheme: light;
 
-  /* Color */
-  --fondo: #f3f6f8;
-  --superficie: #ffffff;
-  --superficie-2: #eef2f5;
-  --borde: #dbe2e8;
-  --borde-fuerte: #b9c4cd;
-  --texto: #14212b;
-  --texto-suave: #5a6b78;
-  --texto-invertido: #ffffff;
+  /* ---------- Color: base neutra ---------- */
+  --fondo: #f1f4f6;          /* lienzo de la app */
+  --superficie: #ffffff;     /* paneles, campos */
+  --superficie-2: #e7ecf0;   /* escalon de tono: cabeceras de tabla, chips, filas alternas */
+  --superficie-3: #d9e0e6;   /* hover sobre superficie-2 */
+  --borde: #d2d9e0;          /* divisiones de panel y tabla (no texto) */
+  --borde-fuerte: #75828f;   /* borde de campos: 3:1 sobre superficie */
+  --texto: #0d1824;          /* tinta principal */
+  --texto-suave: #4a5664;    /* notas secundarias (AA sobre fondo y superficie-2) */
+  --tinta: #0d1824;          /* panel de senal (menu admin, banda de tiempo) */
+  --sobre-tinta: #ffffff;
+  --sobre-tinta-suave: #a9b7c4;
 
-  --acento: #0b6e8f;          /* azul transito */
-  --acento-fuerte: #075570;
-  --acento-suave: #dcf0f6;
-  --acento-texto: #ffffff;
+  /* ---------- Color: linea principal (azul senal) ---------- */
+  --primario: #0a5296;
+  --primario-fuerte: #073e73;
+  --primario-suave: #e1ecf7;
+  --sobre-primario: #ffffff;
 
-  --expres: #c2410c;          /* insignia EXPRES */
-  --expres-suave: #ffedd5;
-  --normal: #475569;
-  --normal-suave: #e2e8f0;
+  /* ---------- Color: tipo de ruta ---------- */
+  --expres: #f5b700;          /* relleno de la insignia EXPRES (rombo) */
+  --sobre-expres: #1a1300;
+  --expres-texto: #7a5500;    /* texto EXPRES sobre superficies claras */
+  --expres-suave: #fdf3cf;
+  --normal: #42505e;          /* relleno de la insignia NORMAL (circulo) */
+  --sobre-normal: #ffffff;
+  --normal-suave: #e7ecf0;
 
-  --exito: #15803d;
-  --exito-suave: #dcfce7;
-  --peligro: #b91c1c;
-  --peligro-suave: #fee2e2;
-  --aviso: #92400e;
-  --aviso-suave: #fef3c7;
-  --inactivo: #94a3b8;
+  /* ---------- Color: semanticos ---------- */
+  --exito: #0b7a45;
+  --exito-suave: #e1f3e9;
+  --peligro: #b3141c;
+  --peligro-suave: #fbe7e6;
+  --aviso: #8a4b00;
+  --aviso-suave: #fcefd9;
+  --info: #0b6680;
+  --info-suave: #e0f1f6;
+  --inactivo: #7f8b98;
 
-  --mapa-fondo: #f8fafb;
-  --mapa-punto: #dfe6ec;
-  --mapa-tramo: #9fb0bd;
-  --mapa-estacion: #3b4e5c;
+  /* ---------- Color: mapa ---------- */
+  --mapa-fondo: #f7f9fa;
+  --mapa-reticula: #e3e8ec;
+  --mapa-tramo: #a7b3bf;
+  --mapa-estacion: #0d1824;
+  --mapa-ruta: var(--primario);
+  --mapa-halo: var(--mapa-fondo);
 
-  --foco: #0ea5e9;
-  --sombra: 0 1px 2px rgb(16 32 48 / 0.06), 0 4px 16px rgb(16 32 48 / 0.06);
+  /* ---------- Foco y seleccion ---------- */
+  --foco: #0a5296;
+  --foco-halo: #ffffff;
+  --seleccion: #cfe0f3;
 
-  /* Espaciado (escala de 4 px) */
+  /* ---------- Tipografia ---------- */
+  /* Overpass (senaletica, titulos, cifras) + Atkinson Hyperlegible (texto corrido, maxima legibilidad). */
+  --fuente-senal: 'Overpass', 'Highway Gothic', 'Arial Narrow', system-ui, sans-serif;
+  --fuente-texto: 'Atkinson Hyperlegible', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  /* Escala tercera mayor (1.25) sobre 16 px. */
+  --fs-1: 0.75rem;    /* 12: notas al pie, leyendas */
+  --fs-2: 0.875rem;   /* 14: tablas, ayudas, etiquetas */
+  --fs-3: 1rem;       /* 16: texto base */
+  --fs-4: 1.25rem;    /* 20: titulos de panel */
+  --fs-5: 1.5625rem;  /* 25: cifras de panel */
+  --fs-6: 2rem;       /* 32: titulo de pantalla */
+  --fs-7: 3rem;       /* 48: tiempo de viaje (movil) */
+  --fs-8: 4.5rem;     /* 72: tiempo de viaje (escritorio) */
+  --peso-texto: 400;
+  --peso-medio: 600;
+  --peso-fuerte: 700;
+  --peso-senal: 800;
+  --interlinea: 1.5;
+  --interlinea-titulo: 1.1;
+  --tracking-titulo: -0.015em;
+
+  /* ---------- Espacio (base 4 px) ---------- */
   --esp-1: 4px;
   --esp-2: 8px;
   --esp-3: 12px;
@@ -46,66 +90,87 @@
   --esp-5: 24px;
   --esp-6: 32px;
   --esp-7: 48px;
+  --esp-8: 64px;
 
-  /* Radios */
-  --radio-sm: 6px;
-  --radio-md: 10px;
-  --radio-lg: 16px;
-  --radio-pill: 999px;
+  /* ---------- Radios: esquinas de senal, casi rectas ---------- */
+  --radio-1: 2px;     /* insignias, chips de codigo */
+  --radio-2: 4px;     /* botones, campos */
+  --radio-3: 8px;     /* paneles */
+  --radio-redondo: 999px; /* solo puntos de estacion y avatares */
 
-  /* Tipografia */
-  --fuente: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  --fuente-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  --fs-xs: 0.75rem;
-  --fs-sm: 0.875rem;
-  --fs-md: 1rem;
-  --fs-lg: 1.125rem;
-  --fs-xl: 1.375rem;
-  --fs-2xl: 1.75rem;
-  --fs-3xl: 2.25rem;
+  /* ---------- Elevacion: solo lo que flota ---------- */
+  --elev-0: none;
+  --elev-flotante: 0 1px 2px rgb(13 24 36 / 0.08), 0 8px 24px rgb(13 24 36 / 0.12);
+  --velo: rgb(13 24 36 / 0.45);
 
-  /* Layout */
+  /* ---------- Movimiento ---------- */
+  --dur-presion: 120ms;  /* presionar boton */
+  --dur-corta: 160ms;    /* hover, listas desplegables */
+  --dur-media: 220ms;    /* avisos, filas que salen */
+  --dur-larga: 280ms;    /* dibujo de la linea de ruta, cajon de menu */
+  --curva-salida: cubic-bezier(0.23, 1, 0.32, 1);       /* entra o responde */
+  --curva-movimiento: cubic-bezier(0.77, 0, 0.175, 1);  /* se mueve en pantalla */
+  --curva-cajon: cubic-bezier(0.32, 0.72, 0, 1);        /* cajones laterales */
+
+  /* ---------- Medidas de layout ---------- */
   --ancho-menu: 248px;
+  --alto-encabezado: 56px;
   --alto-barra-inferior: 64px;
-  --alto-encabezado: 60px;
+  --ancho-contenido: 1200px;
+  --ancho-pasajero: 760px;
+  --toque-min: 44px;     /* objetivo tactil minimo */
+  --control-alto: 40px;  /* alto de botones y campos (admin) */
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     color-scheme: dark;
 
-    --fondo: #0d1419;
-    --superficie: #151f26;
-    --superficie-2: #1c2932;
-    --borde: #2a3a45;
-    --borde-fuerte: #3d515f;
-    --texto: #e6edf2;
-    --texto-suave: #9aabb8;
+    --fondo: #0b1016;
+    --superficie: #121922;
+    --superficie-2: #1a232e;
+    --superficie-3: #24303c;
+    --borde: #283441;
+    --borde-fuerte: #6b7a89;
+    --texto: #e6ebf0;
+    --texto-suave: #a0adba;
+    --tinta: #070b10;
+    --sobre-tinta: #e6ebf0;
+    --sobre-tinta-suave: #8f9dab;
 
-    --acento: #38b2d6;
-    --acento-fuerte: #7dd3ec;
-    --acento-suave: #0f3644;
-    --acento-texto: #04202a;
+    --primario: #62a3ec;
+    --primario-fuerte: #95c1f3;
+    --primario-suave: #13283f;
+    --sobre-primario: #04121f;
 
-    --expres: #fb923c;
-    --expres-suave: #3d2210;
-    --normal: #cbd5e1;
-    --normal-suave: #263540;
+    --expres: #f2be3a;
+    --sobre-expres: #1a1300;
+    --expres-texto: #f2c75c;
+    --expres-suave: #33280b;
+    --normal: #3a4856;
+    --sobre-normal: #eef2f5;
+    --normal-suave: #1f2935;
 
-    --exito: #4ade80;
-    --exito-suave: #12301e;
-    --peligro: #f87171;
-    --peligro-suave: #3a1616;
-    --aviso: #fbbf24;
-    --aviso-suave: #352a0c;
-    --inactivo: #5f7180;
+    --exito: #4cc38a;
+    --exito-suave: #0e2a1e;
+    --peligro: #ff857e;
+    --peligro-suave: #3a1517;
+    --aviso: #f2b652;
+    --aviso-suave: #33240c;
+    --info: #5cc2de;
+    --info-suave: #0c2a33;
+    --inactivo: #6f7d8b;
 
-    --mapa-fondo: #111a20;
-    --mapa-punto: #1f2c35;
-    --mapa-tramo: #4b6170;
-    --mapa-estacion: #b8c7d2;
+    --mapa-fondo: #0f151c;
+    --mapa-reticula: #1b242e;
+    --mapa-tramo: #4d5d6d;
+    --mapa-estacion: #e6ebf0;
 
-    --foco: #7dd3fc;
-    --sombra: 0 1px 2px rgb(0 0 0 / 0.4), 0 4px 16px rgb(0 0 0 / 0.3);
+    --foco: #95c1f3;
+    --foco-halo: #0b1016;
+    --seleccion: #1f3d5f;
+
+    --elev-flotante: 0 1px 2px rgb(0 0 0 / 0.5), 0 12px 32px rgb(0 0 0 / 0.45);
+    --velo: rgb(0 0 0 / 0.6);
   }
 }
