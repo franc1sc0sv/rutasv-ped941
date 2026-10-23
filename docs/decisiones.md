@@ -19,6 +19,13 @@
    - El plan interno de organizacion mencionaba JavaFX; ese plan se actualiza, el documento entregado no cambia en esto.
 2. **`verRed` lo puede leer cualquier sesion.** La pantalla Resultado de ruta (Fig. 6) necesita los minutos de cada tramo y las coordenadas, que `RutaCalculada` no trae. `verRed` devuelve una vista de solo lectura; crear estaciones y tramos sigue siendo solo de ADMIN (RN-1).
 3. **La fachada recibe `Modulos`.** Cada rol conecta su modulo agregando su campo en `app/servicios/Modulos.java` y armandolo en `Aplicacion`. Un modulo `null` responde "Pendiente".
+4. **Un candado en la fachada.** La API atiende pedidos en paralelo y las estructuras propias no son seguras entre hilos. `SistemaTransporteImpl` usa un `ReentrantReadWriteLock`: lectura para consultar (calcular ruta, ver red), escritura para cambiar. `verRed` devuelve una copia tomada bajo el candado.
+5. **Busquedas recientes.** Funcion nueva respecto a la Fase 1: hasta 5 por usuario, de la mas reciente a la mas antigua (`BusquedaService`).
+6. **Filas de pasajeros por tipo de ruta.** La fachada recibe el tipo (NORMAL o EXPRES) y hoy hay una fila FIFO por tipo (`Modulos.filas`). La Fase 1 hablaba de "pasajeros de una misma unidad" y el plan de "fila por terminal". Pendiente: Terminal decide el modelo final y se reescribe RN-5.
+7. **Desempates fijos.** Dijkstra desempata por codigo de estacion y RN-4 por id de unidad, para que el resultado sea siempre el mismo y `verOrdenDespacho` no dependa del orden de llegada.
+8. **`RutaCalculada` guarda codigos.** Los tramos son los codigos de estacion en orden, mas el usuario y el tiempo de calculo en nanosegundos (para las estadisticas de Historial).
+9. **`buscarEstacion` busca por nombre y, si no aparece, por codigo**, sin distinguir mayusculas.
+10. **Limites de los tramos.** Minutos enteros entre 1 y 1440 (un dia; tambien evita desbordes en Dijkstra) y km finitos no negativos. Los minutos fraccionarios se rechazan, no se redondean.
 
 ## Decisiones pendientes
 

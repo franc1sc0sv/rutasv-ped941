@@ -64,7 +64,7 @@ core/                    modulo Java (edu.udb.rutasv)
     excepciones/         excepciones compartidas
     archivo/             escritura atomica de archivos
     temporal/            adaptadores temporales (java.util), se reemplazan por los propios
-  <modulo>/              auth, ruta, paradas, busqueda, terminal, historial. Cada uno con:
+  <modulo>/              auth, ruta, paradas, busqueda, terminal, historial. Cada uno con las que necesite:
     interfaces/          contratos del servicio
     servicios/           logica de negocio
     repositorios/        guardar y cargar datos
@@ -74,7 +74,7 @@ core/                    modulo Java (edu.udb.rutasv)
     (ruta tambien tiene algoritmos/)
   app/                   unica puerta de entrada
     interfaces/          SistemaTransporte
-    servicios/           SistemaTransporteImpl y Modulos (que modulos estan conectados)
+    servicios/           SistemaTransporteImpl, Modulos (que modulos estan conectados) y RedSoloLectura
     configuracion/       Aplicacion (cableado)
 api/                     capa HTTP delgada (Javalin): un endpoint por metodo de SistemaTransporte
 frontend/                React + Vite + TypeScript, una carpeta por rol en src/modulos/
@@ -98,4 +98,5 @@ docs/                    documentacion del equipo
 - [docs/contratos.md](docs/contratos.md)
 - [docs/tareas-por-rol.md](docs/tareas-por-rol.md)
 - [docs/api.md](docs/api.md): endpoints HTTP
-- [docs/entrega-fase2.md](docs/entrega-fase2.md): estado, guion del video, bitacora y correcciones del documento
+- [docs/entrega-fase2.md](docs/entrega-fase2.md): estado, guion del video, bitacora, correcciones del documento y pendientes por rol
+- [docs/documento-ruta.md](docs/documento-ruta.md): texto del rol Ruta para el documento (pseudocodigo y complejidad)

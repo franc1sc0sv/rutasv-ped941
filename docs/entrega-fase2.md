@@ -10,7 +10,7 @@ Leyenda: ✅ hecho y conectado · 🟡 hecho pero falta conectar o probar · ❌
 |---|---|---|---|---|
 | Ruta | ✅ Grafo, ✅ Pila | ✅ Dijkstra + RutaService | ✅ `calcularRuta`, `verRed`, `agregarTramo` | Resultado de ruta (Fig. 6) |
 | Busqueda | ✅ Arbol AVL | ✅ Normalizador, BusquedaService | ✅ `sugerirEstaciones`, `busquedasRecientes` | Buscar ruta (Fig. 5), ventana base |
-| Terminal | ✅ Monticulo, ✅ Cola FIFO | ✅ ReglaDespacho, Terminal | ✅ despacho y filas | Despacho (Fig. 10) |
+| Terminal | ✅ Monticulo, ✅ Cola FIFO | ✅ ReglaDespacho, 🟡 Terminal (`verOrdenDespacho` sobre la cola real) | ✅ despacho y filas | Despacho (Fig. 10) |
 | Paradas | ❌ TablaHash | 🟡 Directorio (falta editar y activar/desactivar), ✅ CargadorCSV | 🟡 `buscarEstacion`, `crearEstacion`; ❌ `editarEstacion`, `activarDesactivarEstacion` | Registro de paradas (Fig. 9) |
 | Historial | ❌ ListaDinamica | ❌ historial y estadisticas | ❌ `miHistorial`, `estadisticas` | Mi historial, Red vial, Historial global (Fig. 7, 8, 11) |
 
@@ -18,9 +18,9 @@ Leyenda: ✅ hecho y conectado · 🟡 hecho pero falta conectar o probar · ❌
 
 1. **Paradas:** `TablaHash` (quita el `@Disabled` de `TablaHashContratoTest`) y cambiar `MapaTemporal` por `TablaHash` en `Aplicacion` (login, Dijkstra y directorio). Agregar `editar` y `activar/desactivar` a `DirectorioEstaciones` y conectarlos; al desactivar, actualizar tambien la red (`red.agregarEstacion` con la estacion inactiva) para que Dijkstra la salte.
 2. **Historial:** `ListaDinamica`, `HistorialRepositorioArchivo`, guardar en `calcularRuta` (RN-7, nunca si no hay ruta, RN-6), y estadisticas (conteo por par con tabla hash, top 5 con cola de prioridad, tiempo promedio con `tiempoCalculoNs`). Conectar `miHistorial` y `estadisticas`.
-3. **Terminal:** prueba con las 5 unidades de la Fig. 10 (salen U-014, U-031, U-009, U-022, U-005).
-4. **Todos:** conectar su pantalla en `frontend/src/modulos/<rol>/` (ver `frontend/README.md`).
-5. **Cuando lleguen `TablaHash` y `ListaDinamica`:** cambiar `MapaTemporal` y `ListaTemporal` en `Aplicacion`, `GrafoListaAdyacencia.nuevaLista`, `Terminal` y `BusquedaService`.
+3. **Terminal:** prueba con las 5 unidades de la Fig. 10 (salen U-014, U-031, U-009, U-022, U-005) y `verOrdenDespacho` sobre una copia.
+4. **Todos:** conectar su pantalla en `frontend/src/modulos/<rol>/` (ver `frontend/README.md`) y revisar sus pendientes de la seccion 8.
+5. **Cuando lleguen `TablaHash` y `ListaDinamica`:** cambiar las clases Temporal en todos los lugares de la seccion 9.
 
 ## 2. Levantar el sistema para grabar
 
@@ -49,7 +49,7 @@ La rubrica pide (nivel Estrategico): **narracion con contexto, demo, retos y pro
 1. **Contexto (20 s):** que problema resuelve tu modulo para el pasajero o el administrador, en palabras simples.
 2. **Estructura (40 s):** cual estructura programaste, por que esa y su costo (Big-O). Muestra el codigo 10 segundos, no mas.
 3. **Demo (60 s):** tu pantalla funcionando con el caso del documento.
-4. **Prueba (20 s):** corre tu prueba en verde (`mvn -B test -Dtest=<TuPrueba>`).
+4. **Prueba (20 s):** corre tu prueba en verde (`mvn -B test -pl core -Dtest=<TuPrueba>`).
 5. **Reto y proximo paso (20 s):** un problema real que tuviste y que harias en la Fase 3.
 
 ### Demo por rol
@@ -86,17 +86,23 @@ Cierre del equipo: 3 problemas que afectaron a todos, como se resolvieron y que 
 
 ## 5. Documento actualizado (cada uno su seccion; Terminal integra)
 
-Correcciones ya detectadas contra el codigo:
+El documento de la Fase 1 debe quedar coherente con el codigo (rubrica). Correcciones detectadas en la revision del 23/10:
 
-| Seccion | Que corregir |
-|---|---|
-| 2.7 | TreeMap -> Arbol AVL propio, con sus rotaciones (M5) |
-| 3.6, Fig. 6 | La nota dice **6.4 km**; con `data/tramos.csv` la ruta suma **9.5 km** (4.0 + 4.5 + 1.0). Cambiar la figura o el CSV para que coincidan (M7) |
-| 3.6, Fig. 7, 8, 11 | Recalcular los datos con el programa (M7) |
-| 4.2 y 4.3 | A*: el modelo ya guarda coordenadas, asi que pasa de "no se puede" a "mejora de la Fase 3" |
-| 5.1, Fig. 12 | Pseudocodigo con la pila (A1) y complejidad de Dijkstra, A* y Bellman-Ford (M1). Base: `ruta/algoritmos/Dijkstra.java` |
-| 2.6 y 3.5 | Reescribir RN-5 con la fila por terminal (A3, M4) |
-| Nueva | Decisiones de implementacion: interfaz en React + API, login y roles, persistencia en archivos (ver `docs/decisiones.md`) |
+| Seccion | Que corregir | Quien |
+|---|---|---|
+| Tabla 1 (las 7 filas) | Cambiar las clases de `java.util` por las propias y su interfaz de `nucleo`: `GrafoListaAdyacencia` (`RedVial`), `TablaHash` (`Mapa`), `MonticuloBinario` (`ColaPrioridad`), `ListaDinamica` (`Lista`), `PilaEnlazada` (`Pila`), `ColaEnlazada` (`Cola`), `ArbolAvl` (`IndiceNombres`) | Cada rol su fila |
+| 2.1, 2.5, Tabla 1 filas 1 y 5 | El grafo se indexa por codigo (`String`), no por `Estacion`; la pila guarda codigos; agregar un tramo es O(grado) porque reemplaza el anterior (RN-3). Texto listo en `docs/documento-ruta.md` | Ruta |
+| 1.3, 2.2, Tabla 1 fila 2 | No hay "baja" que borre: RN-1 desactiva (`activa`). Hay dos indices (codigo y nombre sin mayusculas). La clave de ejemplo es `E01`, no `EST-001` | Paradas |
+| 2.3, 5.2, Fig. 13, Tabla 5 | `MonticuloBinario.insertar/extraer` en lugar de `offer/poll`. RN-4 tiene un tercer desempate por id (orden siempre igual). Agregar `verOrdenDespacho` y su costo O(n log n) a la Tabla 5 | Terminal |
+| 2.6 y RN-5 (3.5) | Hoy hay una fila por tipo de ruta (NORMAL y EXPRES). Elegir el modelo final con Terminal y reescribir RN-5 (A3, M4) | Terminal |
+| 2.7 | TreeMap -> Arbol AVL propio con rotaciones; costo O(log n + k) por prefijo (M5) | Busqueda |
+| 3.3, Fig. 3 | `SistemaTransporte` es una interfaz; `SistemaTransporteImpl` usa `Modulos` (un servicio por rol). Agregar `Usuario`, `Sesion`, `Rol` y los campos actuales de `RutaCalculada` y `Estacion` | Lead |
+| 3.4, Fig. 4 | La operacion se llama `calcularRuta` y recibe codigos. Secuencia: Fachada -> Autorizador -> RutaServiceImpl -> Dijkstra (ColaPrioridad, Mapa, RedVial) -> PilaEnlazada. El texto -> codigo es una llamada anterior (`sugerirEstaciones`/`buscarEstacion`). El guardado RN-7 queda en la fachada | Ruta |
+| 3.6, Fig. 6 | La nota dice **6.4 km**; con `data/tramos.csv` la ruta suma **9.5 km** (4.0 + 4.5 + 1.0). Cambiar la figura o el CSV (M7) | Ruta e Historial |
+| 3.6, Fig. 7, 8, 11 | Recalcular los datos con el programa (M7) | Historial |
+| 4.2 y 4.3 | A*: el modelo ya guarda coordenadas, pasa de "no se puede" a "mejora de la Fase 3". Tabla de complejidad en `docs/documento-ruta.md` (M1) | Ruta |
+| 5.1, Fig. 12, Tabla 4 | Pseudocodigo con la pila (A1) y Tabla 4 actualizada: texto en `docs/documento-ruta.md` | Ruta |
+| Nueva seccion | Decisiones de implementacion: interfaz React + API, login y roles, persistencia en archivos, busquedas recientes, desempates (ver `docs/decisiones.md`) | Lead |
 
 ## 6. Autocritica (Terminal redacta, todos aportan)
 
@@ -114,4 +120,35 @@ Correcciones ya detectadas contra el codigo:
 | Ruta | Estacion inactiva | E03 inactiva | busca desvio o no hay ruta | `DijkstraTest.saltaEstacionesInactivas` |
 | Ruta | Peso invalido (RN-2) | minutos 0 o -3 | `ValidacionException` | `GrafoListaAdyacenciaContratoTest.minutosNoPositivosSeRechazan` |
 | Ruta | Un tramo por sentido (RN-3) | A->B dos veces | se reemplaza | `GrafoListaAdyacenciaTest.repetirUnTramoLoReemplazaRn3` |
+| Ruta | Tramo de mas de 24 h o km no finitos | 1441 min, NaN | `ValidacionException` | `GrafoListaAdyacenciaTest.rechazaTramosDeMasDeUnDiaYKmNoFinitos` |
+| Ruta | Dijkstra con el monticulo propio | red de 500 estaciones | 499 min, atajos descartados | `DijkstraConMonticuloTest` |
+| API | Sin ruta por HTTP (RN-6) | E01 -> estacion aislada | 404 | `ServidorTest.sinRutaDevuelve404Rn6` |
 | ... | (cada rol agrega sus filas) | | | |
+
+## 8. Pendientes por rol que dejo la revision del 23/10
+
+Revision automatica de arquitectura, Java, reglas de negocio, pruebas, documentacion y API (68 hallazgos verificados). Lo de Ruta, `app`, `api` y docs ya se corrigio. Esto queda para cada rol:
+
+| Rol | Pendiente | Archivo |
+|---|---|---|
+| Terminal | Prueba de la Fig. 10: U-014, U-031, U-009, U-022, U-005 | `TerminalOrdenTest` |
+| Terminal | `verOrdenDespacho` debe extraer de una copia del monticulo, no de la cola real | `Terminal.java` |
+| Terminal | Un solo dueno de la fila RN-5 (hoy `Modulos.filas` por tipo; `Terminal.filaPasajeros` no se usa) | `Terminal.java`, `Aplicacion.java` |
+| Terminal y Busqueda | Usar `ValidacionException` en lugar de `IllegalArgumentException` | `Terminal.java`, `BusquedaService.java` |
+| Busqueda | `ArbolAvl` (estructura) depende de `servicios.Normalizador`: capa invertida | `ArbolAvl.java` |
+| Busqueda | Javadoc de `IndiceNombres` con costos de trie; con AVL es O(log n + k) (PR de contrato) | `IndiceNombres.java` |
+| Paradas | Unicidad de nombres sin quitar tildes (choca con el AVL) y `toLowerCase()` sin `Locale.ROOT` | `DirectorioEstaciones.java` |
+| Paradas | Columna `activa` invalida en el CSV: reportar error de linea en vez de desactivar en silencio | `CargadorCSV.java` |
+| Paradas | Minutos del CSV como `int` (hoy `double`) | `CargadorCSV.java` |
+| Auth (lead) | Un pasajero puede registrarse como `admin` antes de que se cree el admin y bloquear la siembra. Reservar ese nombre | `AuthServiceImpl.java`, `SeedAdmin.java` |
+| Auth (lead) | Sin limite de intentos en login y registro (mejora para la Fase 3) | `Servidor.java` |
+
+## 9. Clases Temporal que se reemplazan
+
+Cuando una estructura propia pase su contrato, cambia la Temporal en **todos** estos lugares (no solo en `Aplicacion`):
+
+| Temporal | Donde |
+|---|---|
+| `MapaTemporal` -> `TablaHash` | `Aplicacion` (usuarios, `MapaTemporal::new` de Dijkstra, `filas`, mapa de `BusquedaService`), constructores sin argumentos de `GrafoListaAdyacencia` y `DirectorioEstaciones`, `Terminal.unidadesEnEspera` |
+| `ListaTemporal` -> `ListaDinamica` | `GrafoListaAdyacencia.nuevaLista`, `Dijkstra.reconstruir`, `Terminal` (`verOrdenDespacho`, `verFila`), `ArbolAvl.conPrefijo`, `BusquedaService.recientes`, `UsuarioRepositorioArchivo`, `AuthServiceImpl`, `SeedAdmin` |
+| `RedVialTemporal` | `app/servicios/RedSoloLectura` (copia de la red para `verRed`); puede quedarse o pasar a `GrafoListaAdyacencia` |
