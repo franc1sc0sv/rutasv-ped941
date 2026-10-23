@@ -11,3 +11,4 @@ nbproject/
 data/usuarios*
 data/historial*
 .env*
+.claude/worktrees/

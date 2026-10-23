@@ -1,23 +1,22 @@
 # RutaSV
 
 Planificador de rutas de transporte publico para el proyecto PED941 (equipo de 5).
-Esta hecho en Java 21 con Maven. Por ahora solo existe el modulo `core`: aun no hay interfaz ni capa HTTP.
+El nucleo esta hecho en Java 21 con Maven (`core`), con una capa HTTP delgada (`api`) y una interfaz en React (`frontend`).
 
-Lo unico que funciona completo es el login: registro, inicio de sesion y roles (PASAJERO y ADMIN).
-El resto del sistema tiene interfaces y adaptadores temporales basados en `java.util`.
-Cada companero reemplaza uno de ellos con su propia estructura.
+Funcionan de punta a punta: login y roles, busqueda con autocompletado, calculo de ruta con Dijkstra, red vial y despacho de unidades.
+Faltan la tabla hash, la lista dinamica, el historial y la edicion de paradas. El estado completo y la guia del video estan en [docs/entrega-fase2.md](docs/entrega-fase2.md).
 
 ## Las 7 estructuras
 
-| Estructura | Interfaz | Rol | Uso |
-|---|---|---|---|
-| Lista dinamica | `Lista<T>` | Historial | Usuarios, historial, vecinos |
-| Pila | `Pila<T>` | Ruta | Reconstruir la ruta |
-| Cola FIFO | `Cola<T>` | Terminal | Fila de pasajeros |
-| Cola de prioridad | `ColaPrioridad<T>` | Terminal | Despacho, Dijkstra, top 5 |
-| Tabla hash | `Mapa<K,V>` | Paradas | Estaciones, usuarios, conteos |
-| Arbol AVL | `IndiceNombres` | Busqueda | Busqueda por prefijo |
-| Grafo | `RedVial` | Ruta | Red de estaciones y tramos |
+| Estructura | Interfaz | Rol | Uso | Estado |
+|---|---|---|---|---|
+| Lista dinamica | `Lista<T>` | Historial | Usuarios, historial, vecinos | ❌ pendiente |
+| Pila | `Pila<T>` | Ruta | Reconstruir la ruta | ✅ `PilaEnlazada` |
+| Cola FIFO | `Cola<T>` | Terminal | Fila de pasajeros | ✅ `ColaEnlazada` |
+| Cola de prioridad | `ColaPrioridad<T>` | Terminal | Despacho, Dijkstra, top 5 | ✅ `MonticuloBinario` |
+| Tabla hash | `Mapa<K,V>` | Paradas | Estaciones, usuarios, conteos | ❌ pendiente |
+| Arbol AVL | `IndiceNombres` | Busqueda | Busqueda por prefijo | ✅ `ArbolAvl` |
+| Grafo | `RedVial` | Ruta | Red de estaciones y tramos | ✅ `GrafoListaAdyacencia` |
 
 ## Instalar JDK 21 y Maven
 
@@ -27,12 +26,24 @@ java -version                           # debe decir 21
 mvn -version                            # Maven 3.9 o superior
 ```
 
+Para el frontend: Node 20 o superior.
+
 ## Compilar y probar
 
 ```bash
-mvn -B verify          # compila y corre todas las pruebas
+mvn -B verify          # compila y corre todas las pruebas (core y api)
 mvn -B test            # solo pruebas
 ```
+
+## Levantar el sistema
+
+```bash
+mvn -B package -DskipTests
+RUTASV_ADMIN_PASSWORD=una-clave-de-demo java -jar api/target/rutasv-api.jar   # API en :7070
+cd frontend && npm install && npm run dev                                     # http://localhost:5173
+```
+
+Contrato de la API: [docs/api.md](docs/api.md). Como conectar tu pantalla: [frontend/README.md](frontend/README.md).
 
 ## Empieza aqui (sin reuniones)
 
@@ -53,7 +64,7 @@ core/                    modulo Java (edu.udb.rutasv)
     excepciones/         excepciones compartidas
     archivo/             escritura atomica de archivos
     temporal/            adaptadores temporales (java.util), se reemplazan por los propios
-  <modulo>/              auth, ruta, paradas, busqueda, terminal, historial. Cada uno con:
+  <modulo>/              auth, ruta, paradas, busqueda, terminal, historial. Cada uno con las que necesite:
     interfaces/          contratos del servicio
     servicios/           logica de negocio
     repositorios/        guardar y cargar datos
@@ -63,11 +74,12 @@ core/                    modulo Java (edu.udb.rutasv)
     (ruta tambien tiene algoritmos/)
   app/                   unica puerta de entrada
     interfaces/          SistemaTransporte
-    servicios/           SistemaTransporteImpl
+    servicios/           SistemaTransporteImpl, Modulos (que modulos estan conectados) y RedSoloLectura
     configuracion/       Aplicacion (cableado)
+api/                     capa HTTP delgada (Javalin): un endpoint por metodo de SistemaTransporte
+frontend/                React + Vite + TypeScript, una carpeta por rol en src/modulos/
 data/                    CSV de ejemplo (datos sinteticos)
 docs/                    documentacion del equipo
-api/  frontend/          vacios hasta decidir el framework
 .github/                 CI y plantilla de PR
 ```
 
@@ -75,6 +87,8 @@ api/  frontend/          vacios hasta decidir el framework
 
 - `RUTASV_ADMIN_USER`: usuario admin inicial (por defecto `admin`).
 - `RUTASV_ADMIN_PASSWORD`: contrasena del admin inicial, minimo 8 caracteres. Sin ella no se crea el admin.
+- `RUTASV_PORT`: puerto de la API (por defecto `7070`).
+- `RUTASV_DATA_DIR`: carpeta con los CSV y los archivos de usuarios (por defecto `data`).
 
 ## Documentacion
 
@@ -83,3 +97,6 @@ api/  frontend/          vacios hasta decidir el framework
 - [docs/decisiones.md](docs/decisiones.md)
 - [docs/contratos.md](docs/contratos.md)
 - [docs/tareas-por-rol.md](docs/tareas-por-rol.md)
+- [docs/api.md](docs/api.md): endpoints HTTP
+- [docs/entrega-fase2.md](docs/entrega-fase2.md): estado, guion del video, bitacora, correcciones del documento y pendientes por rol
+- [docs/documento-ruta.md](docs/documento-ruta.md): texto del rol Ruta para el documento (pseudocodigo y complejidad)

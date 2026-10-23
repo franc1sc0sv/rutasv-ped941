@@ -28,6 +28,9 @@ public interface SistemaTransporte {
     /** Inicia sesion con usuario y contrasena. */
     Sesion iniciarSesion(String usuario, String contrasena);
 
+    /** Cierra la sesion: despues ya no sirve para ninguna operacion. Ignora sesiones nulas o desconocidas. */
+    void cerrarSesion(Sesion sesion);
+
     // ---- Busqueda ----
 
     /** Nombres de estaciones que empiezan con el prefijo, en orden alfabetico. */
@@ -46,7 +49,10 @@ public interface SistemaTransporte {
     /** Rutas calculadas por el usuario de la sesion. */
     Lista<RutaCalculada> miHistorial(Sesion sesion);
 
-    /** Devuelve la red completa. Solo ADMIN. */
+    /**
+     * Red completa de solo lectura, para dibujar el mapa y el detalle de una ruta. Cualquier sesion
+     * puede leerla; cambiarla es solo ADMIN, por {@link #agregarTramo} y {@link #crearEstacion} (RN-1).
+     */
     RedVial verRed(Sesion sesion);
 
     /** Agrega un tramo a la red (minutos > 0, RN-2). Solo ADMIN. */
@@ -57,7 +63,7 @@ public interface SistemaTransporte {
 
     // ---- Paradas ----
 
-    /** Busca una estacion por nombre exacto; vacio si no existe. */
+    /** Busca una estacion por nombre exacto (sin distinguir mayusculas) o, si no aparece, por codigo; vacio si no existe. */
     Optional<Estacion> buscarEstacion(Sesion sesion, String texto);
 
     /** Crea una estacion. Solo ADMIN. */

@@ -14,7 +14,7 @@ Cada estructura tiene una interfaz en `edu.udb.rutasv.nucleo.estructuras` y un a
    }
    ```
    Nota: `ColaPrioridadContractTest` usa `crear(Comparator<Integer>)` y `MapaContractTest` usa `Mapa<String,Integer>`.
-4. Cambia el cableado en `Aplicacion` para usar tu clase.
+4. Cambia el cableado en `Aplicacion` para usar tu clase. Algunos modulos crean Temporales por dentro: la lista completa esta en `docs/entrega-fase2.md`, seccion 9.
 5. Corre `mvn -B verify`, abre tu PR y marca la casilla de contratos.
 
 ## Reglas
