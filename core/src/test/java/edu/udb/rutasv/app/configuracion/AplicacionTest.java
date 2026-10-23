@@ -1,6 +1,7 @@
 package edu.udb.rutasv.app.configuracion;
 
 import edu.udb.rutasv.app.interfaces.SistemaTransporte;
+import edu.udb.rutasv.auth.excepciones.AccesoDenegadoException;
 import edu.udb.rutasv.auth.excepciones.CredencialesInvalidasException;
 import edu.udb.rutasv.auth.modelo.Rol;
 import edu.udb.rutasv.auth.modelo.Sesion;
@@ -95,6 +96,8 @@ class AplicacionTest {
 
         assertEquals(8, sistema.verRed(admin).estaciones().tamano());
         assertTrue(sistema.calcularRuta(s, "E07", "E05").isPresent());
+        assertEquals(8, sistema.verRed(s).estaciones().tamano());
+        assertThrows(AccesoDenegadoException.class, () -> sistema.verRed(s).agregarTramo("E07", "E05", 1, 1.0));
         sistema.agregarTramo(admin, "E07", "E05", 1, 1.0);
         assertEquals(1, sistema.calcularRuta(s, "E07", "E05").orElseThrow().minutos());
     }
