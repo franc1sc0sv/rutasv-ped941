@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test;
 class ArquitecturaTest {
 
     private static final Path MAIN = Path.of("src/main/java/edu/udb/rutasv");
-    private static final Pattern IMPORT = Pattern.compile("^import (?:static )?([\\w.]+);", Pattern.MULTILINE);
+    private static final Pattern IMPORT = Pattern.compile("^import (?:static )?([\\w.]+(?:\\.\\*)?);", Pattern.MULTILINE);
     private static final Set<String> MODULOS =
             Set.of("auth", "ruta", "paradas", "busqueda", "terminal", "historial");
     private static final List<String> PROHIBIDOS =

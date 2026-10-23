@@ -16,6 +16,12 @@ import edu.udb.rutasv.nucleo.temporal.MapaTemporal;
  */
 public class GrafoListaAdyacencia implements RedVial {
 
+    /**
+     * Un tramo dura como maximo un dia. Ademas de ser realista, garantiza que la suma de minutos de
+     * una ruta no se desborde en un {@code int}.
+     */
+    public static final int MAX_MINUTOS_TRAMO = 24 * 60;
+
     private final Mapa<String, Estacion> estaciones;
     private final Mapa<String, Lista<Arista>> adyacencia;
     /** Codigos en orden de alta, para listar la red siempre en el mismo orden. */
@@ -50,13 +56,17 @@ public class GrafoListaAdyacencia implements RedVial {
         estaciones.poner(codigo, estacion);
     }
 
+    /** O(grado del origen): si ya existe un tramo hacia el mismo destino, lo reemplaza (RN-3). */
     @Override
     public void agregarTramo(String origenCodigo, String destinoCodigo, int minutos, double km) {
         if (minutos <= 0) {
             throw new ValidacionException("Los minutos del tramo deben ser mayores que cero (RN-2)");
         }
-        if (km < 0) {
-            throw new ValidacionException("Los km del tramo no pueden ser negativos");
+        if (minutos > MAX_MINUTOS_TRAMO) {
+            throw new ValidacionException("Un tramo no puede durar mas de " + MAX_MINUTOS_TRAMO + " minutos");
+        }
+        if (!Double.isFinite(km) || km < 0) {
+            throw new ValidacionException("Los km del tramo deben ser un numero finito y no negativo");
         }
         if (!estaciones.contiene(origenCodigo)) {
             throw new ValidacionException("No existe la estacion de origen: " + origenCodigo);
@@ -77,7 +87,7 @@ public class GrafoListaAdyacencia implements RedVial {
         salientes.agregar(new Arista(destinoCodigo, minutos, km));
     }
 
-    /** Copia de los tramos salientes: quien la recibe no puede cambiar el grafo. */
+    /** Copia de los tramos salientes, O(grado): quien la recibe no puede cambiar el grafo. */
     @Override
     public Lista<Arista> vecinos(String codigo) {
         Lista<Arista> copia = nuevaLista();

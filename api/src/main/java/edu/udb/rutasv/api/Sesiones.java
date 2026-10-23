@@ -18,11 +18,10 @@ final class Sesiones {
         porToken.put(sesion.token(), sesion);
     }
 
-    void cerrar(Context ctx) {
+    /** Olvida el token del pedido y devuelve su sesion, o {@code null} si no habia. */
+    Sesion cerrar(Context ctx) {
         String token = token(ctx);
-        if (token != null) {
-            porToken.remove(token);
-        }
+        return token == null ? null : porToken.remove(token);
     }
 
     /** Sesion del pedido. Lanza {@link SesionInvalidaException} (401) si no hay token valido. */
