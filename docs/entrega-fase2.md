@@ -17,7 +17,7 @@ Leyenda: ✅ hecho y conectado · 🟡 hecho pero falta conectar o probar · ❌
 ### Lo que falta, en orden
 
 1. **Paradas:** `TablaHash` (quita el `@Disabled` de `TablaHashContratoTest`) y cambiar `MapaTemporal` por `TablaHash` en `Aplicacion` (login, Dijkstra y directorio). Agregar `editar` y `activar/desactivar` a `DirectorioEstaciones` y conectarlos; al desactivar, actualizar tambien la red (`red.agregarEstacion` con la estacion inactiva) para que Dijkstra la salte.
-2. **Historial:** `ListaDinamica`, `HistorialRepositorioArchivo`, guardar en `calcularRuta` (RN-7, nunca si no hay ruta, RN-6), y estadisticas (conteo por par con tabla hash, top 5 con cola de prioridad, tiempo promedio con `tiempoCalculoNs`). Conectar `miHistorial` y `estadisticas`.
+2. **Historial:** listo en `core`. Cuando este `TablaHash`, cambiar `MapaTemporal` por `TablaHash` en `EstadisticasService` (`Aplicacion`).
 3. **Terminal:** decidir un solo dueno de la fila RN-5 (seccion 8). La prueba de la Fig. 10 y `verOrdenDespacho` sobre una copia ya estan.
 4. **Todos:** conectar su pantalla en `frontend/src/modulos/<rol>/` (ver `frontend/README.md`) y revisar sus pendientes de la seccion 8.
 5. **Cuando lleguen `TablaHash` y `ListaDinamica`:** cambiar las clases Temporal en todos los lugares de la seccion 9.
