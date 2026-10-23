@@ -21,6 +21,8 @@
   --tinta: #0d1824;          /* panel de senal (menu admin, banda de tiempo) */
   --sobre-tinta: #ffffff;
   --sobre-tinta-suave: #a9b7c4;
+  --tinta-hover: rgb(255 255 255 / 0.06);
+  --tinta-activo: rgb(255 255 255 / 0.1);
 
   /* ---------- Color: linea principal (azul senal) ---------- */
   --primario: #0a5296;
