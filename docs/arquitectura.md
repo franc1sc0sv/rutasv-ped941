@@ -3,7 +3,7 @@
 El sistema se organiza **por modulo**, uno por rol, mas un `nucleo` compartido y una unica puerta de entrada (`app`).
 
 ```
-                 interfaz (JavaFX o API + React): se decide despues
+            frontend React  --HTTP-->  api/ (Javalin, sin logica)
                                   |
                                   v
                     app.SistemaTransporte  <- unica puerta de entrada
@@ -26,10 +26,14 @@ El sistema se organiza **por modulo**, uno por rol, mas un `nucleo` compartido y
 
 ## Por que asi
 
-- **Abstraccion:** la interfaz de usuario solo habla con `SistemaTransporte`. Con JavaFX se llama directo. Con React se agrega una capa `api/` delgada que traduce HTTP a esas mismas llamadas. El core no cambia en ningun caso.
+- **Abstraccion:** la interfaz de usuario solo habla con `SistemaTransporte`. El frontend React llega por la capa `api/`, que traduce cada pedido HTTP a una llamada de la fachada. El core no conoce ni a React ni a la API.
 - **Menos conflictos:** cada companero trabaja en su carpeta y sus pruebas. Solo `app/` se comparte.
 - **Reemplazo sin dolor:** las versiones `Temporal` de `nucleo/temporal` se sustituyen una por una en `Aplicacion`, y las pruebas de contrato dicen si la nueva cumple.
 
 ## Carpetas dentro de cada modulo
 
-Cada modulo ordena sus archivos por tipo: `interfaces/`, `servicios/`, `repositorios/`, `modelo/`, `excepciones/` y `estructuras/` (ruta suma `algoritmos/`). Las carpetas vacias tienen un `package-info.java` que dice que va en ellas. Ejemplo ya completo: `auth/`.
+Cada modulo ordena sus archivos por tipo, con las carpetas que necesite: `interfaces/`, `servicios/`, `repositorios/`, `modelo/`, `excepciones/` y `estructuras/` (ruta suma `algoritmos/`). Las carpetas vacias tienen un `package-info.java` que dice que va en ellas. Ejemplo ya completo: `auth/`.
+
+## Concurrencia
+
+La API atiende pedidos en paralelo. Las estructuras propias no son seguras entre hilos, asi que `SistemaTransporteImpl` las protege con un solo `ReentrantReadWriteLock` (lectura para consultar, escritura para cambiar). El login tiene su propio candado en `AuthServiceImpl`. Un modulo nuevo no necesita candados propios si solo se usa desde la fachada.

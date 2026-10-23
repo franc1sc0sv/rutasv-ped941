@@ -48,7 +48,7 @@ class SistemaTransporteImplTest {
     }, hasher);
     private final ArbolAvl indice = new ArbolAvl();
     private final SistemaTransporte sistema =
-            new SistemaTransporteImpl(auth, new Autorizador(auth), new BusquedaService(indice, new MapaTemporal<>()));
+            new SistemaTransporteImpl(auth, new Autorizador(auth), soloBusqueda(new BusquedaService(indice, new MapaTemporal<>())));
     private final Sesion pasajero;
     private final Sesion admin;
 
@@ -60,10 +60,14 @@ class SistemaTransporteImplTest {
         indice.insertar("Centro", new Estacion("E1", "Centro", "Z1", 0, 0, true));
     }
 
+    /** Solo Busqueda conectada: el resto de modulos debe responder "Pendiente". */
+    private static Modulos soloBusqueda(BusquedaService busqueda) {
+        return new Modulos(busqueda, null, null, null, null, null, null);
+    }
+
     private Executable[] soloAdmin(Sesion s) {
         Estacion e = new Estacion("E1", "Centro", "Z1", 0, 0, true);
         return new Executable[] {
-            () -> sistema.verRed(s),
             () -> sistema.agregarTramo(s, "A", "B", 5, 1.0),
             () -> sistema.estadisticas(s),
             () -> sistema.crearEstacion(s, e),
@@ -80,6 +84,7 @@ class SistemaTransporteImplTest {
     private Executable[] paraCualquierSesion(Sesion s) {
         return new Executable[] {
             () -> sistema.calcularRuta(s, "A", "B"),
+            () -> sistema.verRed(s),
             () -> sistema.miHistorial(s),
             () -> sistema.buscarEstacion(s, "Centro")
         };

@@ -17,7 +17,7 @@ Roles: Ruta, Paradas, Busqueda, Terminal, Historial.
 ## Paradas
 1. Repositorio y proyecto (YA HECHO por el lead).
 2. Tabla hash propia: funcion hash, encadenamiento, redimension con factor 0.75. `poner`, `obtener`, `contiene`, `eliminar`, `claves`.
-3. Directorio de estaciones: alta, edicion, activar/desactivar (RN-1). Codigo y nombre unicos.
+3. Directorio de estaciones: alta, edicion, activar/desactivar (RN-1). Codigo y nombre unicos. Busqueda por codigo o nombre.
 4. Carga CSV de estaciones y tramos con errores claros por linea.
 5. Pantalla Registro de paradas (Fig 9).
 6. Pruebas: 1000 claves antes y despues de redimensionar, colisiones, eliminar inexistente, codigos repetidos, CSV mal formado.
@@ -45,7 +45,7 @@ Roles: Ruta, Paradas, Busqueda, Terminal, Historial.
 4. Terminal y fila de pasajeros (RN-5).
 5. `verOrdenDespacho` sin vaciar la cola real.
 6. Pantalla Despacho (Fig 10).
-7. Pruebas: U-014, U-031, U-009, U-022, U-005; terminal vacia; FIFO.
+7. Pruebas: U-014, U-031, U-009, U-022, U-005; terminal vacia; FIFO; ver orden no cambia la cola.
 8. Documento y autocritica (secciones 2.3, 2.6, 5.2).
 
 **Desbloquea:** Ruta (cola de prioridad para Dijkstra) e Historial (top 5).
@@ -57,7 +57,7 @@ Roles: Ruta, Paradas, Busqueda, Terminal, Historial.
 4. Estadisticas: conteo por par con tabla hash, top 5 con cola de prioridad, tiempo promedio.
 5. Pantalla Red vial (Fig 8).
 6. Pantallas Mi historial e Historial global (Fig 7 y 11).
-7. Pruebas.
+7. Pruebas: la lista crece al pasar su capacidad; 3 rutas quedan en orden; el top 5 sale bien ordenado.
 8. Video y documento.
 
 **Necesita:** Ruta (rutas calculadas), tabla hash y cola de prioridad. **Desbloquea:** estadisticas globales.

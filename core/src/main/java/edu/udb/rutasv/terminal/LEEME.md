@@ -12,33 +12,26 @@ mvn verify                       # debe terminar en BUILD SUCCESS
 git checkout -b feat/terminal-<tarea>
 ```
 
-## Ya esta creado para ti (esqueletos con `TODO`)
+## Que hay (hecho y conectado)
 
-- `estructuras/MonticuloBinario.java` implementa `ColaPrioridad` (recibe un `Comparator`)
-- `estructuras/ColaEnlazada.java` implementa `Cola`
+- `estructuras/MonticuloBinario.java` (`ColaPrioridad` con `Comparator`) y `estructuras/ColaEnlazada.java` (`Cola`), con sus pruebas de contrato activas.
+- `servicios/ReglaDespacho.java` (RN-4: expres primero, luego hora; si empatan, el id) y `servicios/Terminal.java` (unidades + fila FIFO, RN-5).
+- Conectado en `SistemaTransporteImpl`: `registrarUnidad`, `despacharSiguiente`, `verOrdenDespacho`, `encolarPasajero`, `atenderPasajero`. Dijkstra (Ruta) tambien usa `MonticuloBinario`.
 
-Las pruebas ``MonticuloBinarioContratoTest` y `ColaEnlazadaContratoTest`` (en `src/test/.../terminal/estructuras/`) ya estan conectadas y tienen `@Disabled`. Cuando tu clase este lista, quita esa linea: el test de contrato te dice si cumples.
+## Pendiente (revision del 23/10)
 
-## Te toca crear
-
-- `servicios/`: regla RN-4 como `Comparator` (expres primero, luego hora programada mas proxima), `Terminal` con su fila FIFO (RN-5) y `verOrdenDespacho` sin vaciar la cola real
-- Conectalo en `SistemaTransporteImpl` (`registrarUnidad`, `despacharSiguiente`, `verOrdenDespacho`, `encolarPasajero`, `atenderPasajero`)
-
-## Mientras otros terminan lo suyo
-
-Usa `ColaPrioridadTemporal` y `ColaTemporal` de `nucleo/temporal`.
-
-## Ojo
-
-Ruta usa `ColaPrioridad` para Dijkstra y Historial la usa para el top 5: respeta el contrato.
+- Prueba con las 5 unidades de la Fig. 10: deben salir U-014, U-031, U-009, U-022, U-005 (tarea 7).
+- `verOrdenDespacho` debe trabajar sobre una copia del monticulo, sin vaciar la cola real (tarea 5 del plan).
+- Fila de pasajeros: hoy la fachada usa una cola por tipo de ruta (`Modulos.filas`) y la fila de `Terminal` no se usa. Decide un solo dueno de RN-5 (ver `docs/decisiones.md`).
+- `Terminal` lanza `IllegalArgumentException` donde el resto usa `ValidacionException`.
 
 ## Tus tareas (de la Fase 2)
 
-- [ ] 1. Cola de prioridad propia (monticulo binario con `Comparator`).
-- [ ] 2. Cola FIFO enlazada.
-- [ ] 3. Regla de despacho RN-4.
-- [ ] 4. Terminal y fila de pasajeros (RN-5).
-- [ ] 5. `verOrdenDespacho` sin vaciar la cola real.
+- [x] 1. Cola de prioridad propia (monticulo binario con `Comparator`).
+- [x] 2. Cola FIFO enlazada.
+- [x] 3. Regla de despacho RN-4.
+- [x] 4. Terminal y fila de pasajeros (RN-5).
+- [ ] 5. `verOrdenDespacho` sin vaciar la cola real (hoy extrae y reinserta sobre la cola real: ver Pendiente).
 - [ ] 6. Pantalla Despacho (Fig 10).
 - [ ] 7. Pruebas: U-014, U-031, U-009, U-022, U-005; terminal vacia; FIFO.
 - [ ] 8. Documento y autocritica (secciones 2.3, 2.6, 5.2).

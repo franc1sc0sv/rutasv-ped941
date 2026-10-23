@@ -1,43 +1,62 @@
 package edu.udb.rutasv.ruta.estructuras;
 
 import edu.udb.rutasv.nucleo.estructuras.Pila;
-import edu.udb.rutasv.nucleo.excepciones.NoImplementadoException;
+import edu.udb.rutasv.nucleo.excepciones.ColeccionVaciaException;
 
 /**
- * Pila para reconstruir la ruta de origen a destino (rol Ruta).
- * ESQUELETO: reemplaza cada TODO por tu implementacion, sin usar java.util para guardar los datos.
- * Cuando pase el test de contrato, quita el @Disabled de la prueba correspondiente.
+ * Pila para reconstruir la ruta de origen a destino (rol Ruta). Cada elemento vive en un nodo
+ * que apunta al de abajo; la cima es el ultimo nodo apilado. Todas las operaciones son O(1).
  */
 public class PilaEnlazada<T> implements Pila<T> {
 
+    private static final class Nodo<T> {
+        private final T dato;
+        private final Nodo<T> abajo;
+
+        private Nodo(T dato, Nodo<T> abajo) {
+            this.dato = dato;
+            this.abajo = abajo;
+        }
+    }
+
+    private Nodo<T> cima;
+    private int tamano;
+
     /** Pila con nodos enlazados, sin arreglos ni java.util. */
     public PilaEnlazada() {
-        // TODO: inicializa tu estructura
+        cima = null;
+        tamano = 0;
     }
 
     @Override
     public void apilar(T elemento) {
-        throw new NoImplementadoException("TODO: PilaEnlazada.apilar");
+        cima = new Nodo<>(elemento, cima);
+        tamano++;
     }
 
     @Override
     public T desapilar() {
-        throw new NoImplementadoException("TODO: PilaEnlazada.desapilar");
+        T dato = cima();
+        cima = cima.abajo;
+        tamano--;
+        return dato;
     }
 
     @Override
     public T cima() {
-        throw new NoImplementadoException("TODO: PilaEnlazada.cima");
+        if (cima == null) {
+            throw new ColeccionVaciaException("La pila esta vacia");
+        }
+        return cima.dato;
     }
 
     @Override
     public boolean estaVacia() {
-        throw new NoImplementadoException("TODO: PilaEnlazada.estaVacia");
+        return cima == null;
     }
 
     @Override
     public int tamano() {
-        throw new NoImplementadoException("TODO: PilaEnlazada.tamano");
+        return tamano;
     }
-
 }

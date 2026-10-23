@@ -1,5 +1,2 @@
-/**
- * Implementaciones de los servicios del modulo y su logica de negocio. RutaService: calculo de ruta y tiempo medido.
- * Pendiente: lo escribe el rol Ruta.
- */
+/** {@link edu.udb.rutasv.ruta.servicios.RutaServiceImpl}: arma la RutaCalculada y mide el tiempo de calculo. */
 package edu.udb.rutasv.ruta.servicios;
