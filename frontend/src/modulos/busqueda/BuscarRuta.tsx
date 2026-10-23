@@ -1,12 +1,15 @@
 // Buscar ruta (Fig. 5). Rol dueno: Busqueda.
 // Endpoints: GET /estaciones/sugerencias?prefijo=, GET /busquedas/recientes, GET /estaciones (nombre -> codigo).
-// Al calcular navega a /ruta?origen=E01&destino=E04 (pantalla del rol Ruta).
+// Calcular ruta: GET /rutas (aqui y solo aqui se calcula; con RN-7 cada calculo queda en el historial).
+// Con el resultado navega a /ruta?origen=E01&destino=E04 y le pasa la ruta en el state de la navegacion.
 import { useRef, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api } from '../../api/cliente';
+import { api, ApiError } from '../../api/cliente';
+import type { Ruta } from '../../api/tipos';
 import { Aviso, Boton, CodigoEstacion, Esqueleto, Icono, Pagina } from '../../comun/ui';
 import { usePedido } from '../../comun/usePedido';
 import { useEstaciones } from '../../comun/useEstaciones';
+import { urlRuta, type EstadoRuta } from '../ruta/estadoRuta';
 import { Autocompletar } from './Autocompletar';
 import './busqueda.css';
 
@@ -20,6 +23,7 @@ export function BuscarRuta() {
   const [destino, setDestino] = useState('');
   const [enfocado, setEnfocado] = useState<Campo>('origen');
   const [error, setError] = useState<string | null>(null);
+  const [calculando, setCalculando] = useState(false);
   const refOrigen = useRef<HTMLInputElement>(null);
   const refDestino = useRef<HTMLInputElement>(null);
 
@@ -42,8 +46,9 @@ export function BuscarRuta() {
     }
   }
 
-  function calcular(ev: FormEvent) {
+  async function calcular(ev: FormEvent) {
     ev.preventDefault();
+    if (calculando) return;
     setError(null);
     if (!eOrigen || !eDestino) {
       const falta = !eOrigen ? 'origen' : 'destino';
@@ -55,7 +60,22 @@ export function BuscarRuta() {
       setError('El origen y el destino son la misma estación. Elige dos distintas.');
       return;
     }
-    navegar(`/ruta?origen=${encodeURIComponent(eOrigen.codigo)}&destino=${encodeURIComponent(eDestino.codigo)}`);
+    setCalculando(true);
+    try {
+      const ruta = await api.get<Ruta>('/rutas', { origen: eOrigen.codigo, destino: eDestino.codigo });
+      const estado: EstadoRuta = { ruta };
+      navegar(urlRuta(eOrigen.codigo, eDestino.codigo), { state: estado });
+    } catch (e) {
+      const sinRuta = e instanceof ApiError && e.status === 404;
+      setError(
+        sinRuta
+          ? 'No hay ruta entre estas estaciones: ningún tramo activo las conecta (RN-6). Prueba con otra estación cercana.'
+          : e instanceof Error
+            ? e.message
+            : 'No se pudo calcular la ruta. Inténtalo de nuevo.',
+      );
+      setCalculando(false);
+    }
   }
 
   const ayuda = (texto: string, e: typeof eOrigen) =>
@@ -104,8 +124,8 @@ export function BuscarRuta() {
         </div>
         {estaciones.error && <Aviso tono="error">No se pudieron cargar las estaciones. {estaciones.error.message}</Aviso>}
         {error && <Aviso tono="error">{error}</Aviso>}
-        <Boton type="submit" variante="primario" tamano="lg" ancho iconoFinal="ruta">
-          Calcular ruta
+        <Boton type="submit" variante="primario" tamano="lg" ancho iconoFinal="ruta" cargando={calculando}>
+          {calculando ? 'Calculando…' : 'Calcular ruta'}
         </Boton>
       </form>
 

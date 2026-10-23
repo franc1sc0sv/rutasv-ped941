@@ -9,6 +9,7 @@ import { fecha, km, nsAMs } from '../../comun/formato';
 import { Aviso, BotonEnlace, Esqueleto, EstadoVacio, Pagina, Pendiente } from '../../comun/ui';
 import { usePedido } from '../../comun/usePedido';
 import { useEstaciones } from '../../comun/useEstaciones';
+import { urlRuta, type EstadoRuta } from '../ruta/estadoRuta';
 import './historial.css';
 
 export function MiHistorial() {
@@ -41,13 +42,14 @@ export function MiHistorial() {
             </BotonEnlace>
           }
         >
-          Cada ruta que calcules quedará aquí para repetirla con un toque.
+          Cada ruta que calcules quedará aquí para volver a verla con un toque.
         </EstadoVacio>
       ) : (
         <ul className="lista-limpia viajes">
           {lista.map((r, i) => (
             <li key={`${r.fecha}-${i}`}>
-              <Link className="viaje" to={`/ruta?origen=${encodeURIComponent(r.origen)}&destino=${encodeURIComponent(r.destino)}`}>
+              {/* Pasa la entrada en el state: Resultado de ruta la pinta sin recalcular (no la duplica en el historial). */}
+              <Link className="viaje" to={urlRuta(r.origen, r.destino)} state={{ entrada: r } satisfies EstadoRuta}>
                 <span className="viaje__min">
                   <span className="cifra">{r.minutos}</span>
                   <small>min</small>
