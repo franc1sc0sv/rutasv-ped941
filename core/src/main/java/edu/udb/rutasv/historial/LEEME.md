@@ -15,12 +15,13 @@ git checkout -b feat/historial-<tarea>
 ## Hecho
 
 - `estructuras/ListaDinamica.java` implementa `Lista` sobre un arreglo que duplica su capacidad al llenarse. `ListaDinamicaContratoTest` ya corre sin `@Disabled`.
+- `repositorios/HistorialRepositorioArchivo.java`: una linea por ruta en `historial.txt` (`origen;destino;E01>E02>E04;minutos;km;fecha;tiempoCalculoNs;usuario`), escrita con `ArchivoAtomico`. Una linea mal formada hace fallar el arranque con su numero de linea, igual que `usuarios.txt`.
+- `servicios/HistorialService.java`: carga el historial al arrancar y devuelve las rutas de cada usuario en orden. Conectado en `Modulos` y en `miHistorial`.
 
 ## Te toca crear
 
-- `repositorios/HistorialRepositorioArchivo.java`: implementa `HistorialRepositorio` (ya existe la interfaz); guarda y carga rutas con fecha y tiempo (RN-7) y usuario; no guarda si no hay ruta (RN-6)
-- `servicios/`: historial por usuario y estadisticas (conteo por par con tabla hash, top 5 con cola de prioridad, tiempo promedio)
-- Conectalo: agrega tu servicio a `app/servicios/Modulos.java` y armalo en `Aplicacion`; implementa `miHistorial` y `estadisticas`, y guarda la ruta en `SistemaTransporteImpl.calcularRuta` solo cuando el `Optional` tenga valor (RN-6 y RN-7; ver el comentario en ese metodo)
+- `servicios/`: estadisticas (conteo por par con tabla hash, top 5 con cola de prioridad, tiempo promedio)
+- Conectalo: implementa `estadisticas`, y guarda la ruta en `SistemaTransporteImpl.calcularRuta` solo cuando el `Optional` tenga valor (RN-6 y RN-7; ver el comentario en ese metodo)
 - La pantalla Red vial usa `verRed` y `agregarTramo`, que ya conecto Ruta
 
 ## Mientras otros terminan lo suyo

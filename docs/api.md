@@ -37,7 +37,7 @@ Siempre `{ "error": "mensaje", "pendiente": false }`.
 | `GET /rutas?origen=E01&destino=E04` | sesion | - | ruta (abajo) | `calcularRuta` | Ruta |
 | `GET /red` | sesion | - | `{estaciones: [Estacion], tramos: [Tramo]}` | `verRed` | Ruta |
 | `POST /red/tramos` | ADMIN | `{origen, destino, minutos, km}` | 201 | `agregarTramo` | Ruta |
-| `GET /historial` | sesion | - | `[RutaCalculada]` (abajo) | `miHistorial` | Historial (pendiente) |
+| `GET /historial` | sesion | - | `[RutaCalculada]` (abajo) | `miHistorial` | Historial |
 | `GET /estadisticas` | ADMIN | - | `{totalBusquedas, rutaMasConsultada, tiempoPromedioNs, top5}` | `estadisticas` | Historial (pendiente) |
 | `GET /estaciones` | sesion | - | `[Estacion]` | `verRed` | Paradas |
 | `GET /estaciones/buscar?texto=Metrocentro` | sesion | - | `Estacion` o 404 | `buscarEstacion` | Paradas |

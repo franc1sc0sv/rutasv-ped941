@@ -13,6 +13,8 @@ import edu.udb.rutasv.auth.servicios.PasswordHasher;
 import edu.udb.rutasv.auth.servicios.SeedAdmin;
 import edu.udb.rutasv.busqueda.estructuras.ArbolAvl;
 import edu.udb.rutasv.busqueda.servicios.BusquedaService;
+import edu.udb.rutasv.historial.repositorios.HistorialRepositorioArchivo;
+import edu.udb.rutasv.historial.servicios.HistorialService;
 import edu.udb.rutasv.nucleo.estructuras.Cola;
 import edu.udb.rutasv.nucleo.estructuras.IndiceNombres;
 import edu.udb.rutasv.nucleo.estructuras.Mapa;
@@ -82,7 +84,8 @@ public final class Aplicacion {
                 new RutaServiceImpl(red, dijkstra),
                 directorio,
                 terminal,
-                filas);
+                filas,
+                new HistorialService(new HistorialRepositorioArchivo(dirDatos.resolve("historial.txt"))));
         return new SistemaTransporteImpl(auth, new Autorizador(auth), modulos);
     }
 

@@ -12,7 +12,7 @@ Leyenda: ✅ hecho y conectado · 🟡 hecho pero falta conectar o probar · ❌
 | Busqueda | ✅ Arbol AVL | ✅ Normalizador, BusquedaService | ✅ `sugerirEstaciones`, `busquedasRecientes` | Buscar ruta (Fig. 5), ventana base |
 | Terminal | ✅ Monticulo, ✅ Cola FIFO | ✅ ReglaDespacho, ✅ Terminal | ✅ despacho y filas | Despacho (Fig. 10) |
 | Paradas | ❌ TablaHash | 🟡 Directorio (falta editar y activar/desactivar), ✅ CargadorCSV | 🟡 `buscarEstacion`, `crearEstacion`; ❌ `editarEstacion`, `activarDesactivarEstacion` | Registro de paradas (Fig. 9) |
-| Historial | ✅ ListaDinamica | ❌ historial y estadisticas | ❌ `miHistorial`, `estadisticas` | Mi historial, Red vial, Historial global (Fig. 7, 8, 11) |
+| Historial | ✅ ListaDinamica | 🟡 historial (faltan estadisticas) | ✅ `miHistorial`; ❌ `estadisticas` | Mi historial, Red vial, Historial global (Fig. 7, 8, 11) |
 
 ### Lo que falta, en orden
 

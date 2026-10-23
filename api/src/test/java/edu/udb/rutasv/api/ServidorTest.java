@@ -96,7 +96,8 @@ class ServidorTest {
         assertEquals(403, pedir("POST", "/api/red/tramos", t,
                 "{\"origen\":\"E01\",\"destino\":\"E05\",\"minutos\":3,\"km\":1}").estado());
 
-        Respuesta pendiente = pedir("GET", "/api/historial", t, null);
+        String admin = token("/api/auth/login", "admin", "clave-sintetica-9");
+        Respuesta pendiente = pedir("GET", "/api/estadisticas", admin, null);
         assertEquals(501, pendiente.estado());
         assertTrue(pendiente.cuerpo().get("pendiente").asBoolean());
     }
