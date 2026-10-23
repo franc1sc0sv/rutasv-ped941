@@ -205,8 +205,7 @@ public class SistemaTransporteImpl implements SistemaTransporte {
     public Lista<UnidadTransporte> verOrdenDespacho(Sesion sesion) {
         autorizador.exigirAdmin(sesion);
         var terminal = conectado(m.terminal(), "Terminal");
-        // Escritura: verOrdenDespacho extrae y vuelve a insertar sobre la cola real.
-        return escribir(terminal::verOrdenDespacho);
+        return leer(terminal::verOrdenDespacho);
     }
 
     @Override

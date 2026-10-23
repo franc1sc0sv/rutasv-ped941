@@ -10,7 +10,7 @@ Leyenda: ✅ hecho y conectado · 🟡 hecho pero falta conectar o probar · ❌
 |---|---|---|---|---|
 | Ruta | ✅ Grafo, ✅ Pila | ✅ Dijkstra + RutaService | ✅ `calcularRuta`, `verRed`, `agregarTramo` | Resultado de ruta (Fig. 6) |
 | Busqueda | ✅ Arbol AVL | ✅ Normalizador, BusquedaService | ✅ `sugerirEstaciones`, `busquedasRecientes` | Buscar ruta (Fig. 5), ventana base |
-| Terminal | ✅ Monticulo, ✅ Cola FIFO | ✅ ReglaDespacho, 🟡 Terminal (`verOrdenDespacho` sobre la cola real) | ✅ despacho y filas | Despacho (Fig. 10) |
+| Terminal | ✅ Monticulo, ✅ Cola FIFO | ✅ ReglaDespacho, ✅ Terminal | ✅ despacho y filas | Despacho (Fig. 10) |
 | Paradas | ❌ TablaHash | 🟡 Directorio (falta editar y activar/desactivar), ✅ CargadorCSV | 🟡 `buscarEstacion`, `crearEstacion`; ❌ `editarEstacion`, `activarDesactivarEstacion` | Registro de paradas (Fig. 9) |
 | Historial | ❌ ListaDinamica | ❌ historial y estadisticas | ❌ `miHistorial`, `estadisticas` | Mi historial, Red vial, Historial global (Fig. 7, 8, 11) |
 
@@ -18,7 +18,7 @@ Leyenda: ✅ hecho y conectado · 🟡 hecho pero falta conectar o probar · ❌
 
 1. **Paradas:** `TablaHash` (quita el `@Disabled` de `TablaHashContratoTest`) y cambiar `MapaTemporal` por `TablaHash` en `Aplicacion` (login, Dijkstra y directorio). Agregar `editar` y `activar/desactivar` a `DirectorioEstaciones` y conectarlos; al desactivar, actualizar tambien la red (`red.agregarEstacion` con la estacion inactiva) para que Dijkstra la salte.
 2. **Historial:** `ListaDinamica`, `HistorialRepositorioArchivo`, guardar en `calcularRuta` (RN-7, nunca si no hay ruta, RN-6), y estadisticas (conteo por par con tabla hash, top 5 con cola de prioridad, tiempo promedio con `tiempoCalculoNs`). Conectar `miHistorial` y `estadisticas`.
-3. **Terminal:** `verOrdenDespacho` sobre una copia del monticulo (la prueba de la Fig. 10 ya esta: `DespachoFigura10Test`).
+3. **Terminal:** decidir un solo dueno de la fila RN-5 (seccion 8). La prueba de la Fig. 10 y `verOrdenDespacho` sobre una copia ya estan.
 4. **Todos:** conectar su pantalla en `frontend/src/modulos/<rol>/` (ver `frontend/README.md`) y revisar sus pendientes de la seccion 8.
 5. **Cuando lleguen `TablaHash` y `ListaDinamica`:** cambiar las clases Temporal en todos los lugares de la seccion 9.
 
@@ -133,7 +133,6 @@ Revision automatica de arquitectura, Java, reglas de negocio, pruebas, documenta
 
 | Rol | Pendiente | Archivo |
 |---|---|---|
-| Terminal | `verOrdenDespacho` debe extraer de una copia del monticulo, no de la cola real | `Terminal.java` |
 | Terminal | Un solo dueno de la fila RN-5 (hoy `Modulos.filas` por tipo; `Terminal.filaPasajeros` no se usa) | `Terminal.java`, `Aplicacion.java` |
 | Terminal y Busqueda | Usar `ValidacionException` en lugar de `IllegalArgumentException` | `Terminal.java`, `BusquedaService.java` |
 | Busqueda | `ArbolAvl` (estructura) depende de `servicios.Normalizador`: capa invertida | `ArbolAvl.java` |
