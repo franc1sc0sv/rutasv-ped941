@@ -96,12 +96,12 @@ Correcciones ya detectadas contra el codigo:
 | 4.2 y 4.3 | A*: el modelo ya guarda coordenadas, asi que pasa de "no se puede" a "mejora de la Fase 3" |
 | 5.1, Fig. 12 | Pseudocodigo con la pila (A1) y complejidad de Dijkstra, A* y Bellman-Ford (M1). Base: `ruta/algoritmos/Dijkstra.java` |
 | 2.6 y 3.5 | Reescribir RN-5 con la fila por terminal (A3, M4) |
-| Nueva | Desviaciones: React + API en lugar de JavaFX, login y roles, persistencia en archivos (ver `docs/decisiones.md`) |
+| Nueva | Decisiones de implementacion: interfaz en React + API, login y roles, persistencia en archivos (ver `docs/decisiones.md`) |
 
 ## 6. Autocritica (Terminal redacta, todos aportan)
 
 - Que quedo completo y que no (usa la tabla de la seccion 1 el dia de la entrega).
-- Por que: dependencias entre roles, tiempo, decisiones tardias (interfaz).
+- Por que: dependencias entre roles y tiempo.
 - Plan concreto para la Fase 3: Big-O con mejor, promedio y peor caso; A* con coordenadas; metricas por modulo; casos borde en todas las pantallas.
 
 ## 7. Tabla de casos de prueba (Paradas la une)
