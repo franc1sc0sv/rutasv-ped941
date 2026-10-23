@@ -119,16 +119,18 @@ export function Segmentado<T extends string>({
   opciones,
   valor,
   alCambiar,
+  etiquetaOculta = false,
 }: {
   nombre: string;
   etiqueta: string;
+  etiquetaOculta?: boolean;
   opciones: { valor: T; texto: ReactNode }[];
   valor: T;
   alCambiar: (v: T) => void;
 }) {
   return (
     <fieldset className="segmentado">
-      <legend className="campo__etiqueta">{etiqueta}</legend>
+      <legend className={etiquetaOculta ? 'oculto-visual' : 'campo__etiqueta'}>{etiqueta}</legend>
       <div className="segmentado__opciones">
         {opciones.map((o) => (
           <label key={o.valor} className="segmentado__opcion">
