@@ -16,11 +16,12 @@ Siempre `{ "error": "mensaje", "pendiente": false }`.
 
 | Codigo | Cuando |
 |---|---|
-| 400 | Datos invalidos (`ValidacionException`): minutos <= 0, codigo inexistente, JSON mal formado |
+| 400 | Datos invalidos (`ValidacionException`): minutos fuera de 1..1440 o con decimales, codigo inexistente, JSON mal formado, tipo de ruta u hora invalidos |
 | 401 | Sin sesion, sesion invalida o credenciales incorrectas |
 | 403 | Falta rol ADMIN (RN-1) |
 | 404 | No hay ruta (RN-6) o no existe la estacion buscada |
 | 409 | Usuario repetido, o cola vacia al despachar o atender |
+| 500 | Error inesperado (`"Error interno del servidor"`); el detalle queda en el log |
 | 501 | Modulo pendiente (`"pendiente": true`) |
 
 ## Endpoints
@@ -29,14 +30,14 @@ Siempre `{ "error": "mensaje", "pendiente": false }`.
 |---|---|---|---|---|---|
 | `POST /auth/registro` | - | `{usuario, contrasena}` | sesion (201) | `registrar` | auth |
 | `POST /auth/login` | - | `{usuario, contrasena}` | sesion | `iniciarSesion` | auth |
-| `POST /auth/logout` | sesion | - | 204 | - | api |
+| `POST /auth/logout` | sesion | - | 204 | `cerrarSesion` | auth |
 | `GET /auth/yo` | sesion | - | sesion | - | api |
 | `GET /estaciones/sugerencias?prefijo=ter` | sesion | - | `["Terminal Occidente", ...]` | `sugerirEstaciones` | Busqueda |
 | `GET /busquedas/recientes` | sesion | - | `["ter", ...]` | `busquedasRecientes` | Busqueda |
 | `GET /rutas?origen=E01&destino=E04` | sesion | - | ruta (abajo) | `calcularRuta` | Ruta |
 | `GET /red` | sesion | - | `{estaciones: [Estacion], tramos: [Tramo]}` | `verRed` | Ruta |
 | `POST /red/tramos` | ADMIN | `{origen, destino, minutos, km}` | 201 | `agregarTramo` | Ruta |
-| `GET /historial` | sesion | - | `[RutaCalculada]` | `miHistorial` | Historial (pendiente) |
+| `GET /historial` | sesion | - | `[RutaCalculada]` (abajo) | `miHistorial` | Historial (pendiente) |
 | `GET /estadisticas` | ADMIN | - | `{totalBusquedas, rutaMasConsultada, tiempoPromedioNs, top5}` | `estadisticas` | Historial (pendiente) |
 | `GET /estaciones` | sesion | - | `[Estacion]` | `verRed` | Paradas |
 | `GET /estaciones/buscar?texto=Metrocentro` | sesion | - | `Estacion` o 404 | `buscarEstacion` | Paradas |
@@ -63,6 +64,9 @@ Siempre `{ "error": "mensaje", "pendiente": false }`.
   "estaciones": [ /* Estacion en orden de origen a destino */ ],
   "tramos": [ /* Tramo por cada par consecutivo, con sus minutos y km */ ]
 }
+// RutaCalculada (GET /historial): el registro del core, sin detalle. "tramos" son codigos en orden
+{ "origen": "E01", "destino": "E04", "tramos": ["E01", "E02", "E03", "E04"], "minutos": 18, "km": 9.5,
+  "fecha": "2026-10-24T10:15:00", "tiempoCalculoNs": 773753, "usuario": "ana_01" }
 // Unidad
 { "id": "U-014", "tipoRuta": "EXPRES", "horaProgramada": "07:00:00" }
 // Pasajero
