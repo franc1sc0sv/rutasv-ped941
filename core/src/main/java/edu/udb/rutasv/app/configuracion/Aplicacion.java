@@ -10,14 +10,22 @@ import edu.udb.rutasv.auth.servicios.AuthServiceImpl;
 import edu.udb.rutasv.auth.servicios.Autorizador;
 import edu.udb.rutasv.auth.servicios.PasswordHasher;
 import edu.udb.rutasv.auth.servicios.SeedAdmin;
+import edu.udb.rutasv.busqueda.estructuras.ArbolAvl;
+import edu.udb.rutasv.busqueda.servicios.BusquedaService;
+import edu.udb.rutasv.nucleo.estructuras.IndiceNombres;
 import edu.udb.rutasv.nucleo.estructuras.Mapa;
+import edu.udb.rutasv.nucleo.modelo.Estacion;
 import edu.udb.rutasv.nucleo.temporal.MapaTemporal;
+import edu.udb.rutasv.paradas.servicios.CargadorCSV;
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.logging.Logger;
 
 
 /** Raiz de composicion: arma las piezas y devuelve el sistema. */
 public final class Aplicacion {
+
+    private static final Logger LOG = Logger.getLogger(Aplicacion.class.getName());
 
     private Aplicacion() {
     }
@@ -37,6 +45,23 @@ public final class Aplicacion {
         }
         new SeedAdmin(usuarios, repo, hasher, entorno).ejecutar();
         AuthService auth = new AuthServiceImpl(usuarios, repo, hasher);
-        return new SistemaTransporteImpl(auth, new Autorizador(auth));
+        BusquedaService busqueda = new BusquedaService(cargarIndice(dirDatos), new MapaTemporal<>());
+        return new SistemaTransporteImpl(auth, new Autorizador(auth), busqueda);
+    }
+
+    /** Indice de nombres con las estaciones activas de {@code estaciones.csv}; los errores de carga se avisan en el log. */
+    private static IndiceNombres cargarIndice(Path dirDatos) {
+        IndiceNombres indice = new ArbolAvl();
+        String ruta = dirDatos.resolve("estaciones.csv").toString();
+        CargadorCSV.ResultadoCargaEstaciones carga = new CargadorCSV().cargarEstacionesDesdeCSV(ruta);
+        for (String error : carga.errores) {
+            LOG.warning("estaciones.csv: " + error);
+        }
+        for (Estacion e : carga.estacionesValidas) {
+            if (e.activa()) {
+                indice.insertar(e.nombre(), e);
+            }
+        }
+        return indice;
     }
 }

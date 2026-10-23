@@ -4,6 +4,7 @@ import edu.udb.rutasv.app.interfaces.SistemaTransporte;
 import edu.udb.rutasv.auth.interfaces.AuthService;
 import edu.udb.rutasv.auth.modelo.Sesion;
 import edu.udb.rutasv.auth.servicios.Autorizador;
+import edu.udb.rutasv.busqueda.servicios.BusquedaService;
 import edu.udb.rutasv.nucleo.estructuras.Lista;
 import edu.udb.rutasv.nucleo.estructuras.RedVial;
 import edu.udb.rutasv.nucleo.excepciones.NoImplementadoException;
@@ -17,17 +18,19 @@ import java.util.Optional;
 
 
 /**
- * Fachada. Solo el login funciona; el resto valida la autorizacion y luego
+ * Fachada. Funcionan el login y la busqueda; el resto valida la autorizacion y luego
  * lanza {@link NoImplementadoException} hasta que cada responsable lo implemente.
  */
 public class SistemaTransporteImpl implements SistemaTransporte {
 
     private final AuthService auth;
     private final Autorizador autorizador;
+    private final BusquedaService busqueda;
 
-    public SistemaTransporteImpl(AuthService auth, Autorizador autorizador) {
+    public SistemaTransporteImpl(AuthService auth, Autorizador autorizador, BusquedaService busqueda) {
         this.auth = auth;
         this.autorizador = autorizador;
+        this.busqueda = busqueda;
     }
 
     private static NoImplementadoException pendiente(String rol) {
@@ -47,13 +50,13 @@ public class SistemaTransporteImpl implements SistemaTransporte {
     @Override
     public Lista<String> sugerirEstaciones(Sesion sesion, String prefijo) {
         autorizador.exigirSesion(sesion);
-        throw pendiente("Busqueda");
+        return busqueda.sugerir(sesion.usuario(), prefijo);
     }
 
     @Override
     public Lista<String> busquedasRecientes(Sesion sesion) {
         autorizador.exigirSesion(sesion);
-        throw pendiente("Busqueda");
+        return busqueda.recientes(sesion.usuario());
     }
 
     @Override
