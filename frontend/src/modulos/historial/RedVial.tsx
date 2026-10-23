@@ -42,7 +42,7 @@ export function RedVial() {
     ev.preventDefault();
     setAviso(null);
     if (!origen || !destino) {
-      setAviso({ tono: 'error', texto: 'Elige la estación de origen y la de destino.' });
+      setAviso({ tono: 'error', texto: 'Elige las dos estaciones del tramo: Desde y Hasta.' });
       return;
     }
     // Se envian tal cual: el backend valida (minutos <= 0 -> 400 RN-2) y la pantalla muestra su mensaje.

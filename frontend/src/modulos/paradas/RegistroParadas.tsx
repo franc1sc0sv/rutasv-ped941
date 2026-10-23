@@ -228,7 +228,7 @@ export function RegistroParadas() {
                 </tr>
               </thead>
               <tbody>
-                {filas.length === 0 && <FilaVacia columnas={COLUMNAS}>Ninguna estación coincide con “{filtro}”.</FilaVacia>}
+                {filas.length === 0 && <FilaVacia columnas={COLUMNAS}>Ninguna estación coincide con “{filtro}”. Prueba con otro código o nombre.</FilaVacia>}
                 {filas.map((e) => (
                   <FilaParada
                     key={e.codigo}
