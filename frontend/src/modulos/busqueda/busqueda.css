@@ -1,0 +1,39 @@
+/* Buscar ruta: origen y destino unidos por un tramo de linea, como en un diagrama. */
+.buscar { display: grid; gap: var(--esp-5); }
+.buscar__campos { display: grid; gap: var(--esp-5); }
+.buscar__parada { position: relative; padding-left: var(--esp-6); }
+
+/* Marcadores A (hueco) y B (lleno) en el canal izquierdo. */
+.marcador-parada {
+  position: absolute; left: 0; top: 2px;
+  width: 18px; height: 18px; border-radius: var(--radio-redondo);
+  border: 4px solid var(--primario); background: var(--superficie);
+}
+.marcador-parada--B { background: var(--primario); }
+/* El tramo que une A con B: del punto de origen al punto de destino. */
+.buscar__parada--origen::before {
+  content: ''; position: absolute; left: 7px; top: 18px; width: 4px;
+  bottom: calc(-1 * var(--esp-5) - 4px);
+  background: var(--primario);
+}
+
+.buscar__intercambiar { position: absolute; right: 0; top: calc(-1 * var(--esp-2)); }
+.buscar__resuelta { display: inline-flex; align-items: center; gap: var(--esp-2); }
+
+/* Recientes */
+.recientes { display: grid; gap: var(--esp-3); }
+.recientes__cabeza { display: flex; align-items: center; justify-content: space-between; gap: var(--esp-3); }
+.recientes__nota { font-size: var(--fs-2); }
+.recientes__lista { display: flex; flex-wrap: wrap; gap: var(--esp-2); }
+.reciente {
+  display: inline-flex; align-items: center; gap: var(--esp-2);
+  min-height: var(--toque-min); padding: 0 var(--esp-4);
+  border-radius: var(--radio-2); border: 1px solid var(--borde); background: var(--superficie);
+  color: var(--texto); font-weight: var(--peso-medio); cursor: pointer;
+  transition: border-color var(--dur-corta) ease, background-color var(--dur-corta) ease, transform var(--dur-presion) var(--curva-salida);
+}
+.reciente .icono { color: var(--texto-suave); }
+.reciente:active { transform: scale(0.97); }
+@media (hover: hover) and (pointer: fine) {
+  .reciente:hover { border-color: var(--primario); background: var(--primario-suave); }
+}

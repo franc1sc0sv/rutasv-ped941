@@ -1,0 +1,183 @@
+/*
+ * Tokens de RutaSV: la UNICA fuente de colores, tipografia, espacios, radios, elevacion y movimiento.
+ * Direccion "Andén": senaletica vial y de transito (azul senal RAL 5017, amarillo exprés RAL 1023,
+ * tipografia Overpass, derivada de Highway Gothic). Detalle y reglas en frontend/DESIGN.md.
+ *
+ * Regla: ninguna pantalla escribe un color, un tamano de letra o un espacio a mano; usa estas variables.
+ * Si falta algo, se agrega aqui (con su par en modo oscuro) y se documenta en DESIGN.md.
+ */
+:root {
+  color-scheme: light;
+
+  /* ---------- Color: base neutra ---------- */
+  --fondo: #f1f4f6;          /* lienzo de la app */
+  --superficie: #ffffff;     /* paneles, campos */
+  --superficie-2: #e7ecf0;   /* escalon de tono: cabeceras de tabla, chips, filas alternas */
+  --superficie-3: #d9e0e6;   /* hover sobre superficie-2 */
+  --borde: #d2d9e0;          /* divisiones de panel y tabla (no texto) */
+  --borde-fuerte: #75828f;   /* borde de campos: 3:1 sobre superficie */
+  --texto: #0d1824;          /* tinta principal */
+  --texto-suave: #4a5664;    /* notas secundarias (AA sobre fondo y superficie-2) */
+  --tinta: #0d1824;          /* panel de senal (menu admin, banda de tiempo) */
+  --sobre-tinta: #ffffff;
+  --sobre-tinta-suave: #a9b7c4;
+  --tinta-hover: rgb(255 255 255 / 0.06);
+  --tinta-activo: rgb(255 255 255 / 0.1);
+
+  /* ---------- Color: linea principal (azul senal) ---------- */
+  --primario: #0a5296;
+  --primario-fuerte: #073e73;
+  --primario-suave: #e1ecf7;
+  --sobre-primario: #ffffff;
+
+  /* ---------- Color: tipo de ruta ---------- */
+  --expres: #f5b700;          /* relleno de la insignia EXPRES (rombo) */
+  --sobre-expres: #1a1300;
+  --expres-texto: #7a5500;    /* texto EXPRES sobre superficies claras */
+  --expres-suave: #fdf3cf;
+  --normal: #42505e;          /* relleno de la insignia NORMAL (circulo) */
+  --sobre-normal: #ffffff;
+  --normal-suave: #e7ecf0;
+
+  /* ---------- Color: semanticos ---------- */
+  --exito: #0b7a45;
+  --exito-suave: #e1f3e9;
+  --peligro: #b3141c;
+  --peligro-suave: #fbe7e6;
+  --aviso: #8a4b00;
+  --aviso-suave: #fcefd9;
+  --info: #0b6680;
+  --info-suave: #e0f1f6;
+  --inactivo: #7f8b98;
+
+  /* ---------- Color: mapa ---------- */
+  --mapa-fondo: #f7f9fa;
+  --mapa-reticula: #e3e8ec;
+  --mapa-tramo: #a7b3bf;
+  --mapa-estacion: #0d1824;
+  --mapa-ruta: var(--primario);
+  --mapa-halo: var(--mapa-fondo);
+
+  /* ---------- Foco y seleccion ---------- */
+  --foco: #0a5296;
+  --foco-halo: #ffffff;
+  --seleccion: #cfe0f3;
+
+  /* ---------- Tipografia ---------- */
+  /* Overpass (senaletica, titulos, cifras) + Atkinson Hyperlegible (texto corrido, maxima legibilidad). */
+  --fuente-senal: 'Overpass', 'Highway Gothic', 'Arial Narrow', system-ui, sans-serif;
+  --fuente-texto: 'Atkinson Hyperlegible', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  /* Escala tercera mayor (1.25) sobre 16 px. */
+  --fs-1: 0.75rem;    /* 12: notas al pie, leyendas */
+  --fs-2: 0.875rem;   /* 14: tablas, ayudas, etiquetas */
+  --fs-3: 1rem;       /* 16: texto base */
+  --fs-4: 1.25rem;    /* 20: titulos de panel */
+  --fs-5: 1.5625rem;  /* 25: cifras de panel */
+  --fs-6: 2rem;       /* 32: titulo de pantalla */
+  --fs-7: 3rem;       /* 48: tiempo de viaje (movil) */
+  --fs-8: 4.5rem;     /* 72: tiempo de viaje (escritorio) */
+  --peso-texto: 400;
+  --peso-medio: 600;
+  --peso-fuerte: 700;
+  --peso-senal: 800;
+  --interlinea: 1.5;
+  --interlinea-titulo: 1.1;
+  --tracking-titulo: -0.015em;
+
+  /* ---------- Espacio (base 4 px) ---------- */
+  --esp-1: 4px;
+  --esp-2: 8px;
+  --esp-3: 12px;
+  --esp-4: 16px;
+  --esp-5: 24px;
+  --esp-6: 32px;
+  --esp-7: 48px;
+  --esp-8: 64px;
+
+  /* ---------- Radios: esquinas de senal, casi rectas ---------- */
+  --radio-1: 2px;     /* insignias, chips de codigo */
+  --radio-2: 4px;     /* botones, campos */
+  --radio-3: 8px;     /* paneles */
+  --radio-redondo: 999px; /* solo puntos de estacion y avatares */
+
+  /* ---------- Elevacion: solo lo que flota ---------- */
+  --elev-0: none;
+  --elev-flotante: 0 1px 2px rgb(13 24 36 / 0.08), 0 8px 24px rgb(13 24 36 / 0.12);
+  --velo: rgb(13 24 36 / 0.45);
+
+  /* ---------- Movimiento ---------- */
+  --dur-presion: 120ms;  /* presionar boton */
+  --dur-corta: 160ms;    /* hover, listas desplegables */
+  --dur-media: 220ms;    /* avisos, filas que salen */
+  --dur-larga: 280ms;    /* dibujo de la linea de ruta, cajon de menu */
+  --curva-salida: cubic-bezier(0.23, 1, 0.32, 1);       /* entra o responde */
+  --curva-movimiento: cubic-bezier(0.77, 0, 0.175, 1);  /* se mueve en pantalla */
+  --curva-cajon: cubic-bezier(0.32, 0.72, 0, 1);        /* cajones laterales */
+
+  /* ---------- Medidas de layout ---------- */
+  --ancho-menu: 248px;
+  --alto-encabezado: 56px;
+  --alto-barra-inferior: 64px;
+  --ancho-contenido: 1200px;
+  --ancho-pasajero: 760px;
+  --toque-min: 44px;     /* objetivo tactil minimo */
+  --control-alto: 40px;  /* alto de botones y campos (admin) */
+}
+
+/* En pantallas tactiles todos los controles miden al menos 44 px de alto (WCAG 2.5.5). */
+@media (pointer: coarse) {
+  :root { --control-alto: 44px; }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    --fondo: #0b1016;
+    --superficie: #121922;
+    --superficie-2: #1a232e;
+    --superficie-3: #24303c;
+    --borde: #283441;
+    --borde-fuerte: #6b7a89;
+    --texto: #e6ebf0;
+    --texto-suave: #a0adba;
+    --tinta: #070b10;
+    --sobre-tinta: #e6ebf0;
+    --sobre-tinta-suave: #8f9dab;
+
+    --primario: #62a3ec;
+    --primario-fuerte: #95c1f3;
+    --primario-suave: #13283f;
+    --sobre-primario: #04121f;
+
+    --expres: #f2be3a;
+    --sobre-expres: #1a1300;
+    --expres-texto: #f2c75c;
+    --expres-suave: #33280b;
+    --normal: #3a4856;
+    --sobre-normal: #eef2f5;
+    --normal-suave: #1f2935;
+
+    --exito: #4cc38a;
+    --exito-suave: #0e2a1e;
+    --peligro: #ff857e;
+    --peligro-suave: #3a1517;
+    --aviso: #f2b652;
+    --aviso-suave: #33240c;
+    --info: #5cc2de;
+    --info-suave: #0c2a33;
+    --inactivo: #6f7d8b;
+
+    --mapa-fondo: #0f151c;
+    --mapa-reticula: #1b242e;
+    --mapa-tramo: #4d5d6d;
+    --mapa-estacion: #e6ebf0;
+
+    --foco: #95c1f3;
+    --foco-halo: #0b1016;
+    --seleccion: #1f3d5f;
+
+    --elev-flotante: 0 1px 2px rgb(0 0 0 / 0.5), 0 12px 32px rgb(0 0 0 / 0.45);
+    --velo: rgb(0 0 0 / 0.6);
+  }
+}
