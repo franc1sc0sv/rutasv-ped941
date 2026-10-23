@@ -108,7 +108,7 @@ h3.tarjeta__titulo { font-size: var(--fs-3); }
 .campo__ayuda { font-size: var(--fs-2); color: var(--texto-suave); }
 .campo__error {
   display: flex; align-items: flex-start; gap: var(--esp-1);
-  font-size: var(--fs-2); color: var(--peligro); font-weight: var(--peso-fuerte);
+  font-size: var(--fs-2); color: var(--peligro);
   animation: entrar-arriba var(--dur-corta) var(--curva-salida);
 }
 .campo__error .icono { margin-top: 2px; }
