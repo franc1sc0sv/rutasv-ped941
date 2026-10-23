@@ -18,7 +18,7 @@ Leyenda: ✅ hecho y conectado · 🟡 hecho pero falta conectar o probar · ❌
 
 1. **Paradas:** `TablaHash` (quita el `@Disabled` de `TablaHashContratoTest`) y cambiar `MapaTemporal` por `TablaHash` en `Aplicacion` (login, Dijkstra y directorio). Agregar `editar` y `activar/desactivar` a `DirectorioEstaciones` y conectarlos; al desactivar, actualizar tambien la red (`red.agregarEstacion` con la estacion inactiva) para que Dijkstra la salte.
 2. **Historial:** `ListaDinamica`, `HistorialRepositorioArchivo`, guardar en `calcularRuta` (RN-7, nunca si no hay ruta, RN-6), y estadisticas (conteo por par con tabla hash, top 5 con cola de prioridad, tiempo promedio con `tiempoCalculoNs`). Conectar `miHistorial` y `estadisticas`.
-3. **Terminal:** prueba con las 5 unidades de la Fig. 10 (salen U-014, U-031, U-009, U-022, U-005) y `verOrdenDespacho` sobre una copia.
+3. **Terminal:** `verOrdenDespacho` sobre una copia del monticulo (la prueba de la Fig. 10 ya esta: `DespachoFigura10Test`).
 4. **Todos:** conectar su pantalla en `frontend/src/modulos/<rol>/` (ver `frontend/README.md`) y revisar sus pendientes de la seccion 8.
 5. **Cuando lleguen `TablaHash` y `ListaDinamica`:** cambiar las clases Temporal en todos los lugares de la seccion 9.
 
@@ -58,7 +58,7 @@ La rubrica pide (nivel Estrategico): **narracion con contexto, demo, retos y pro
 |---|---|---|---|
 | Ruta | Resultado de ruta | Occidente -> Metrocentro = 18 min; ruta inexistente (RN-6); estacion inactiva | `DijkstraTest`, `GrafoListaAdyacenciaContratoTest`, `PilaEnlazadaContratoTest` |
 | Busqueda | Buscar ruta | Escribir "ter" y "metro" (sin tildes); intercambiar; busquedas recientes | `ArbolAvlTest`, `BusquedaServiceTest` |
-| Terminal | Despacho | Registrar las 5 unidades de la Fig. 10 y despachar en orden RN-4; fila FIFO | `TerminalTest`, `ReglaDespachoTest`, `MonticuloBinarioTest` |
+| Terminal | Despacho | Registrar las 5 unidades de la Fig. 10 y despachar en orden RN-4; fila FIFO | `DespachoFigura10Test`, `ReglaDespachoTest`, `MonticuloBinarioTest` |
 | Paradas | Registro de paradas | Buscar por codigo y nombre, crear parada, codigo repetido, CSV con error | `TablaHashContratoTest`, `DirectorioEstacionesTest`, `CargadorCSVTest` |
 | Historial | Mi historial, Red vial, Historial global | Agregar tramo (peso 0 rechazado, RN-2); historial en orden; top 5 | `ListaDinamicaContratoTest` y las de historial |
 
@@ -123,6 +123,8 @@ El documento de la Fase 1 debe quedar coherente con el codigo (rubrica). Correcc
 | Ruta | Tramo de mas de 24 h o km no finitos | 1441 min, NaN | `ValidacionException` | `GrafoListaAdyacenciaTest.rechazaTramosDeMasDeUnDiaYKmNoFinitos` |
 | Ruta | Dijkstra con el monticulo propio | red de 500 estaciones | 499 min, atajos descartados | `DijkstraConMonticuloTest` |
 | API | Sin ruta por HTTP (RN-6) | E01 -> estacion aislada | 404 | `ServidorTest.sinRutaDevuelve404Rn6` |
+| Terminal | Orden de la Fig. 10 (RN-4) | U-009 N 07:05, U-031 X 07:30, U-005 N 07:40, U-014 X 07:15, U-022 N 07:20 | U-014, U-031, U-009, U-022, U-005 | `DespachoFigura10Test` |
+| Terminal | Terminal vacia | despachar sin unidades | `ColeccionVaciaException` | `DespachoFigura10Test.despacharSacaLasUnidadesEnElOrdenDeLaFigura` |
 | ... | (cada rol agrega sus filas) | | | |
 
 ## 8. Pendientes por rol que dejo la revision del 23/10
@@ -131,7 +133,6 @@ Revision automatica de arquitectura, Java, reglas de negocio, pruebas, documenta
 
 | Rol | Pendiente | Archivo |
 |---|---|---|
-| Terminal | Prueba de la Fig. 10: U-014, U-031, U-009, U-022, U-005 | `TerminalOrdenTest` |
 | Terminal | `verOrdenDespacho` debe extraer de una copia del monticulo, no de la cola real | `Terminal.java` |
 | Terminal | Un solo dueno de la fila RN-5 (hoy `Modulos.filas` por tipo; `Terminal.filaPasajeros` no se usa) | `Terminal.java`, `Aplicacion.java` |
 | Terminal y Busqueda | Usar `ValidacionException` en lugar de `IllegalArgumentException` | `Terminal.java`, `BusquedaService.java` |
