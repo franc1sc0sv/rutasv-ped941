@@ -1,11 +1,12 @@
-// Mapa esquematico de la red vial en SVG (sin librerias).
+// Mapa esquematico de la red vial en SVG (sin librerias), con estilo de diagrama de transito.
 // - El viewBox se ajusta a las estaciones (y a sus nombres) + margen.
 // - El eje y se invierte: y mayor queda ARRIBA (como en un plano).
 // - Cada par de tramos ida/vuelta se dibuja una sola vez.
-// - `ruta` (codigos en orden) se resalta con el color de acento.
+// - `ruta` (codigos en orden) se dibuja como linea de transito: gruesa, con halo, y se "traza" al aparecer.
 // - Textos y trazos tienen tamano fijo en pixeles: se mide el ancho real del mapa
 //   (ResizeObserver) y los nombres se ubican evitando choques con otros nombres y tramos.
-import { useEffect, useMemo, useRef, useState } from 'react';
+// - En pantallas angostas los nombres pasan a codigos y aparece la lista de codigos + leyenda.
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import type { Estacion, Tramo } from '../api/tipos';
 import './mapa.css';
 
@@ -24,7 +25,7 @@ interface Props {
 }
 
 // Tamanos en pixeles de pantalla.
-const PX = { nombre: 12, minutos: 11, radio: 6, radioExtremo: 8, tramo: 2.5, ruta: 5, margen: 10 };
+const PX = { nombre: 12, minutos: 11, radio: 5.5, radioExtremo: 8, tramo: 3, ruta: 6, halo: 4, margen: 12, reticula: 24 };
 
 interface Linea {
   a: Estacion;
@@ -51,6 +52,7 @@ interface Etiqueta {
 export function MapaRed({ estaciones, tramos, ruta = [], mostrarMinutos = true, atenuarRed = false, titulo, className }: Props) {
   const contenedor = useRef<HTMLDivElement>(null);
   const [anchoPx, setAnchoPx] = useState(640);
+  const idPatron = useId().replace(/:/g, '');
 
   useEffect(() => {
     const el = contenedor.current;
@@ -74,6 +76,7 @@ export function MapaRed({ estaciones, tramos, ruta = [], mostrarMinutos = true, 
 
   const { vb, k, lineas, porCodigo, etiquetas, compacto } = modelo;
   const enRuta = new Set(ruta);
+  const hayRuta = ruta.length > 1;
   const origen = ruta[0];
   const destino = ruta[ruta.length - 1];
   const puntosRuta = ruta
@@ -82,34 +85,53 @@ export function MapaRed({ estaciones, tramos, ruta = [], mostrarMinutos = true, 
     .map((e) => `${e.x},${-e.y}`)
     .join(' ');
   const etiquetaTitulo = titulo ?? 'Mapa de la red vial';
+  const hayInactivas = estaciones.some((e) => !e.activa);
+  const visibles = estaciones.filter((e) => !atenuarRed || !hayRuta || enRuta.has(e.codigo));
+  // La lista de codigos sigue el orden de la ruta cuando la hay.
+  const listaCodigos = atenuarRed && hayRuta ? ruta.map((c) => porCodigo.get(c)).filter((e): e is Estacion => !!e) : visibles;
 
   return (
-    <div ref={contenedor} className={`mapa-contenedor ${className ?? ''}`}>
+    <figure ref={contenedor} className={`mapa-contenedor ${compacto ? 'es-compacto' : ''} ${className ?? ''}`}>
       <svg
-        className={`mapa ${atenuarRed ? 'mapa--atenuado' : ''}`}
+        className={`mapa ${atenuarRed && hayRuta ? 'mapa--atenuado' : ''}`}
         viewBox={`${vb.x} ${vb.y} ${vb.w} ${vb.h}`}
         role="img"
         aria-label={etiquetaTitulo}
         preserveAspectRatio="xMidYMid meet"
       >
         <title>{etiquetaTitulo}</title>
+        <defs>
+          <pattern id={idPatron} width={PX.reticula * k} height={PX.reticula * k} patternUnits="userSpaceOnUse" x={vb.x} y={vb.y}>
+            <path className="mapa__reticula" d={`M ${PX.reticula * k} 0 L 0 0 0 ${PX.reticula * k}`} fill="none" strokeWidth={k} />
+          </pattern>
+        </defs>
+        <rect className="mapa__fondo" x={vb.x} y={vb.y} width={vb.w} height={vb.h} />
+        <rect x={vb.x} y={vb.y} width={vb.w} height={vb.h} fill={`url(#${idPatron})`} />
 
         <g className="mapa__tramos">
-          {lineas.map((l) => (
-            <line
-              key={`${l.a.codigo}-${l.b.codigo}`}
-              className={`mapa__tramo ${l.enRuta ? 'es-ruta' : ''} ${!l.a.activa || !l.b.activa ? 'es-inactivo' : ''}`}
-              x1={l.a.x}
-              y1={-l.a.y}
-              x2={l.b.x}
-              y2={-l.b.y}
-              strokeWidth={PX.tramo * k}
-              strokeDasharray={!l.a.activa || !l.b.activa ? `${4 * k} ${4 * k}` : undefined}
-            />
-          ))}
+          {lineas.map((l) => {
+            const inactivo = !l.a.activa || !l.b.activa;
+            return (
+              <line
+                key={`${l.a.codigo}-${l.b.codigo}`}
+                className={`mapa__tramo ${l.enRuta ? 'es-ruta' : ''} ${inactivo ? 'es-inactivo' : ''}`}
+                x1={l.a.x}
+                y1={-l.a.y}
+                x2={l.b.x}
+                y2={-l.b.y}
+                strokeWidth={PX.tramo * k}
+                strokeDasharray={inactivo ? `${5 * k} ${4 * k}` : undefined}
+              />
+            );
+          })}
         </g>
 
-        {ruta.length > 1 && <polyline className="mapa__ruta" points={puntosRuta} strokeWidth={PX.ruta * k} fill="none" />}
+        {hayRuta && (
+          <g className="mapa__linea-ruta">
+            <polyline className="mapa__ruta-halo" points={puntosRuta} strokeWidth={(PX.ruta + PX.halo * 2) * k} fill="none" />
+            <polyline className="mapa__ruta" points={puntosRuta} strokeWidth={PX.ruta * k} fill="none" pathLength={1} />
+          </g>
+        )}
 
         {mostrarMinutos && (
           <g className="mapa__minutos">
@@ -120,7 +142,7 @@ export function MapaRed({ estaciones, tramos, ruta = [], mostrarMinutos = true, 
                 x={(l.a.x + l.b.x) / 2}
                 y={-(l.a.y + l.b.y) / 2}
                 fontSize={PX.minutos * k}
-                strokeWidth={3 * k}
+                strokeWidth={3.5 * k}
                 textAnchor="middle"
                 dominantBaseline="central"
               >
@@ -132,13 +154,13 @@ export function MapaRed({ estaciones, tramos, ruta = [], mostrarMinutos = true, 
 
         <g className="mapa__estaciones">
           {estaciones.map((e) => {
-            const extremo = e.codigo === origen || e.codigo === destino;
+            const extremo = hayRuta && (e.codigo === origen || e.codigo === destino);
             const et = etiquetas.get(e.codigo)!;
+            const clases = ['mapa__estacion', enRuta.has(e.codigo) && 'es-ruta', extremo && 'es-extremo', !e.activa && 'es-inactiva']
+              .filter(Boolean)
+              .join(' ');
             return (
-              <g
-                key={e.codigo}
-                className={`mapa__estacion ${enRuta.has(e.codigo) ? 'es-ruta' : ''} ${extremo ? 'es-extremo' : ''} ${e.activa ? '' : 'es-inactiva'}`}
-              >
+              <g key={e.codigo} className={clases}>
                 <title>
                   {e.codigo} · {e.nombre} ({e.zona}){e.activa ? '' : ' · inactiva'}
                 </title>
@@ -146,9 +168,10 @@ export function MapaRed({ estaciones, tramos, ruta = [], mostrarMinutos = true, 
                   cx={e.x}
                   cy={-e.y}
                   r={(extremo ? PX.radioExtremo : PX.radio) * k}
-                  strokeWidth={2 * k}
-                  strokeDasharray={e.activa ? undefined : `${2 * k} ${2 * k}`}
+                  strokeWidth={(extremo ? 3.5 : 2.5) * k}
+                  strokeDasharray={e.activa ? undefined : `${2.5 * k} ${2 * k}`}
                 />
+                {extremo && <circle className="mapa__centro" cx={e.x} cy={-e.y} r={2.5 * k} />}
                 <text
                   className="mapa__nombre"
                   x={et.x}
@@ -156,7 +179,7 @@ export function MapaRed({ estaciones, tramos, ruta = [], mostrarMinutos = true, 
                   textAnchor={et.anchor}
                   dominantBaseline="central"
                   fontSize={PX.nombre * k}
-                  strokeWidth={3 * k}
+                  strokeWidth={3.5 * k}
                 >
                   {compacto ? e.codigo : e.nombre}
                 </text>
@@ -165,18 +188,37 @@ export function MapaRed({ estaciones, tramos, ruta = [], mostrarMinutos = true, 
           })}
         </g>
       </svg>
-      {compacto && (
-        <ul className="mapa__codigos" aria-label="Códigos de estación">
-          {estaciones
-            .filter((e) => !atenuarRed || ruta.length < 2 || enRuta.has(e.codigo))
-            .map((e) => (
+
+      <figcaption className="mapa__pie">
+        <ul className="mapa__leyenda" aria-label="Leyenda del mapa">
+          {hayRuta && (
+            <li>
+              <span className="leyenda__ruta" aria-hidden="true" /> Tu ruta
+            </li>
+          )}
+          <li>
+            <span className="leyenda__tramo" aria-hidden="true" /> Tramo{mostrarMinutos ? ' (minutos)' : ''}
+          </li>
+          <li>
+            <span className="leyenda__estacion" aria-hidden="true" /> Estación
+          </li>
+          {hayInactivas && (
+            <li>
+              <span className="leyenda__estacion leyenda__estacion--inactiva" aria-hidden="true" /> Inactiva
+            </li>
+          )}
+        </ul>
+        {compacto && (
+          <ul className="mapa__codigos" aria-label="Códigos de estación">
+            {listaCodigos.map((e) => (
               <li key={e.codigo} className={e.activa ? '' : 'es-inactiva'}>
                 <b>{e.codigo}</b> {e.nombre}
               </li>
             ))}
-        </ul>
-      )}
-    </div>
+          </ul>
+        )}
+      </figcaption>
+    </figure>
   );
 }
 
