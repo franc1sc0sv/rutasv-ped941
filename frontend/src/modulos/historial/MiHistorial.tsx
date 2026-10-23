@@ -5,11 +5,8 @@ import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../api/cliente';
 import type { RutaCalculada } from '../../api/tipos';
-import { Cargando } from '../../comun/Cargando';
 import { fecha, km, nsAMs } from '../../comun/formato';
-import { MensajeError } from '../../comun/MensajeError';
-import { Pagina } from '../../comun/Pagina';
-import { Pendiente } from '../../comun/Pendiente';
+import { Aviso, BotonEnlace, Esqueleto, EstadoVacio, Pagina, Pendiente } from '../../comun/ui';
 import { usePedido } from '../../comun/usePedido';
 import { useEstaciones } from '../../comun/useEstaciones';
 import './historial.css';
@@ -21,41 +18,49 @@ export function MiHistorial() {
 
   let cuerpo: ReactNode;
   if (historial.cargando) {
-    cuerpo = <Cargando />;
+    cuerpo = (
+      <div className="tarjeta">
+        <Esqueleto lineas={4} etiqueta="Cargando tu historial…" />
+      </div>
+    );
   } else if (historial.error?.pendiente) {
     cuerpo = <Pendiente rol="Historial" mensaje={historial.error.message} endpoint="GET /api/historial" />;
   } else if (historial.error) {
-    cuerpo = <MensajeError mensaje={historial.error.message} />;
+    cuerpo = <Aviso tono="error" titulo="No se pudo cargar tu historial">{historial.error.message}</Aviso>;
   } else {
     // Mas reciente primero, aunque el backend ya las mande en otro orden.
     const lista = [...(historial.datos ?? [])].sort((a, b) => b.fecha.localeCompare(a.fecha));
     cuerpo =
       lista.length === 0 ? (
-        <div className="tarjeta vacio">
-          <p>Aún no has calculado rutas.</p>
-          <Link className="boton boton--primario" to="/buscar">
-            Buscar una ruta
-          </Link>
-        </div>
+        <EstadoVacio
+          icono="historial"
+          titulo="Aún no calculas rutas"
+          accion={
+            <BotonEnlace a="/buscar" variante="primario" icono="buscar">
+              Buscar una ruta
+            </BotonEnlace>
+          }
+        >
+          Cada ruta que calcules quedará aquí para repetirla con un toque.
+        </EstadoVacio>
       ) : (
-        <ul className="lista-limpia historial">
+        <ul className="lista-limpia viajes">
           {lista.map((r, i) => (
-            <li key={`${r.fecha}-${i}`} className="tarjeta historial__item">
-              <Link className="historial__enlace" to={`/ruta?origen=${encodeURIComponent(r.origen)}&destino=${encodeURIComponent(r.destino)}`}>
-                <div className="historial__trayecto">
-                  <strong>{nombre(r.origen)}</strong>
-                  <span aria-hidden="true">→</span>
-                  <span className="oculto-visual">a</span>
-                  <strong>{nombre(r.destino)}</strong>
-                </div>
-                <div className="historial__datos texto-suave">
-                  <span>{fecha(r.fecha)}</span>
+            <li key={`${r.fecha}-${i}`}>
+              <Link className="viaje" to={`/ruta?origen=${encodeURIComponent(r.origen)}&destino=${encodeURIComponent(r.destino)}`}>
+                <span className="viaje__min">
+                  <span className="cifra">{r.minutos}</span>
+                  <small>min</small>
+                </span>
+                <span className="viaje__trayecto">
+                  <span className="viaje__estacion">{nombre(r.origen)}</span>
+                  <span className="oculto-visual"> a </span>
+                  <span className="viaje__estacion viaje__estacion--destino">{nombre(r.destino)}</span>
+                </span>
+                <span className="viaje__datos">
+                  <time dateTime={r.fecha}>{fecha(r.fecha)}</time>
                   <span>{km(r.km)}</span>
                   <span>cálculo {nsAMs(r.tiempoCalculoNs)}</span>
-                </div>
-                <span className="historial__min">
-                  {r.minutos}
-                  <small>min</small>
                 </span>
               </Link>
             </li>
@@ -65,7 +70,7 @@ export function MiHistorial() {
   }
 
   return (
-    <Pagina figura="Fig. 7 · Historial" titulo="Mi historial" descripcion="Tus rutas calculadas, de la más reciente a la más antigua.">
+    <Pagina angosta figura="Fig. 7" titulo="Mi historial" descripcion="Tus rutas calculadas, de la más reciente a la más antigua.">
       {cuerpo}
     </Pagina>
   );

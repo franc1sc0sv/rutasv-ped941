@@ -47,7 +47,7 @@ export function Campo({ etiqueta, ayuda, error, etiquetaOculta = false, classNam
         </label>
         {children}
         {error && (
-          <p id={idError} className="campo__error">
+          <p id={idError} className="campo__error" role="alert">
             <Icono nombre="error" tamano={16} />
             {error}
           </p>
