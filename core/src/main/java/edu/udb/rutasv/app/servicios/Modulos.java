@@ -1,6 +1,7 @@
 package edu.udb.rutasv.app.servicios;
 
 import edu.udb.rutasv.busqueda.servicios.BusquedaService;
+import edu.udb.rutasv.historial.servicios.EstadisticasService;
 import edu.udb.rutasv.historial.servicios.HistorialService;
 import edu.udb.rutasv.nucleo.estructuras.Cola;
 import edu.udb.rutasv.nucleo.estructuras.IndiceNombres;
@@ -23,10 +24,10 @@ import edu.udb.rutasv.terminal.servicios.Terminal;
  */
 public record Modulos(BusquedaService busqueda, IndiceNombres indice, RedVial red, RutaService ruta,
                       DirectorioEstaciones directorio, Terminal terminal, Mapa<TipoRuta, Cola<Pasajero>> filas,
-                      HistorialService historial) {
+                      HistorialService historial, EstadisticasService estadisticas) {
 
     /** Ningun modulo conectado: solo funciona el login. */
     public static Modulos ninguno() {
-        return new Modulos(null, null, null, null, null, null, null, null);
+        return new Modulos(null, null, null, null, null, null, null, null, null);
     }
 }

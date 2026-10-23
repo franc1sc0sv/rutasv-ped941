@@ -14,6 +14,7 @@ import edu.udb.rutasv.auth.servicios.SeedAdmin;
 import edu.udb.rutasv.busqueda.estructuras.ArbolAvl;
 import edu.udb.rutasv.busqueda.servicios.BusquedaService;
 import edu.udb.rutasv.historial.repositorios.HistorialRepositorioArchivo;
+import edu.udb.rutasv.historial.servicios.EstadisticasService;
 import edu.udb.rutasv.historial.servicios.HistorialService;
 import edu.udb.rutasv.nucleo.estructuras.Cola;
 import edu.udb.rutasv.nucleo.estructuras.IndiceNombres;
@@ -77,6 +78,9 @@ public final class Aplicacion {
             filas.poner(tipo, new ColaEnlazada<>());
         }
 
+        HistorialService historial =
+                new HistorialService(new HistorialRepositorioArchivo(dirDatos.resolve("historial.txt")));
+
         Modulos modulos = new Modulos(
                 new BusquedaService(indice, new MapaTemporal<>()),
                 indice,
@@ -85,7 +89,8 @@ public final class Aplicacion {
                 directorio,
                 terminal,
                 filas,
-                new HistorialService(new HistorialRepositorioArchivo(dirDatos.resolve("historial.txt"))));
+                historial,
+                new EstadisticasService(historial, MapaTemporal::new, MonticuloBinario::new));
         return new SistemaTransporteImpl(auth, new Autorizador(auth), modulos);
     }
 

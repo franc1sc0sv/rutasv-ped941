@@ -14,12 +14,15 @@ import edu.udb.rutasv.auth.servicios.PasswordHasher;
 import edu.udb.rutasv.busqueda.estructuras.ArbolAvl;
 import edu.udb.rutasv.busqueda.servicios.BusquedaService;
 import edu.udb.rutasv.historial.repositorios.HistorialRepositorio;
+import edu.udb.rutasv.historial.servicios.EstadisticasService;
 import edu.udb.rutasv.historial.servicios.HistorialService;
 import edu.udb.rutasv.nucleo.estructuras.Lista;
 import edu.udb.rutasv.nucleo.excepciones.NoImplementadoException;
 import edu.udb.rutasv.nucleo.modelo.Estacion;
+import edu.udb.rutasv.nucleo.modelo.EstadisticasGlobales;
 import edu.udb.rutasv.nucleo.modelo.RutaCalculada;
 import edu.udb.rutasv.nucleo.modelo.TipoRuta;
+import edu.udb.rutasv.nucleo.temporal.ColaPrioridadTemporal;
 import edu.udb.rutasv.nucleo.temporal.ListaTemporal;
 import edu.udb.rutasv.nucleo.temporal.MapaTemporal;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -53,6 +56,19 @@ class SistemaTransporteImplTest {
     private final ArbolAvl indice = new ArbolAvl();
     private final SistemaTransporte sistema =
             new SistemaTransporteImpl(auth, new Autorizador(auth), soloBusqueda(new BusquedaService(indice, new MapaTemporal<>())));
+    private final HistorialService historial = new HistorialService(new HistorialRepositorio() {
+        @Override
+        public Lista<RutaCalculada> cargar() {
+            return new ListaTemporal<>();
+        }
+
+        @Override
+        public void agregar(RutaCalculada ruta) {
+        }
+    });
+    private final SistemaTransporte conHistorial = new SistemaTransporteImpl(auth, new Autorizador(auth),
+            new Modulos(null, null, null, null, null, null, null, historial,
+                    new EstadisticasService(historial, MapaTemporal::new, ColaPrioridadTemporal::new)));
     private final Sesion pasajero;
     private final Sesion admin;
 
@@ -66,7 +82,7 @@ class SistemaTransporteImplTest {
 
     /** Solo Busqueda conectada: el resto de modulos debe responder "Pendiente". */
     private static Modulos soloBusqueda(BusquedaService busqueda) {
-        return new Modulos(busqueda, null, null, null, null, null, null, null);
+        return new Modulos(busqueda, null, null, null, null, null, null, null, null);
     }
 
     private Executable[] soloAdmin(Sesion s) {
@@ -157,18 +173,6 @@ class SistemaTransporteImplTest {
 
     @Test
     void miHistorialDevuelveSoloLasRutasDelUsuarioDeLaSesion() {
-        HistorialService historial = new HistorialService(new HistorialRepositorio() {
-            @Override
-            public Lista<RutaCalculada> cargar() {
-                return new ListaTemporal<>();
-            }
-
-            @Override
-            public void agregar(RutaCalculada ruta) {
-            }
-        });
-        SistemaTransporte conHistorial = new SistemaTransporteImpl(auth, new Autorizador(auth),
-                new Modulos(null, null, null, null, null, null, null, historial));
         RutaCalculada deAna = new RutaCalculada("E1", "E2", List.of("E1", "E2"), 5, 1.0,
                 LocalDateTime.of(2026, 10, 23, 9, 0), 1000, "ana_01");
         historial.registrar(deAna);
@@ -178,5 +182,15 @@ class SistemaTransporteImplTest {
         Lista<RutaCalculada> mias = conHistorial.miHistorial(pasajero);
         assertEquals(1, mias.tamano());
         assertEquals(deAna, mias.obtener(0));
+    }
+
+    @Test
+    void adminVeLasEstadisticasDelHistorial() {
+        historial.registrar(new RutaCalculada("E1", "E2", List.of("E1", "E2"), 5, 1.0,
+                LocalDateTime.of(2026, 10, 23, 9, 0), 1000, "ana_01"));
+
+        EstadisticasGlobales e = conHistorial.estadisticas(admin);
+        assertEquals(1, e.totalBusquedas());
+        assertEquals("E1 -> E2", e.rutaMasConsultada());
     }
 }

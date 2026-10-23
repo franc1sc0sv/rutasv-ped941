@@ -9,6 +9,7 @@ import edu.udb.rutasv.nucleo.modelo.Estacion;
 import edu.udb.rutasv.auth.modelo.Rol;
 import edu.udb.rutasv.auth.modelo.Sesion;
 import edu.udb.rutasv.nucleo.estructuras.Lista;
+import edu.udb.rutasv.nucleo.modelo.EstadisticasGlobales;
 import edu.udb.rutasv.nucleo.modelo.Pasajero;
 import edu.udb.rutasv.nucleo.modelo.RutaCalculada;
 import edu.udb.rutasv.nucleo.modelo.TipoRuta;
@@ -82,6 +83,20 @@ class AplicacionTest {
         Lista<RutaCalculada> mias = sistema.miHistorial(s);
         assertEquals(1, mias.tamano());
         assertEquals(List.of("E01", "E02", "E04"), mias.obtener(0).tramos());
+    }
+
+    @Test
+    void adminVeElTop5ConElMonticuloReal() throws IOException {
+        StringBuilder historial = new StringBuilder();
+        for (String destino : new String[] {"E07", "E03", "E06", "E02", "E05", "E04", "E06"}) {
+            historial.append("E01;" + destino + ";E01>" + destino + ";5;1.0;2026-10-22T08:00:00;100;usuario_prueba\n");
+        }
+        Files.writeString(dir.resolve("historial.txt"), historial);
+        SistemaTransporte sistema = Aplicacion.crear(dir, Map.of("RUTASV_ADMIN_PASSWORD", "clave-sintetica-9"));
+
+        EstadisticasGlobales e = sistema.estadisticas(sistema.iniciarSesion("admin", "clave-sintetica-9"));
+        assertEquals(7, e.totalBusquedas());
+        assertEquals(List.of("E01 -> E06", "E01 -> E02", "E01 -> E03", "E01 -> E04", "E01 -> E05"), e.top5());
     }
 
     /** Sistema armado con los CSV de ejemplo de {@code data/} y un admin. */

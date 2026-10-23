@@ -139,7 +139,8 @@ public class SistemaTransporteImpl implements SistemaTransporte {
     @Override
     public EstadisticasGlobales estadisticas(Sesion sesion) {
         autorizador.exigirAdmin(sesion);
-        throw pendiente("Historial");
+        var estadisticas = conectado(m.estadisticas(), "Historial");
+        return leer(estadisticas::calcular);
     }
 
     @Override
