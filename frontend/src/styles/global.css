@@ -75,9 +75,12 @@ svg { flex: none; }
 .pila--grande { gap: var(--esp-6); }
 .fila-flex { display: flex; flex-wrap: wrap; align-items: center; gap: var(--esp-2); }
 
-/* ---------- Rejillas de pantalla ---------- */
+/* ---------- Rejillas de pantalla ----------
+ * Responden al ancho del CONTENIDO (container query sobre <main class="contenido">), no de la ventana:
+ * asi el admin (contenido ancho) usa dos columnas y el pasajero (contenido angosto) una sola. */
+.contenido { container-type: inline-size; }
 .rejilla-2 { display: grid; gap: var(--esp-5); grid-template-columns: minmax(0, 1fr); align-items: start; }
-@media (min-width: 1024px) {
+@container (min-width: 880px) {
   .rejilla-2 { grid-template-columns: minmax(0, 1.55fr) minmax(320px, 1fr); }
   .rejilla-2--invertida { grid-template-columns: minmax(320px, 1fr) minmax(0, 1.55fr); }
   .rejilla-2--pareja { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
