@@ -25,6 +25,7 @@ import edu.udb.rutasv.nucleo.modelo.TipoRuta;
 import edu.udb.rutasv.nucleo.temporal.ColaPrioridadTemporal;
 import edu.udb.rutasv.nucleo.temporal.ListaTemporal;
 import edu.udb.rutasv.nucleo.temporal.MapaTemporal;
+import edu.udb.rutasv.ruta.interfaces.RutaService;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -33,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
@@ -192,5 +194,32 @@ class SistemaTransporteImplTest {
         EstadisticasGlobales e = conHistorial.estadisticas(admin);
         assertEquals(1, e.totalBusquedas());
         assertEquals("E1 -> E2", e.rutaMasConsultada());
+    }
+
+    @Test
+    void rutaEncontradaQuedaEnElHistorialYSinRutaNoSeGuarda() {
+        RutaService soloE1aE2 = (origen, destino, usuario) -> origen.equals("E1") && destino.equals("E2")
+                ? Optional.of(new RutaCalculada(origen, destino, List.of(origen, destino), 5, 1.0,
+                        LocalDateTime.of(2026, 10, 23, 9, 0), 1000, usuario))
+                : Optional.empty();
+        SistemaTransporte conRuta = new SistemaTransporteImpl(auth, new Autorizador(auth),
+                new Modulos(null, null, null, soloE1aE2, null, null, null, historial, null));
+
+        assertTrue(conRuta.calcularRuta(pasajero, "E1", "E9").isEmpty());
+        assertTrue(conRuta.miHistorial(pasajero).estaVacia());
+
+        RutaCalculada ruta = conRuta.calcularRuta(pasajero, "E1", "E2").orElseThrow();
+        assertEquals(1, conRuta.miHistorial(pasajero).tamano());
+        assertEquals(ruta, conRuta.miHistorial(pasajero).obtener(0));
+    }
+
+    @Test
+    void sinHistorialConectadoLaRutaSeCalculaIgual() {
+        RutaService siempre = (origen, destino, usuario) -> Optional.of(new RutaCalculada(origen, destino,
+                List.of(origen, destino), 5, 1.0, LocalDateTime.of(2026, 10, 23, 9, 0), 1000, usuario));
+        SistemaTransporte soloRuta = new SistemaTransporteImpl(auth, new Autorizador(auth),
+                new Modulos(null, null, null, siempre, null, null, null, null, null));
+
+        assertTrue(soloRuta.calcularRuta(pasajero, "E1", "E2").isPresent());
     }
 }

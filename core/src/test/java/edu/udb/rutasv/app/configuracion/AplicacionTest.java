@@ -120,6 +120,19 @@ class AplicacionTest {
     }
 
     @Test
+    void laRutaCalculadaApareceEnMiHistorialYEnLasEstadisticas() throws IOException {
+        SistemaTransporte sistema = conDatosDeEjemplo();
+        Sesion s = sistema.registrar("usuario_prueba", "clave-sintetica-1");
+
+        RutaCalculada r = sistema.calcularRuta(s, "E01", "E04").orElseThrow();
+        assertEquals(r, sistema.miHistorial(s).obtener(0));
+        EstadisticasGlobales e = sistema.estadisticas(sistema.iniciarSesion("admin", "clave-sintetica-9"));
+        assertEquals("E01 -> E04", e.rutaMasConsultada());
+        SistemaTransporte reiniciado = Aplicacion.crear(dir, Map.of());
+        assertEquals(r, reiniciado.miHistorial(reiniciado.iniciarSesion("usuario_prueba", "clave-sintetica-1")).obtener(0));
+    }
+
+    @Test
     void adminVeLaRedYAgregaTramos() throws IOException {
         SistemaTransporte sistema = conDatosDeEjemplo();
         Sesion admin = sistema.iniciarSesion("admin", "clave-sintetica-9");
