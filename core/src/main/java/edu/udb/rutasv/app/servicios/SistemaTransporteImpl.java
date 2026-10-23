@@ -107,12 +107,19 @@ public class SistemaTransporteImpl implements SistemaTransporte {
         return leer(() -> busqueda.recientes(sesion.usuario()));
     }
 
+    /** Si hay ruta, la guarda en el historial del usuario (RN-7); si no hay, no guarda nada (RN-6). */
     @Override
     public Optional<RutaCalculada> calcularRuta(Sesion sesion, String origenCodigo, String destinoCodigo) {
         autorizador.exigirSesion(sesion);
-        // RN-7: cuando Historial este conectado, guardar aqui la ruta (solo si existe, RN-6).
         var ruta = conectado(m.ruta(), "Ruta");
-        return leer(() -> ruta.calcular(origenCodigo, destinoCodigo, sesion.usuario()));
+        var historial = m.historial();
+        return escribir(() -> {
+            Optional<RutaCalculada> calculada = ruta.calcular(origenCodigo, destinoCodigo, sesion.usuario());
+            if (historial != null) {
+                calculada.ifPresent(historial::registrar);
+            }
+            return calculada;
+        });
     }
 
     @Override
