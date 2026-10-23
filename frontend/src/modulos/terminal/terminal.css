@@ -1,37 +1,63 @@
-.terminal__tabla { margin-top: var(--esp-3); }
-.tabla tr.es-siguiente td { background: var(--acento-suave); }
-.terminal__siguiente {
-  margin-left: var(--esp-2); font-family: var(--fuente); font-size: var(--fs-xs); font-weight: 700; color: var(--acento-fuerte);
-  text-transform: uppercase; letter-spacing: 0.04em;
+/* Despacho: tablero de salidas + filas FIFO. */
+.tabla tr.es-siguiente td { background: var(--primario-suave); }
+.tabla tr.es-siguiente td:first-child { box-shadow: inset 4px 0 0 var(--primario); }
+.despacho__unidad { font-size: var(--fs-3); }
+.despacho__siguiente {
+  margin-left: var(--esp-2); padding: 0 var(--esp-2); border-radius: var(--radio-1);
+  background: var(--primario); color: var(--sobre-primario);
+  font-family: var(--fuente-senal); font-size: var(--fs-1); font-weight: var(--peso-fuerte);
 }
-.terminal__tipos { border: 0; padding: 0; margin: 0; }
-.terminal__tipos legend { font-size: var(--fs-sm); font-weight: 600; padding: 0; margin-bottom: var(--esp-1); }
-.segmentado button[aria-checked='true'] { background: var(--superficie); color: var(--texto); box-shadow: var(--sombra); }
 
-.despachada {
-  display: flex; flex-wrap: wrap; align-items: center; gap: var(--esp-3);
-  padding: var(--esp-3) var(--esp-4); border-radius: var(--radio-md);
-  background: var(--exito-suave); color: var(--exito); margin-bottom: var(--esp-2);
+/* Boleto de salida: aparece cuando una unidad sale. */
+.salida {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--esp-2) var(--esp-3);
+  padding: var(--esp-3) var(--esp-4); border-radius: var(--radio-2);
+  background: var(--tinta); color: var(--sobre-tinta);
+  animation: entrar-abajo var(--dur-media) var(--curva-salida);
 }
-.despachada__etiqueta { font-size: var(--fs-xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
-.despachada__id { font-family: var(--fuente-mono); font-size: var(--fs-lg); color: var(--texto); }
+.salida__icono { color: var(--sobre-tinta); }
+.salida__texto { font-family: var(--fuente-senal); }
+.salida__id { font-size: var(--fs-4); font-weight: var(--peso-senal); font-variant-numeric: tabular-nums; }
+.salida__hora { margin-left: auto; font-size: var(--fs-4); }
 
-.terminal__filas h2 { margin-bottom: var(--esp-1); }
-.terminal__nota { font-size: var(--fs-sm); }
+.despacho__filas-cabeza { display: grid; gap: var(--esp-1); margin-top: var(--esp-3); }
 
-.fila { display: grid; gap: var(--esp-3); align-content: start; }
-.fila .tarjeta__titulo { margin-bottom: 0; }
-.fila__titulo { margin: 0; display: flex; align-items: center; gap: var(--esp-2); font-size: var(--fs-lg); }
-.fila--EXPRES { border-top: 4px solid var(--expres); }
-.fila--NORMAL { border-top: 4px solid var(--normal); }
-.fila__conteo { font-size: var(--fs-sm); }
-.fila__lista { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--esp-1); min-height: 44px; }
-.fila__vacia { padding: var(--esp-2) 0; font-size: var(--fs-sm); }
-.fila__pasajero { display: grid; grid-template-columns: 28px 1fr auto; align-items: center; gap: var(--esp-2); padding: var(--esp-2) var(--esp-3); background: var(--superficie-2); border-radius: var(--radio-md); font-size: var(--fs-sm); }
-.fila__pasajero.es-primero { outline: 2px solid var(--acento); outline-offset: -2px; }
-.fila__pos { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--superficie); font-weight: 700; font-size: var(--fs-xs); }
-.fila__atendido { margin: 0; font-size: var(--fs-sm); padding: var(--esp-2) var(--esp-3); border-radius: var(--radio-md); background: var(--exito-suave); color: var(--exito); }
-.fila__atendido strong { color: var(--texto); }
-.fila__form { display: grid; grid-template-columns: minmax(0, 1fr) 90px auto; gap: var(--esp-2); align-items: end; }
-.fila__form .boton { min-height: 42px; }
-.mono { font-family: var(--fuente-mono); }
+/* Filas de pasajeros */
+.fila__lista { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--esp-1); }
+.fila__vacia {
+  display: flex; align-items: center; min-height: 48px; padding: 0 var(--esp-3);
+  border: 1px dashed var(--borde-fuerte); border-radius: var(--radio-2); color: var(--texto-suave); font-size: var(--fs-2);
+}
+.fila__pasajero {
+  display: grid; grid-template-columns: 28px minmax(0, 1fr) auto auto; align-items: center; gap: var(--esp-3);
+  min-height: 44px; padding: 0 var(--esp-3);
+  background: var(--superficie-2); border-radius: var(--radio-2); font-size: var(--fs-2);
+  animation: entrar-abajo var(--dur-media) var(--curva-salida);
+}
+.fila__pasajero.es-primero { background: var(--primario-suave); box-shadow: inset 4px 0 0 var(--primario); }
+.fila__pasajero.es-saliendo { animation: fila-sale var(--dur-media) var(--curva-salida) forwards; }
+.fila__pos {
+  display: grid; place-items: center; width: 24px; height: 24px; border-radius: var(--radio-redondo);
+  background: var(--superficie); font-size: var(--fs-1);
+}
+.fila__nombre { font-weight: var(--peso-fuerte); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fila__id { color: var(--texto-suave); font-size: var(--fs-1); }
+.fila__turno { font-family: var(--fuente-senal); font-size: var(--fs-1); font-weight: var(--peso-fuerte); color: var(--primario-fuerte); }
+.fila__pasajero:not(.es-primero) { grid-template-columns: 28px minmax(0, 1fr) auto; }
+
+.fila__atendido {
+  display: flex; flex-wrap: wrap; align-items: center; gap: var(--esp-1) var(--esp-2);
+  padding: var(--esp-2) var(--esp-3); border-radius: var(--radio-2);
+  background: var(--exito-suave); color: var(--texto); font-size: var(--fs-2);
+  animation: entrar-arriba var(--dur-media) var(--curva-salida);
+}
+.fila__atendido .icono { color: var(--exito); }
+
+.fila__form {
+  display: grid; grid-template-columns: minmax(0, 1fr) 96px auto; gap: var(--esp-2); align-items: end;
+  padding-top: var(--esp-4); border-top: 1px solid var(--borde);
+}
+@container (max-width: 419px) {
+  .fila__form { grid-template-columns: minmax(0, 1fr) 88px; }
+  .fila__form .boton { grid-column: 1 / -1; }
+}
