@@ -62,7 +62,7 @@ async function pedir<T>(metodo: string, ruta: string, cuerpo?: unknown, parametr
       body: cuerpo === undefined ? undefined : JSON.stringify(cuerpo),
     });
   } catch {
-    throw new ApiError(0, 'No se pudo conectar con el servidor. Revisa que la API este corriendo en el puerto 7070.');
+    throw new ApiError(0, 'No se pudo conectar con el servidor. Revisa que la API esté corriendo en el puerto 7070.');
   }
 
   const texto = await resp.text();
@@ -83,7 +83,7 @@ async function pedir<T>(metodo: string, ruta: string, cuerpo?: unknown, parametr
       if (typeof e.error === 'string' && e.error) mensaje = e.error;
       pendiente = e.pendiente === true;
     } else if (resp.status === 502 || resp.status === 504) {
-      mensaje = 'El servidor de la API no responde (puerto 7070).';
+      mensaje = 'El servidor de la API no responde (puerto 7070). Inténtalo de nuevo en un momento.';
     }
     if (resp.status === 401 && tokenActual && alExpirarSesion) alExpirarSesion();
     throw new ApiError(resp.status, mensaje, pendiente);
@@ -103,5 +103,5 @@ export const api = {
 export function mensajeDe(e: unknown): string {
   if (e instanceof ApiError) return e.message;
   if (e instanceof Error) return e.message;
-  return 'Ocurrio un error inesperado';
+  return 'Ocurrió un error inesperado. Inténtalo de nuevo.';
 }
