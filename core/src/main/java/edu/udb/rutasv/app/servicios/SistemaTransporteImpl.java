@@ -82,8 +82,8 @@ public class SistemaTransporteImpl implements SistemaTransporte {
 
     @Override
     public RedVial verRed(Sesion sesion) {
-        autorizador.exigirAdmin(sesion);
-        return conectado(m.red(), "Ruta");
+        autorizador.exigirSesion(sesion);
+        return new RedSoloLectura(conectado(m.red(), "Ruta"));
     }
 
     @Override
