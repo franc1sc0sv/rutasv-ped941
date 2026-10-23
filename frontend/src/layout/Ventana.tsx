@@ -1,25 +1,13 @@
 // Ventana base. El modo depende del rol (RN-1):
-// - ADMIN: menu lateral a la izquierda (en telefono se abre con el boton "Menu").
-// - PASAJERO: barra de pestanas abajo, como los bocetos moviles.
-import { useEffect, useState } from 'react';
+// - ADMIN: menu lateral oscuro tipo diagrama de linea (en telefono se abre con el boton "Menú").
+// - PASAJERO: encabezado claro y barra de pestanas abajo (en escritorio las pestanas pasan al encabezado).
+import { useEffect, useRef, useState } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Boton, Icono } from '../comun/ui';
 import { useSesion } from '../sesion/SesionContext';
+import { Marca } from './Marca';
 import { ENTRADAS_ADMIN, ENTRADAS_PASAJERO, type Entrada } from './navegacion';
 import './ventana.css';
-
-function Marca() {
-  return (
-    <span className="marca">
-      <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true">
-        <rect width="32" height="32" rx="8" fill="currentColor" />
-        <path d="M8 22 L14 12 L20 18 L25 9" fill="none" stroke="var(--superficie)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-        <circle cx="8" cy="22" r="2.6" fill="var(--superficie)" />
-        <circle cx="25" cy="9" r="2.6" fill="var(--superficie)" />
-      </svg>
-      <span className="marca__texto">RutaSV</span>
-    </span>
-  );
-}
 
 function Usuario({ compacto = false }: { compacto?: boolean }) {
   const { sesion, cerrarSesion } = useSesion();
@@ -33,26 +21,31 @@ function Usuario({ compacto = false }: { compacto?: boolean }) {
       </span>
       <span className="usuario__datos">
         <span className="usuario__nombre">{sesion.usuario}</span>
-        <span className="insignia insignia--rol">{sesion.rol === 'ADMIN' ? 'Admin' : 'Pasajero'}</span>
+        <span className="usuario__rol">{sesion.rol === 'ADMIN' ? 'Administración' : 'Pasajero'}</span>
       </span>
-      <button
-        type="button"
-        className="boton boton--chico"
+      <Boton
+        tamano="sm"
+        variante="fantasma"
+        icono="salir"
+        soloIcono={compacto}
+        aria-label={compacto ? 'Cerrar sesión' : undefined}
+        title="Cerrar sesión"
         onClick={async () => {
           await cerrarSesion();
           navegar('/login', { replace: true });
         }}
       >
-        {compacto ? 'Salir' : 'Cerrar sesión'}
-      </button>
+        {compacto ? null : 'Salir'}
+      </Boton>
     </div>
   );
 }
 
-function Enlace({ e, alHacerClic }: { e: Entrada; alHacerClic?: () => void }) {
+/** Enlace del menu lateral: una estacion sobre la linea. */
+function Estacion({ e }: { e: Entrada }) {
   return (
-    <NavLink to={e.a} className={({ isActive }) => `menu__enlace ${isActive ? 'es-activo' : ''}`} onClick={alHacerClic}>
-      {e.icono}
+    <NavLink to={e.a} className={({ isActive }) => `linea-menu__enlace${isActive ? ' es-activo' : ''}`}>
+      <span className="linea-menu__punto" aria-hidden="true" />
       <span>{e.texto}</span>
     </NavLink>
   );
@@ -63,56 +56,96 @@ export function Ventana() {
   return esAdmin ? <VentanaAdmin /> : <VentanaPasajero />;
 }
 
+function SaltarAlContenido() {
+  return (
+    <a className="saltar" href="#contenido">
+      Saltar al contenido
+    </a>
+  );
+}
+
 function VentanaAdmin() {
   const [abierto, setAbierto] = useState(false);
   const ubicacion = useLocation();
+  const refBoton = useRef<HTMLButtonElement>(null);
+  const refMenu = useRef<HTMLElement>(null);
+  const titulo = [...ENTRADAS_ADMIN, ...ENTRADAS_PASAJERO].find((e) => ubicacion.pathname.startsWith(e.a))?.texto;
+
   useEffect(() => setAbierto(false), [ubicacion.pathname]);
 
   useEffect(() => {
     if (!abierto) return;
-    const alTeclear = (ev: KeyboardEvent) => ev.key === 'Escape' && setAbierto(false);
+    // Al abrir en telefono, el foco entra al menu; Escape lo cierra y devuelve el foco al boton.
+    refMenu.current?.querySelector<HTMLElement>('a')?.focus();
+    const alTeclear = (ev: KeyboardEvent) => {
+      if (ev.key === 'Escape') {
+        setAbierto(false);
+        refBoton.current?.focus();
+      }
+    };
     window.addEventListener('keydown', alTeclear);
     return () => window.removeEventListener('keydown', alTeclear);
   }, [abierto]);
 
   return (
     <div className="ventana ventana--admin">
-      <a className="saltar" href="#contenido">
-        Saltar al contenido
-      </a>
-      <aside id="menu-lateral" className={`lateral ${abierto ? 'es-abierto' : ''}`} aria-label="Menú principal">
-        <div className="lateral__marca">
-          <Marca />
+      <SaltarAlContenido />
+      <aside ref={refMenu} id="menu-lateral" className={`lateral${abierto ? ' es-abierto' : ''}`} aria-label="Menú principal">
+        <div className="lateral__cabeza">
+          <Marca className="marca--invertida" />
+          <Boton
+            soloIcono
+            variante="fantasma"
+            className="lateral__cerrar"
+            aria-label="Cerrar menú"
+            onClick={() => {
+              setAbierto(false);
+              refBoton.current?.focus();
+            }}
+          >
+            <Icono nombre="cerrar" />
+          </Boton>
         </div>
-        <nav className="menu">
-          <p className="menu__grupo">Administración</p>
-          {ENTRADAS_ADMIN.map((e) => (
-            <Enlace key={e.a} e={e} />
-          ))}
-          <p className="menu__grupo">Vista de pasajero</p>
-          {ENTRADAS_PASAJERO.map((e) => (
-            <Enlace key={e.a} e={e} />
-          ))}
+        <nav className="lateral__nav" aria-label="Secciones">
+          <p className="linea-menu__grupo" id="grupo-admin">
+            Administración
+          </p>
+          <ul className="linea-menu" aria-labelledby="grupo-admin">
+            {ENTRADAS_ADMIN.map((e) => (
+              <li key={e.a}>
+                <Estacion e={e} />
+              </li>
+            ))}
+          </ul>
+          <p className="linea-menu__grupo" id="grupo-pasajero">
+            Vista de pasajero
+          </p>
+          <ul className="linea-menu" aria-labelledby="grupo-pasajero">
+            {ENTRADAS_PASAJERO.map((e) => (
+              <li key={e.a}>
+                <Estacion e={e} />
+              </li>
+            ))}
+          </ul>
         </nav>
-        <p className="lateral__pie texto-suave">PED941 · UDB</p>
+        <p className="lateral__pie">PED941 · Universidad Don Bosco</p>
       </aside>
-      {abierto && <div className="velo" onClick={() => setAbierto(false)} aria-hidden="true" />}
+      <div className={`velo${abierto ? ' es-visible' : ''}`} onClick={() => setAbierto(false)} aria-hidden="true" />
 
       <div className="ventana__principal">
         <header className="encabezado">
-          <button
-            type="button"
-            className="boton boton--chico encabezado__menu"
+          <Boton
+            ref={refBoton}
+            tamano="sm"
+            icono="menu"
+            className="encabezado__menu"
             aria-expanded={abierto}
             aria-controls="menu-lateral"
             onClick={() => setAbierto((v) => !v)}
           >
-            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <path d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
             Menú
-          </button>
-          <span className="encabezado__titulo">Panel de administración</span>
+          </Boton>
+          <span className="encabezado__titulo">{titulo ?? 'Administración'}</span>
           <Usuario />
         </header>
         <main id="contenido" className="contenido" tabIndex={-1}>
@@ -126,20 +159,25 @@ function VentanaAdmin() {
 function VentanaPasajero() {
   return (
     <div className="ventana ventana--pasajero">
-      <a className="saltar" href="#contenido">
-        Saltar al contenido
-      </a>
+      <SaltarAlContenido />
       <header className="encabezado encabezado--pasajero">
         <Marca />
+        <nav className="pestanas-arriba" aria-label="Navegación principal">
+          {ENTRADAS_PASAJERO.map((e) => (
+            <NavLink key={e.a} to={e.a} className={({ isActive }) => `pestanas-arriba__enlace${isActive ? ' es-activo' : ''}`}>
+              {e.texto}
+            </NavLink>
+          ))}
+        </nav>
         <Usuario compacto />
       </header>
       <main id="contenido" className="contenido contenido--pasajero" tabIndex={-1}>
         <Outlet />
       </main>
-      <nav className="pestanas" aria-label="Navegación principal">
+      <nav className="pestanas" aria-label="Navegación principal (móvil)">
         {ENTRADAS_PASAJERO.map((e) => (
-          <NavLink key={e.a} to={e.a} className={({ isActive }) => `pestanas__enlace ${isActive ? 'es-activo' : ''}`}>
-            {e.icono}
+          <NavLink key={e.a} to={e.a} className={({ isActive }) => `pestanas__enlace${isActive ? ' es-activo' : ''}`}>
+            <Icono nombre={e.icono} tamano={22} />
             <span>{e.corto}</span>
           </NavLink>
         ))}
