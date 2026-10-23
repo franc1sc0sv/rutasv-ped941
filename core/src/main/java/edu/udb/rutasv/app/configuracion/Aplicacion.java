@@ -77,6 +77,7 @@ public final class Aplicacion {
 
         Modulos modulos = new Modulos(
                 new BusquedaService(indice, new MapaTemporal<>()),
+                indice,
                 red,
                 new RutaServiceImpl(red, dijkstra),
                 directorio,

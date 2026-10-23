@@ -3,6 +3,9 @@ package edu.udb.rutasv.app.configuracion;
 import edu.udb.rutasv.app.interfaces.SistemaTransporte;
 import edu.udb.rutasv.auth.excepciones.AccesoDenegadoException;
 import edu.udb.rutasv.auth.excepciones.CredencialesInvalidasException;
+import edu.udb.rutasv.auth.excepciones.SesionInvalidaException;
+import edu.udb.rutasv.nucleo.excepciones.ValidacionException;
+import edu.udb.rutasv.nucleo.modelo.Estacion;
 import edu.udb.rutasv.auth.modelo.Rol;
 import edu.udb.rutasv.auth.modelo.Sesion;
 import edu.udb.rutasv.nucleo.estructuras.Lista;
@@ -116,5 +119,42 @@ class AplicacionTest {
         sistema.encolarPasajero(admin, TipoRuta.NORMAL, new Pasajero("P1", "Ana"));
         sistema.encolarPasajero(admin, TipoRuta.NORMAL, new Pasajero("P2", "Luis"));
         assertEquals("P1", sistema.atenderPasajero(admin, TipoRuta.NORMAL).id());
+    }
+
+    @Test
+    void estacionCreadaApareceEnElAutocompletadoYEnLaRed() throws IOException {
+        SistemaTransporte sistema = conDatosDeEjemplo();
+        Sesion admin = sistema.iniciarSesion("admin", "clave-sintetica-9");
+        Sesion s = sistema.registrar("usuario_prueba", "clave-sintetica-1");
+
+        sistema.crearEstacion(admin, new Estacion("E20", "Terminal Sur", "Sur", 50, 5, true));
+        sistema.crearEstacion(admin, new Estacion("E21", "Terminal Cerrada", "Sur", 60, 5, false));
+
+        List<String> sugeridas = new java.util.ArrayList<>();
+        for (String nombre : sistema.sugerirEstaciones(s, "terminal")) {
+            sugeridas.add(nombre);
+        }
+        assertTrue(sugeridas.contains("Terminal Sur"));
+        assertTrue(!sugeridas.contains("Terminal Cerrada"), "una estacion inactiva no se sugiere");
+        assertEquals(10, sistema.verRed(s).estaciones().tamano());
+    }
+
+    @Test
+    void cerrarSesionInvalidaLaSesion() throws IOException {
+        SistemaTransporte sistema = conDatosDeEjemplo();
+        Sesion s = sistema.registrar("usuario_prueba", "clave-sintetica-1");
+        sistema.cerrarSesion(s);
+        assertThrows(SesionInvalidaException.class, () -> sistema.calcularRuta(s, "E01", "E04"));
+        sistema.cerrarSesion(null);
+    }
+
+    @Test
+    void pasajeroSinIdONombreSeRechaza() throws IOException {
+        SistemaTransporte sistema = conDatosDeEjemplo();
+        Sesion admin = sistema.iniciarSesion("admin", "clave-sintetica-9");
+        assertThrows(ValidacionException.class,
+                () -> sistema.encolarPasajero(admin, TipoRuta.NORMAL, new Pasajero(null, "Ana")));
+        assertThrows(ValidacionException.class,
+                () -> sistema.encolarPasajero(admin, TipoRuta.NORMAL, new Pasajero("P1", " ")));
     }
 }

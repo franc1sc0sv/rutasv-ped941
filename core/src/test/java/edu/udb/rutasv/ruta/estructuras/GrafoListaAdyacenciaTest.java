@@ -66,6 +66,16 @@ class GrafoListaAdyacenciaTest {
     }
 
     @Test
+    void rechazaTramosDeMasDeUnDiaYKmNoFinitos() {
+        assertThrows(ValidacionException.class,
+                () -> red.agregarTramo("A", "B", GrafoListaAdyacencia.MAX_MINUTOS_TRAMO + 1, 1.0));
+        assertThrows(ValidacionException.class, () -> red.agregarTramo("A", "B", 5, Double.NaN));
+        assertThrows(ValidacionException.class, () -> red.agregarTramo("A", "B", 5, Double.POSITIVE_INFINITY));
+        red.agregarTramo("A", "B", GrafoListaAdyacencia.MAX_MINUTOS_TRAMO, 1.0);
+        assertEquals(1, red.vecinos("A").tamano());
+    }
+
+    @Test
     void estacionDesconocidaEsNula() {
         assertNull(red.estacion("ZZ"));
     }

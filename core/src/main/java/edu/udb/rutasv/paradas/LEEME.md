@@ -12,32 +12,32 @@ mvn verify                       # debe terminar en BUILD SUCCESS
 git checkout -b feat/paradas-<tarea>
 ```
 
-## Ya esta creado para ti (esqueletos con `TODO`)
+## Que hay
 
-- `estructuras/TablaHash.java` implementa `Mapa`
+- `servicios/CargadorCSV.java`: lee `data/estaciones.csv` y `data/tramos.csv` con errores por linea (hecho y probado).
+- `servicios/DirectorioEstaciones.java`: alta y busqueda por codigo o nombre, codigo y nombre unicos (hecho). Falta edicion y activar/desactivar.
+- Conectado en `SistemaTransporteImpl`: `buscarEstacion` y `crearEstacion`. `Aplicacion` ya carga los CSV en el directorio, la red y el autocompletado.
 
-Las pruebas ``TablaHashContratoTest`` (en `src/test/.../paradas/estructuras/`) ya estan conectadas y tienen `@Disabled`. Cuando tu clase este lista, quita esa linea: el test de contrato te dice si cumples.
+## Pendiente
 
-## Te toca crear
+- `estructuras/TablaHash.java` sigue siendo esqueleto; `TablaHashContratoTest` tiene `@Disabled`.
+- `editar` y `activar/desactivar` en el directorio y en la fachada. Al desactivar, actualiza tambien la red (`red.agregarEstacion` con la estacion inactiva) para que Dijkstra la salte, y el indice de nombres.
+- Revision del 23/10: la unicidad de nombre usa `toLowerCase()` sin quitar tildes, mientras el AVL si las quita ("Estacion" y "Estación" chocan en el indice); la columna `activa` del CSV toma cualquier valor distinto de `true` como inactiva sin avisar.
 
-- `servicios/DirectorioEstaciones.java`: alta, edicion, activar y desactivar (RN-1), codigo y nombre unicos
-- `repositorios/CargadorCsv.java`: lee `data/estaciones.csv` y `data/tramos.csv` con errores claros por linea
-- Conectalo en `SistemaTransporteImpl` (`buscarEstacion`, `crearEstacion`, `editarEstacion`, `activarDesactivarEstacion`)
+## Cuando `TablaHash` pase su contrato
 
-## Mientras otros terminan lo suyo
+Cambia `MapaTemporal` por `TablaHash` en todos estos lugares:
 
-Usa `ListaTemporal` de `nucleo/temporal` para `claves()`.
-
-## Ojo
-
-Cuando `TablaHash` pase su contrato, cambia `new MapaTemporal<>()` por `new TablaHash<>()` en `app/configuracion/Aplicacion.java`: el login ya la usa.
+- `app/configuracion/Aplicacion.java`: usuarios (login), `MapaTemporal::new` de Dijkstra, `filas` y el mapa de `BusquedaService`.
+- Constructores sin argumentos de `ruta/estructuras/GrafoListaAdyacencia` y `paradas/servicios/DirectorioEstaciones` (o pasa las tablas desde `Aplicacion`).
+- `terminal/servicios/Terminal.unidadesEnEspera`.
 
 ## Tus tareas (de la Fase 2)
 
-- [ ] 1. Repositorio y proyecto (**ya hecho**).
+- [x] 1. Repositorio y proyecto (**ya hecho**).
 - [ ] 2. Tabla hash propia: funcion hash, encadenamiento, redimension con factor 0.75.
 - [ ] 3. Directorio de estaciones: alta, edicion, activar/desactivar (RN-1). Codigo y nombre unicos.
-- [ ] 4. Carga CSV de estaciones y tramos con errores claros por linea.
+- [x] 4. Carga CSV de estaciones y tramos con errores claros por linea.
 - [ ] 5. Pantalla Registro de paradas (Fig 9).
 - [ ] 6. Pruebas: 1000 claves antes y despues de redimensionar, colisiones, eliminar inexistente, codigos repetidos, CSV mal formado.
 - [ ] 7. Tabla de casos de prueba del equipo.

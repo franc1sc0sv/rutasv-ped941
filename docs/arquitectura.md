@@ -32,4 +32,8 @@ El sistema se organiza **por modulo**, uno por rol, mas un `nucleo` compartido y
 
 ## Carpetas dentro de cada modulo
 
-Cada modulo ordena sus archivos por tipo: `interfaces/`, `servicios/`, `repositorios/`, `modelo/`, `excepciones/` y `estructuras/` (ruta suma `algoritmos/`). Las carpetas vacias tienen un `package-info.java` que dice que va en ellas. Ejemplo ya completo: `auth/`.
+Cada modulo ordena sus archivos por tipo, con las carpetas que necesite: `interfaces/`, `servicios/`, `repositorios/`, `modelo/`, `excepciones/` y `estructuras/` (ruta suma `algoritmos/`). Las carpetas vacias tienen un `package-info.java` que dice que va en ellas. Ejemplo ya completo: `auth/`.
+
+## Concurrencia
+
+La API atiende pedidos en paralelo. Las estructuras propias no son seguras entre hilos, asi que `SistemaTransporteImpl` las protege con un solo `ReentrantReadWriteLock` (lectura para consultar, escritura para cambiar). El login tiene su propio candado en `AuthServiceImpl`. Un modulo nuevo no necesita candados propios si solo se usa desde la fachada.

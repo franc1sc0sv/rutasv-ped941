@@ -12,30 +12,27 @@ mvn verify                       # debe terminar en BUILD SUCCESS
 git checkout -b feat/busqueda-<tarea>
 ```
 
-## Ya esta creado para ti (esqueletos con `TODO`)
+## Que hay (hecho y conectado)
 
-- `estructuras/ArbolAvl.java` implementa `IndiceNombres`
+- `estructuras/ArbolAvl.java` (`IndiceNombres`) con rotaciones LL, RR, LR y RL; su prueba de contrato esta activa.
+- `servicios/Normalizador.java` (sin tildes, minusculas) y `servicios/BusquedaService.java` (sugerencias y hasta 5 busquedas recientes por usuario).
+- Conectado en `SistemaTransporteImpl.sugerirEstaciones` y `busquedasRecientes`. Las estaciones que crea el admin entran al indice desde la fachada.
 
-Las pruebas ``ArbolAvlContratoTest`` (en `src/test/.../busqueda/estructuras/`) ya estan conectadas y tienen `@Disabled`. Cuando tu clase este lista, quita esa linea: el test de contrato te dice si cumples.
+## Pendiente (revision del 23/10)
 
-## Te toca crear
-
-- `servicios/`: busqueda por prefijo (inorden acotado) y normalizacion de texto (sin tildes, minusculas)
-- Conectalo en `SistemaTransporteImpl.sugerirEstaciones` y `busquedasRecientes`
-
-## Mientras otros terminan lo suyo
-
-Usa `IndiceNombresTemporal` y `ListaTemporal` de `nucleo/temporal`.
+- `ArbolAvl` (estructura) importa `servicios.Normalizador`: conviene mover la normalizacion a `estructuras/` o inyectarla.
+- `BusquedaService.sugerir` lanza `IllegalArgumentException`; el resto del core usa `ValidacionException`.
+- El Javadoc de `IndiceNombres` (nucleo) da costos de trie, O(L); con AVL son O(log n) comparaciones y O(log n + k) por prefijo (seccion 2.7). Cambio de contrato: PR aparte.
 
 ## Tus tareas (de la Fase 2)
 
-- [ ] 1. Contrato de interfaces (**ya hecho**; revisalo).
-- [ ] 2. Arbol AVL propio con rotaciones LL, RR, LR, RL, altura y factor de balance.
-- [ ] 3. Busqueda por prefijo (inorden acotado).
-- [ ] 4. Normalizacion de texto.
+- [x] 1. Contrato de interfaces (**ya hecho**; revisalo).
+- [x] 2. Arbol AVL propio con rotaciones LL, RR, LR, RL, altura y factor de balance.
+- [x] 3. Busqueda por prefijo (inorden acotado).
+- [x] 4. Normalizacion de texto.
 - [ ] 5. Ventana base (menu, modo pasajero/admin).
 - [ ] 6. Pantalla Buscar ruta (Fig 5).
-- [ ] 7. Pruebas: 8 nombres alfabeticos quedan balanceados, prefijos `Ter`, `metro`, `xyz`, eliminar con rotacion.
+- [x] 7. Pruebas: 8 nombres alfabeticos quedan balanceados, prefijos `Ter`, `metro`, `xyz`, eliminar con rotacion.
 - [ ] 8. Bitacora del equipo y documento (cambiar TreeMap por AVL propio, M5).
 
 ## Reglas
