@@ -1,5 +1,2 @@
-/**
- * Algoritmos del modulo. Dijkstra.
- * Pendiente: lo escribe el rol Ruta.
- */
+/** Algoritmos del modulo: {@link edu.udb.rutasv.ruta.algoritmos.Dijkstra}. */
 package edu.udb.rutasv.ruta.algoritmos;
