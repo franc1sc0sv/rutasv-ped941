@@ -10,7 +10,7 @@ Leyenda: ✅ hecho y conectado · 🟡 hecho pero falta conectar o probar · ❌
 |---|---|---|---|---|
 | Ruta | ✅ Grafo, ✅ Pila | ✅ Dijkstra + RutaService | ✅ `calcularRuta`, `verRed`, `agregarTramo` | Resultado de ruta (Fig. 6) |
 | Busqueda | ✅ Arbol AVL | ✅ Normalizador, BusquedaService | ✅ `sugerirEstaciones`, `busquedasRecientes` | Buscar ruta (Fig. 5), ventana base |
-| Terminal | ✅ Monticulo, ✅ Cola FIFO | ✅ ReglaDespacho, 🟡 Terminal (`verOrdenDespacho` sobre la cola real) | ✅ despacho y filas | Despacho (Fig. 10) |
+| Terminal | ✅ Monticulo, ✅ Cola FIFO | ✅ ReglaDespacho, ✅ Terminal | ✅ despacho y filas | Despacho (Fig. 10) |
 | Paradas | ❌ TablaHash | 🟡 Directorio (falta editar y activar/desactivar), ✅ CargadorCSV | 🟡 `buscarEstacion`, `crearEstacion`; ❌ `editarEstacion`, `activarDesactivarEstacion` | Registro de paradas (Fig. 9) |
 | Historial | ❌ ListaDinamica | ❌ historial y estadisticas | ❌ `miHistorial`, `estadisticas` | Mi historial, Red vial, Historial global (Fig. 7, 8, 11) |
 
@@ -131,8 +131,6 @@ Revision automatica de arquitectura, Java, reglas de negocio, pruebas, documenta
 
 | Rol | Pendiente | Archivo |
 |---|---|---|
-| Terminal | Prueba de la Fig. 10: U-014, U-031, U-009, U-022, U-005 | `TerminalOrdenTest` |
-| Terminal | `verOrdenDespacho` debe extraer de una copia del monticulo, no de la cola real | `Terminal.java` |
 | Terminal | Un solo dueno de la fila RN-5 (hoy `Modulos.filas` por tipo; `Terminal.filaPasajeros` no se usa) | `Terminal.java`, `Aplicacion.java` |
 | Terminal y Busqueda | Usar `ValidacionException` en lugar de `IllegalArgumentException` | `Terminal.java`, `BusquedaService.java` |
 | Busqueda | `ArbolAvl` (estructura) depende de `servicios.Normalizador`: capa invertida | `ArbolAvl.java` |
