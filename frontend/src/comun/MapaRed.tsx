@@ -139,8 +139,8 @@ export function MapaRed({ estaciones, tramos, ruta = [], mostrarMinutos = true, 
               <text
                 key={`m-${l.a.codigo}-${l.b.codigo}`}
                 className={`mapa__min ${l.enRuta ? 'es-ruta' : ''}`}
-                x={(l.a.x + l.b.x) / 2}
-                y={-(l.a.y + l.b.y) / 2}
+                x={posMinutos(l, k).x}
+                y={posMinutos(l, k).y}
                 fontSize={PX.minutos * k}
                 strokeWidth={3.5 * k}
                 textAnchor="middle"
@@ -222,6 +222,22 @@ export function MapaRed({ estaciones, tramos, ruta = [], mostrarMinutos = true, 
   );
 }
 
+/** Punto medio del tramo desplazado a un lado de la linea, para que la cifra no tape el trazo. */
+function posMinutos(l: Linea, k: number): { x: number; y: number } {
+  const ax = l.a.x, ay = -l.a.y, bx = l.b.x, by = -l.b.y;
+  const dx = bx - ax, dy = by - ay;
+  const largo = Math.hypot(dx, dy) || 1;
+  // Normal unitaria; se elige la que apunta hacia arriba (o a la derecha si el tramo es vertical).
+  let nx = -dy / largo, ny = dx / largo;
+  if (ny > 0.01 || (Math.abs(ny) <= 0.01 && nx < 0)) {
+    nx = -nx;
+    ny = -ny;
+  }
+  const grosor = l.enRuta ? PX.ruta / 2 + PX.halo : PX.tramo / 2;
+  const d = (grosor + PX.minutos * 0.75) * k;
+  return { x: (ax + bx) / 2 + nx * d, y: (ay + by) / 2 + ny * d };
+}
+
 function textoMinutos(l: Linea): string {
   return l.minutosVuelta !== undefined ? `${l.minutos}/${l.minutosVuelta}′` : `${l.minutos}′`;
 }
@@ -301,12 +317,13 @@ function construir(estaciones: Estacion[], tramos: Tramo[], ruta: string[], anch
 /** Ubica cada nombre en la posicion candidata con menos choques (nombres, tramos, estaciones, minutos). */
 function ubicarEtiquetas(estaciones: Estacion[], lineas: Linea[], k: number, conMinutos: boolean, texto: (e: Estacion) => string) {
   const fh = PX.nombre * k;
-  const sep = (PX.radio + 4) * k;
+  const sep = (PX.radioExtremo + 4) * k;
   const minutos: Caja[] = conMinutos
     ? lineas.map((l) => {
         const w = anchoTexto(textoMinutos(l), PX.minutos) * k;
         const h = PX.minutos * k;
-        return { x: (l.a.x + l.b.x) / 2 - w / 2, y: -(l.a.y + l.b.y) / 2 - h / 2, w, h };
+        const p = posMinutos(l, k);
+        return { x: p.x - w / 2, y: p.y - h / 2, w, h };
       })
     : [];
   const colocadas: Caja[] = [];

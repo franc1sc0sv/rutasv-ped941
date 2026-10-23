@@ -169,14 +169,14 @@ input[type='time'].entrada, input[type='number'].entrada { font-family: var(--fu
 .segmentado__opcion { position: relative; display: block; }
 .segmentado__opcion + .segmentado__opcion { border-left: 1px solid var(--borde-fuerte); }
 .segmentado__opcion input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
-.segmentado__opcion span {
+.segmentado__opcion > span {
   display: flex; align-items: center; justify-content: center; gap: var(--esp-2);
   min-height: calc(var(--control-alto) - 2px); padding: 0 var(--esp-3);
   font-family: var(--fuente-senal); font-size: var(--fs-2); font-weight: var(--peso-fuerte); color: var(--texto-suave);
   background: var(--superficie);
   transition: background-color var(--dur-corta) ease, color var(--dur-corta) ease;
 }
-.segmentado__opcion input:checked + span { background: var(--tinta); color: var(--sobre-tinta); }
+.segmentado__opcion input:checked + span { background: var(--primario-suave); color: var(--primario-fuerte); box-shadow: inset 0 0 0 2px var(--primario); }
 .segmentado__opcion input:focus-visible + span { outline: 2px solid var(--foco); outline-offset: -4px; }
 @media (hover: hover) and (pointer: fine) {
   .segmentado__opcion input:not(:checked):hover + span { background: var(--superficie-2); color: var(--texto); }
@@ -248,7 +248,7 @@ input[type='time'].entrada, input[type='number'].entrada { font-family: var(--fu
 }
 .tabla tbody tr:last-child td { border-bottom: 0; }
 @media (hover: hover) and (pointer: fine) { .tabla tbody tr:hover td { background: var(--fondo); } }
-.tabla .num { text-align: right; }
+.tabla .num { text-align: right; white-space: nowrap; font-family: var(--fuente-senal); }
 .tabla td.cifra, .tabla .cifra { font-family: var(--fuente-senal); font-weight: var(--peso-fuerte); }
 .tabla tr.es-tenue td { color: var(--texto-suave); }
 .tabla tr.es-resaltada td { background: var(--primario-suave); }

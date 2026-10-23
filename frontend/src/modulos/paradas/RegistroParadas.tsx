@@ -125,7 +125,42 @@ export function RegistroParadas() {
 
   return (
     <Pagina figura="Fig. 9" titulo="Registro de paradas" descripcion="Alta, edición y estado de las estaciones de la red.">
-      <div className="rejilla-2">
+      <div className="pila pila--grande">
+        <Tarjeta id="form-parada" titulo={editando ? `Editar parada ${editando}` : 'Nueva parada'} className="paradas__formulario">
+          <form className="paradas__form" onSubmit={guardar} noValidate>
+            <Campo etiqueta="Código" ayuda={editando ? 'No se puede cambiar.' : undefined} className="paradas__codigo">
+              <Entrada value={form.codigo} onChange={(e) => campo('codigo', e.target.value)} placeholder="E09" disabled={!!editando} />
+            </Campo>
+            <Campo etiqueta="Nombre" className="paradas__campo-nombre">
+              <Entrada value={form.nombre} onChange={(e) => campo('nombre', e.target.value)} placeholder="Ej. Plaza Mundo" />
+            </Campo>
+            <Campo etiqueta="Zona">
+              <Entrada value={form.zona} onChange={(e) => campo('zona', e.target.value)} placeholder="Centro" />
+            </Campo>
+            <Campo etiqueta="Coordenada x">
+              <Entrada type="number" step="any" value={form.x} onChange={(e) => campo('x', e.target.value)} placeholder="0 a 100" />
+            </Campo>
+            <Campo etiqueta="Coordenada y">
+              <Entrada type="number" step="any" value={form.y} onChange={(e) => campo('y', e.target.value)} placeholder="0 a 100" />
+            </Campo>
+            <div className="paradas__cierre">
+              <Casilla checked={form.activa} onChange={(e) => campo('activa', e.target.checked)}>
+                Activa (en servicio)
+              </Casilla>
+              <div className="fila-flex">
+                {editando && <Boton onClick={cancelarEdicion}>Cancelar</Boton>}
+                <Boton variante="primario" type="submit" icono={editando ? 'check' : 'mas'} cargando={enviando}>
+                  {enviando ? 'Guardando…' : editando ? 'Guardar cambios' : 'Registrar parada'}
+                </Boton>
+              </div>
+            </div>
+            {avisoForm && (
+              <div className="paradas__resultado">
+                {avisoForm.pendiente ? <Pendiente enLinea rol="Paradas" mensaje={avisoForm.texto} /> : <Aviso tono={avisoForm.tono}>{avisoForm.texto}</Aviso>}
+              </div>
+            )}
+          </form>
+        </Tarjeta>
         <Tarjeta titulo="Estaciones" detalle={`${filas.length} de ${estaciones.lista.length}`} sinRelleno>
           <div className="paradas__herramientas">
             <form
@@ -210,44 +245,6 @@ export function RegistroParadas() {
           )}
         </Tarjeta>
 
-        <Tarjeta id="form-parada" titulo={editando ? `Editar parada ${editando}` : 'Nueva parada'} className="paradas__formulario">
-          <form className="pila" onSubmit={guardar} noValidate>
-            <div className="paradas__par">
-              <Campo etiqueta="Código" ayuda={editando ? 'El código no se puede cambiar.' : undefined}>
-                <Entrada value={form.codigo} onChange={(e) => campo('codigo', e.target.value)} placeholder="E09" disabled={!!editando} />
-              </Campo>
-              <Campo etiqueta="Zona">
-                <Entrada value={form.zona} onChange={(e) => campo('zona', e.target.value)} placeholder="Centro" />
-              </Campo>
-            </div>
-            <Campo etiqueta="Nombre">
-              <Entrada value={form.nombre} onChange={(e) => campo('nombre', e.target.value)} placeholder="Ej. Plaza Mundo" />
-            </Campo>
-            <div className="paradas__par">
-              <Campo etiqueta="Coordenada x">
-                <Entrada type="number" step="any" value={form.x} onChange={(e) => campo('x', e.target.value)} placeholder="0 a 100" />
-              </Campo>
-              <Campo etiqueta="Coordenada y">
-                <Entrada type="number" step="any" value={form.y} onChange={(e) => campo('y', e.target.value)} placeholder="0 a 100" />
-              </Campo>
-            </div>
-            <Casilla checked={form.activa} onChange={(e) => campo('activa', e.target.checked)}>
-              Activa (en servicio)
-            </Casilla>
-            {avisoForm &&
-              (avisoForm.pendiente ? (
-                <Pendiente enLinea rol="Paradas" mensaje={avisoForm.texto} />
-              ) : (
-                <Aviso tono={avisoForm.tono}>{avisoForm.texto}</Aviso>
-              ))}
-            <div className="fila-flex">
-              <Boton variante="primario" type="submit" icono={editando ? 'check' : 'mas'} cargando={enviando}>
-                {enviando ? 'Guardando…' : editando ? 'Guardar cambios' : 'Registrar parada'}
-              </Boton>
-              {editando && <Boton onClick={cancelarEdicion}>Cancelar</Boton>}
-            </div>
-          </form>
-        </Tarjeta>
       </div>
     </Pagina>
   );

@@ -85,6 +85,11 @@
 }
 
 .ventana__principal { margin-left: var(--ancho-menu); min-width: 0; }
+/* Columna de senal a todo lo alto del documento (el menu fijo solo mide una pantalla). */
+@media (min-width: 960px) {
+  .ventana--admin { position: relative; }
+  .ventana--admin::before { content: ''; position: absolute; inset: 0 auto 0 0; width: var(--ancho-menu); background: var(--tinta); }
+}
 .encabezado__menu { display: none; }
 .velo {
   position: fixed; inset: 0; z-index: 25; background: var(--velo);
