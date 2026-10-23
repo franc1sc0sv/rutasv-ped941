@@ -12,11 +12,9 @@ mvn verify                       # debe terminar en BUILD SUCCESS
 git checkout -b feat/historial-<tarea>
 ```
 
-## Ya esta creado para ti (esqueletos con `TODO`)
+## Hecho
 
-- `estructuras/ListaDinamica.java` implementa `Lista`
-
-Las pruebas ``ListaDinamicaContratoTest`` (en `src/test/.../historial/estructuras/`) ya estan conectadas y tienen `@Disabled`. Cuando tu clase este lista, quita esa linea: el test de contrato te dice si cumples.
+- `estructuras/ListaDinamica.java` implementa `Lista` sobre un arreglo que duplica su capacidad al llenarse. `ListaDinamicaContratoTest` ya corre sin `@Disabled`.
 
 ## Te toca crear
 
@@ -31,8 +29,8 @@ Usa `ListaTemporal`, `MapaTemporal` y `ColaPrioridadTemporal` de `nucleo/tempora
 
 ## Tus tareas (de la Fase 2)
 
-- [ ] 1. Modelo de datos (**ya hecho**; revisalo).
-- [ ] 2. Lista dinamica propia.
+- [x] 1. Modelo de datos (**ya hecho**; revisalo).
+- [x] 2. Lista dinamica propia.
 - [ ] 3. Historial de rutas por usuario con fecha y tiempo (RN-7). No guarda si no hay ruta (RN-6). Guardar y cargar archivo.
 - [ ] 4. Estadisticas: conteo por par, top 5, tiempo promedio.
 - [ ] 5. Pantalla Red vial (Fig 8).

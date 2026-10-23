@@ -10,7 +10,7 @@ Faltan la tabla hash, la lista dinamica, el historial y la edicion de paradas. E
 
 | Estructura | Interfaz | Rol | Uso | Estado |
 |---|---|---|---|---|
-| Lista dinamica | `Lista<T>` | Historial | Usuarios, historial, vecinos | ❌ pendiente |
+| Lista dinamica | `Lista<T>` | Historial | Usuarios, historial, vecinos | ✅ `ListaDinamica` |
 | Pila | `Pila<T>` | Ruta | Reconstruir la ruta | ✅ `PilaEnlazada` |
 | Cola FIFO | `Cola<T>` | Terminal | Fila de pasajeros | ✅ `ColaEnlazada` |
 | Cola de prioridad | `ColaPrioridad<T>` | Terminal | Despacho, Dijkstra, top 5 | ✅ `MonticuloBinario` |
