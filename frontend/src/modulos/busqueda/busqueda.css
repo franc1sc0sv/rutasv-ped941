@@ -1,0 +1,40 @@
+.buscar { display: grid; gap: var(--esp-4); }
+.buscar__campos { display: grid; gap: var(--esp-3); grid-template-columns: minmax(0, 1fr); }
+.buscar__intercambiar { justify-self: end; margin: calc(-1 * var(--esp-2)) 0; z-index: 1; border-radius: 50%; }
+@media (min-width: 720px) {
+  .buscar__campos { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: start; }
+  .buscar__intercambiar { margin: 28px 0 0; justify-self: center; }
+  .buscar__intercambiar svg { transform: rotate(90deg); }
+}
+.buscar__calcular { min-height: 48px; font-size: var(--fs-md); }
+.buscar__nota { font-size: var(--fs-sm); margin-top: calc(-1 * var(--esp-2)); }
+
+.auto { display: grid; gap: var(--esp-1); min-width: 0; }
+.auto__etiqueta { display: flex; align-items: center; gap: var(--esp-2); font-size: var(--fs-sm); font-weight: 600; }
+.auto__marcador { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; font-size: 0.7rem; font-weight: 800; }
+.auto__marcador--A { background: var(--acento); color: var(--acento-texto); }
+.auto__marcador--B { background: var(--texto); color: var(--fondo); }
+.auto__caja { position: relative; }
+.auto__entrada { min-height: 46px; font-size: var(--fs-md); }
+.auto__entrada[aria-invalid='true'] { border-color: var(--peligro); }
+.auto__lista, .auto__vacio {
+  position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 15;
+  margin: 0; padding: var(--esp-1); list-style: none;
+  background: var(--superficie); border: 1px solid var(--borde-fuerte); border-radius: var(--radio-md); box-shadow: var(--sombra);
+  max-height: 260px; overflow-y: auto;
+}
+.auto__vacio { padding: var(--esp-3); color: var(--texto-suave); font-size: var(--fs-sm); }
+.auto__opcion { padding: 10px var(--esp-3); border-radius: var(--radio-sm); cursor: pointer; }
+.auto__opcion strong { color: var(--acento-fuerte); }
+.auto__opcion.es-activa { background: var(--acento-suave); }
+.auto__ayuda { font-size: var(--fs-xs); min-height: 1.2em; }
+.auto__ayuda--error { color: var(--peligro); }
+
+.codigo-chip { font-family: var(--fuente-mono); font-size: 0.75rem; background: var(--superficie-2); border-radius: var(--radio-sm); padding: 0 6px; color: var(--texto); }
+
+.recientes { display: flex; flex-wrap: wrap; gap: var(--esp-2); }
+.reciente {
+  display: inline-flex; align-items: center; gap: var(--esp-2); min-height: 36px; padding: 0 var(--esp-3);
+  border-radius: var(--radio-pill); border: 1px solid var(--borde); background: var(--superficie-2); cursor: pointer; font-weight: 500;
+}
+.reciente:hover { border-color: var(--acento); color: var(--acento-fuerte); }
