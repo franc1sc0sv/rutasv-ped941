@@ -38,7 +38,7 @@ Siempre `{ "error": "mensaje", "pendiente": false }`.
 | `GET /red` | sesion | - | `{estaciones: [Estacion], tramos: [Tramo]}` | `verRed` | Ruta |
 | `POST /red/tramos` | ADMIN | `{origen, destino, minutos, km}` | 201 | `agregarTramo` | Ruta |
 | `GET /historial` | sesion | - | `[RutaCalculada]` (abajo) | `miHistorial` | Historial |
-| `GET /estadisticas` | ADMIN | - | `{totalBusquedas, rutaMasConsultada, tiempoPromedioNs, top5}` | `estadisticas` | Historial (pendiente) |
+| `GET /estadisticas` | ADMIN | - | `{totalBusquedas, rutaMasConsultada, tiempoPromedioNs, top5}` | `estadisticas` | Historial |
 | `GET /estaciones` | sesion | - | `[Estacion]` | `verRed` | Paradas |
 | `GET /estaciones/buscar?texto=Metrocentro` | sesion | - | `Estacion` o 404 | `buscarEstacion` | Paradas |
 | `POST /estaciones` | ADMIN | `Estacion` | 201 | `crearEstacion` | Paradas |
@@ -67,6 +67,11 @@ Siempre `{ "error": "mensaje", "pendiente": false }`.
 // RutaCalculada (GET /historial): el registro del core, sin detalle. "tramos" son codigos en orden
 { "origen": "E01", "destino": "E04", "tramos": ["E01", "E02", "E03", "E04"], "minutos": 18, "km": 9.5,
   "fecha": "2026-10-24T10:15:00", "tiempoCalculoNs": 773753, "usuario": "ana_01" }
+// Estadisticas (GET /estadisticas): pares "ORIGEN -> DESTINO" con codigos; top5 de mas a menos consultado,
+// empates en orden alfabetico. totalBusquedas cuenta solo las rutas encontradas (RN-6: las demas no se guardan).
+// Sin historial: totalBusquedas 0, rutaMasConsultada null, tiempoPromedioNs 0, top5 []
+{ "totalBusquedas": 7, "rutaMasConsultada": "E01 -> E04", "tiempoPromedioNs": 512340,
+  "top5": ["E01 -> E04", "E02 -> E05", "E01 -> E03"] }
 // Unidad
 { "id": "U-014", "tipoRuta": "EXPRES", "horaProgramada": "07:00:00" }
 // Pasajero

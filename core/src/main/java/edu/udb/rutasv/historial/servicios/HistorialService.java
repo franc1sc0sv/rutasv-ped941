@@ -30,6 +30,15 @@ public class HistorialService {
         rutas.agregar(copia);
     }
 
+    /** Copia de todo el historial, en el orden en que se registro. */
+    public Lista<RutaCalculada> todas() {
+        Lista<RutaCalculada> copia = new ListaDinamica<>();
+        for (RutaCalculada ruta : rutas) {
+            copia.agregar(ruta);
+        }
+        return copia;
+    }
+
     /** Rutas del usuario en el orden en que se registraron. */
     public Lista<RutaCalculada> deUsuario(String usuario) {
         Lista<RutaCalculada> resultado = new ListaDinamica<>();

@@ -95,11 +95,28 @@ class ServidorTest {
         assertEquals(400, pedir("GET", "/api/rutas?origen=E01&destino=ZZ", t, null).estado());
         assertEquals(403, pedir("POST", "/api/red/tramos", t,
                 "{\"origen\":\"E01\",\"destino\":\"E05\",\"minutos\":3,\"km\":1}").estado());
+    }
 
+    @Test
+    void historialYEstadisticasDevuelvenLoGuardado() throws Exception {
+        Files.writeString(dir.resolve("historial.txt"),
+                "E01;E04;E01>E02>E03>E04;18;7.5;2026-10-22T08:30:15;125000;ana_01\n");
+        app.stop();
+        app = Servidor.crear(Aplicacion.crear(dir, Map.of("RUTASV_ADMIN_PASSWORD", "clave-sintetica-9"))).start(0);
+        base = "http://localhost:" + app.port();
+        String t = token("/api/auth/registro", "ana_01", "clave-sintetica-1");
         String admin = token("/api/auth/login", "admin", "clave-sintetica-9");
-        Respuesta pendiente = pedir("GET", "/api/estadisticas", admin, null);
-        assertEquals(501, pendiente.estado());
-        assertTrue(pendiente.cuerpo().get("pendiente").asBoolean());
+
+        Respuesta mias = pedir("GET", "/api/historial", t, null);
+        assertEquals(200, mias.estado());
+        assertEquals("2026-10-22T08:30:15", mias.cuerpo().get(0).get("fecha").asText());
+        assertEquals("E03", mias.cuerpo().get(0).get("tramos").get(2).asText());
+
+        assertEquals(403, pedir("GET", "/api/estadisticas", t, null).estado());
+        Respuesta e = pedir("GET", "/api/estadisticas", admin, null);
+        assertEquals(200, e.estado());
+        assertEquals("E01 -> E04", e.cuerpo().get("rutaMasConsultada").asText());
+        assertEquals(1, e.cuerpo().get("top5").size());
     }
 
     @Test
