@@ -5,11 +5,22 @@
 import { useState, type FormEvent } from 'react';
 import { api, ApiError, mensajeDe } from '../../api/cliente';
 import type { Estacion } from '../../api/tipos';
-import { Cargando } from '../../comun/Cargando';
-import { MensajeError } from '../../comun/MensajeError';
-import { Pagina } from '../../comun/Pagina';
-import { Pendiente } from '../../comun/Pendiente';
 import { normalizar, useEstaciones } from '../../comun/useEstaciones';
+import {
+  Aviso,
+  Boton,
+  Campo,
+  Casilla,
+  CodigoEstacion,
+  Entrada,
+  Esqueleto,
+  FilaVacia,
+  Insignia,
+  Pagina,
+  Pendiente,
+  Tabla,
+  Tarjeta,
+} from '../../comun/ui';
 import './paradas.css';
 
 type Formulario = { codigo: string; nombre: string; zona: string; x: string; y: string; activa: boolean };
@@ -17,6 +28,8 @@ const VACIO: Formulario = { codigo: '', nombre: '', zona: '', x: '', y: '', acti
 
 /** Resultado de una accion por fila: mensaje normal o pendiente (501). */
 type AvisoFila = { codigo: string; texto: string; pendiente: boolean; tono: 'error' | 'exito' };
+
+const COLUMNAS = 6;
 
 export function RegistroParadas() {
   const estaciones = useEstaciones();
@@ -41,7 +54,10 @@ export function RegistroParadas() {
       const e = await api.get<Estacion>('/estaciones/buscar', { texto: filtro.trim() });
       setExacta({ estado: 'ok', e });
     } catch (err) {
-      setExacta({ estado: 'error', texto: err instanceof ApiError && err.status === 404 ? `No existe una estación llamada “${filtro.trim()}”.` : mensajeDe(err) });
+      setExacta({
+        estado: 'error',
+        texto: err instanceof ApiError && err.status === 404 ? `No hay ninguna estación llamada “${filtro.trim()}”.` : mensajeDe(err),
+      });
     } finally {
       setBuscando(false);
     }
@@ -55,7 +71,9 @@ export function RegistroParadas() {
     setEditando(e.codigo);
     setForm({ codigo: e.codigo, nombre: e.nombre, zona: e.zona, x: String(e.x), y: String(e.y), activa: e.activa });
     setAvisoForm(null);
-    document.getElementById('form-parada')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const destino = document.getElementById('form-parada');
+    destino?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+    destino?.querySelector<HTMLInputElement>('input:not(:disabled)')?.focus({ preventScroll: true });
   }
 
   function cancelarEdicion() {
@@ -106,140 +124,130 @@ export function RegistroParadas() {
   }
 
   return (
-    <Pagina figura="Fig. 9 · Paradas" titulo="Registro de paradas" descripcion="Alta, edición y estado de las estaciones de la red.">
-      <div className="paradas">
-        <section id="form-parada" className="tarjeta tarjeta--relleno" aria-labelledby="paradas-form">
-          <h2 id="paradas-form">{editando ? `Editar parada ${editando}` : 'Nueva parada'}</h2>
-          <form className="formulario paradas__form" onSubmit={guardar} noValidate>
-            <div className="formulario__fila">
-              <label className="campo">
-                <span>Código</span>
-                <input value={form.codigo} onChange={(e) => campo('codigo', e.target.value)} placeholder="E09" disabled={!!editando} />
-              </label>
-              <label className="campo">
-                <span>Zona</span>
-                <input value={form.zona} onChange={(e) => campo('zona', e.target.value)} placeholder="Centro" />
-              </label>
+    <Pagina figura="Fig. 9" titulo="Registro de paradas" descripcion="Alta, edición y estado de las estaciones de la red.">
+      <div className="rejilla-2">
+        <Tarjeta titulo="Estaciones" detalle={`${filas.length} de ${estaciones.lista.length}`} sinRelleno>
+          <div className="paradas__herramientas">
+            <form
+              className="paradas__buscar"
+              role="search"
+              aria-label="Buscar estaciones"
+              onSubmit={(ev) => {
+                ev.preventDefault();
+                buscarExacto();
+              }}
+            >
+              <Campo etiqueta="Filtrar por código o nombre" etiquetaOculta className="paradas__filtro">
+                <Entrada
+                  type="search"
+                  placeholder="Filtrar por código o nombre…"
+                  value={filtro}
+                  onChange={(e) => {
+                    setFiltro(e.target.value);
+                    setExacta(null);
+                  }}
+                />
+              </Campo>
+              <Boton type="submit" icono="buscar" cargando={buscando} disabled={!filtro.trim()} title="Busca en el servidor por nombre exacto o código">
+                Buscar exacto
+              </Boton>
+            </form>
+            {exacta?.estado === 'ok' && (
+              <Aviso tono="info">
+                Encontrada en el servidor:{' '}
+                <strong>
+                  {exacta.e.codigo} · {exacta.e.nombre}
+                </strong>{' '}
+                ({exacta.e.zona}, x={exacta.e.x}, y={exacta.e.y}, {exacta.e.activa ? 'activa' : 'inactiva'})
+              </Aviso>
+            )}
+            {exacta?.estado === 'error' && <Aviso tono="aviso">{exacta.texto}</Aviso>}
+          </div>
+
+          {estaciones.cargando && !estaciones.datos ? (
+            <div className="paradas__cargando">
+              <Esqueleto lineas={5} etiqueta="Cargando estaciones…" />
             </div>
-            <label className="campo">
-              <span>Nombre</span>
-              <input value={form.nombre} onChange={(e) => campo('nombre', e.target.value)} placeholder="Ej. Plaza Mundo" />
-            </label>
-            <div className="formulario__fila">
-              <label className="campo">
-                <span>Coordenada x</span>
-                <input type="number" step="any" value={form.x} onChange={(e) => campo('x', e.target.value)} placeholder="0 – 100" />
-              </label>
-              <label className="campo">
-                <span>Coordenada y</span>
-                <input type="number" step="any" value={form.y} onChange={(e) => campo('y', e.target.value)} placeholder="0 – 100" />
-              </label>
+          ) : estaciones.error ? (
+            <div className="paradas__cargando">
+              <Aviso tono="error" titulo="No se pudieron cargar las estaciones">
+                {estaciones.error.message}
+              </Aviso>
             </div>
-            <label className="casilla">
-              <input type="checkbox" checked={form.activa} onChange={(e) => campo('activa', e.target.checked)} />
+          ) : (
+            <Tabla etiqueta="Estaciones registradas" className="paradas__tabla">
+              <thead>
+                <tr>
+                  <th scope="col">Código</th>
+                  <th scope="col">Nombre</th>
+                  <th scope="col" className="col-zona">
+                    Zona
+                  </th>
+                  <th scope="col" className="num col-xy">
+                    x, y
+                  </th>
+                  <th scope="col">Estado</th>
+                  <th scope="col">
+                    <span className="oculto-visual">Acciones</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {filas.length === 0 && <FilaVacia columnas={COLUMNAS}>Ninguna estación coincide con “{filtro}”.</FilaVacia>}
+                {filas.map((e) => (
+                  <FilaParada
+                    key={e.codigo}
+                    e={e}
+                    resaltada={exacta?.estado === 'ok' && exacta.e.codigo === e.codigo}
+                    editando={editando === e.codigo}
+                    aviso={avisoFila?.codigo === e.codigo ? avisoFila : null}
+                    alEditar={() => empezarEdicion(e)}
+                    alAlternar={() => alternarEstado(e)}
+                  />
+                ))}
+              </tbody>
+            </Tabla>
+          )}
+        </Tarjeta>
+
+        <Tarjeta id="form-parada" titulo={editando ? `Editar parada ${editando}` : 'Nueva parada'} className="paradas__formulario">
+          <form className="pila" onSubmit={guardar} noValidate>
+            <div className="paradas__par">
+              <Campo etiqueta="Código" ayuda={editando ? 'El código no se puede cambiar.' : undefined}>
+                <Entrada value={form.codigo} onChange={(e) => campo('codigo', e.target.value)} placeholder="E09" disabled={!!editando} />
+              </Campo>
+              <Campo etiqueta="Zona">
+                <Entrada value={form.zona} onChange={(e) => campo('zona', e.target.value)} placeholder="Centro" />
+              </Campo>
+            </div>
+            <Campo etiqueta="Nombre">
+              <Entrada value={form.nombre} onChange={(e) => campo('nombre', e.target.value)} placeholder="Ej. Plaza Mundo" />
+            </Campo>
+            <div className="paradas__par">
+              <Campo etiqueta="Coordenada x">
+                <Entrada type="number" step="any" value={form.x} onChange={(e) => campo('x', e.target.value)} placeholder="0 a 100" />
+              </Campo>
+              <Campo etiqueta="Coordenada y">
+                <Entrada type="number" step="any" value={form.y} onChange={(e) => campo('y', e.target.value)} placeholder="0 a 100" />
+              </Campo>
+            </div>
+            <Casilla checked={form.activa} onChange={(e) => campo('activa', e.target.checked)}>
               Activa (en servicio)
-            </label>
+            </Casilla>
             {avisoForm &&
               (avisoForm.pendiente ? (
                 <Pendiente enLinea rol="Paradas" mensaje={avisoForm.texto} />
               ) : (
-                <MensajeError tono={avisoForm.tono} mensaje={avisoForm.texto} />
+                <Aviso tono={avisoForm.tono}>{avisoForm.texto}</Aviso>
               ))}
-            <div className="paradas__acciones">
-              <button className="boton boton--primario" type="submit" disabled={enviando}>
+            <div className="fila-flex">
+              <Boton variante="primario" type="submit" icono={editando ? 'check' : 'mas'} cargando={enviando}>
                 {enviando ? 'Guardando…' : editando ? 'Guardar cambios' : 'Registrar parada'}
-              </button>
-              {editando && (
-                <button className="boton" type="button" onClick={cancelarEdicion}>
-                  Cancelar
-                </button>
-              )}
+              </Boton>
+              {editando && <Boton onClick={cancelarEdicion}>Cancelar</Boton>}
             </div>
           </form>
-        </section>
-        <section className="tarjeta tarjeta--relleno" aria-labelledby="paradas-tabla">
-          <div className="tarjeta__titulo">
-            <h2 id="paradas-tabla">Estaciones</h2>
-            <span className="texto-suave paradas__conteo">
-              {filas.length} de {estaciones.lista.length}
-            </span>
-          </div>
-
-          <form
-            className="paradas__buscar"
-            role="search"
-            onSubmit={(ev) => {
-              ev.preventDefault();
-              buscarExacto();
-            }}
-          >
-            <label className="oculto-visual" htmlFor="filtro-paradas">
-              Filtrar por código o nombre
-            </label>
-            <input
-              id="filtro-paradas"
-              className="entrada"
-              type="search"
-              placeholder="Filtrar por código o nombre…"
-              value={filtro}
-              onChange={(e) => {
-                setFiltro(e.target.value);
-                setExacta(null);
-              }}
-            />
-            <button type="submit" className="boton" disabled={!filtro.trim() || buscando} title="Busca en el servidor por nombre exacto o código">
-              {buscando ? 'Buscando…' : 'Buscar exacto'}
-            </button>
-          </form>
-          {exacta?.estado === 'ok' && (
-            <MensajeError tono="info" mensaje={<>Encontrada en el servidor: <strong>{exacta.e.codigo} · {exacta.e.nombre}</strong> ({exacta.e.zona}, x={exacta.e.x}, y={exacta.e.y}, {exacta.e.activa ? 'activa' : 'inactiva'})</>} />
-          )}
-          {exacta?.estado === 'error' && <MensajeError tono="aviso" mensaje={exacta.texto} />}
-
-          {estaciones.cargando && !estaciones.datos ? (
-            <Cargando />
-          ) : estaciones.error ? (
-            <MensajeError mensaje={estaciones.error.message} />
-          ) : (
-            <div className="tabla-contenedor paradas__tabla">
-              <table className="tabla">
-                <thead>
-                  <tr>
-                    <th scope="col">Código</th>
-                    <th scope="col">Nombre</th>
-                    <th scope="col" className="col-zona">Zona</th>
-                    <th scope="col" className="num col-xy">x, y</th>
-                    <th scope="col">Estado</th>
-                    <th scope="col">
-                      <span className="oculto-visual">Acciones</span>
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filas.length === 0 && (
-                    <tr>
-                      <td colSpan={6} className="vacio">
-                        Ninguna estación coincide con “{filtro}”.
-                      </td>
-                    </tr>
-                  )}
-                  {filas.map((e) => (
-                    <FilaParada
-                      key={e.codigo}
-                      e={e}
-                      resaltada={exacta?.estado === 'ok' && exacta.e.codigo === e.codigo}
-                      editando={editando === e.codigo}
-                      aviso={avisoFila?.codigo === e.codigo ? avisoFila : null}
-                      alEditar={() => empezarEdicion(e)}
-                      alAlternar={() => alternarEstado(e)}
-                    />
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
-
+        </Tarjeta>
       </div>
     </Pagina>
   );
@@ -263,35 +271,38 @@ function FilaParada({
   return (
     <>
       <tr className={`${e.activa ? '' : 'es-tenue'} ${resaltada || editando ? 'es-resaltada' : ''}`}>
-        <td className="mono">{e.codigo}</td>
-        <td>{e.nombre}</td>
+        <td>
+          <CodigoEstacion codigo={e.codigo} />
+        </td>
+        <td className="paradas__nombre">{e.nombre}</td>
         <td className="col-zona">{e.zona}</td>
         <td className="num col-xy">
           {e.x}, {e.y}
         </td>
         <td>
-          <span className={`insignia insignia--${e.activa ? 'activa' : 'inactiva'}`}>{e.activa ? 'Activa' : 'Inactiva'}</span>
+          <Insignia tono={e.activa ? 'exito' : 'neutro'}>{e.activa ? 'Activa' : 'Inactiva'}</Insignia>
         </td>
         <td>
-          <div className="paradas__fila-acciones">
-            <button type="button" className="boton boton--chico" onClick={alEditar} aria-label={`Editar ${e.nombre}`}>
+          <div className="paradas__acciones">
+            <Boton tamano="sm" variante="fantasma" icono="editar" onClick={alEditar} aria-label={`Editar ${e.nombre}`}>
               Editar
-            </button>
-            <button
-              type="button"
-              className={`boton boton--chico ${e.activa ? 'boton--peligro' : ''}`}
+            </Boton>
+            <Boton
+              tamano="sm"
+              variante={e.activa ? 'peligro' : 'secundario'}
+              icono="encendido"
               onClick={alAlternar}
               aria-label={`${e.activa ? 'Desactivar' : 'Activar'} ${e.nombre}`}
             >
               {e.activa ? 'Desactivar' : 'Activar'}
-            </button>
+            </Boton>
           </div>
         </td>
       </tr>
       {aviso && (
         <tr className="paradas__aviso">
-          <td colSpan={6}>
-            {aviso.pendiente ? <Pendiente enLinea rol="Paradas" mensaje={aviso.texto} /> : <MensajeError tono={aviso.tono} mensaje={aviso.texto} />}
+          <td colSpan={COLUMNAS}>
+            {aviso.pendiente ? <Pendiente enLinea rol="Paradas" mensaje={aviso.texto} /> : <Aviso tono={aviso.tono}>{aviso.texto}</Aviso>}
           </td>
         </tr>
       )}
