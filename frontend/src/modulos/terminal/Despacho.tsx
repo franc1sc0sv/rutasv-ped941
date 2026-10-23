@@ -9,15 +9,32 @@
 import { useState, type FormEvent } from 'react';
 import { api, ApiError, mensajeDe } from '../../api/cliente';
 import type { Pasajero, TipoRuta, Unidad } from '../../api/tipos';
-import { Cargando } from '../../comun/Cargando';
 import { hora } from '../../comun/formato';
-import { MensajeError } from '../../comun/MensajeError';
-import { Pagina } from '../../comun/Pagina';
+import {
+  Aviso,
+  Boton,
+  Campo,
+  Entrada,
+  Esqueleto,
+  FilaVacia,
+  Icono,
+  InsigniaTipo,
+  Pagina,
+  Segmentado,
+  Tabla,
+  Tarjeta,
+  type TonoAviso,
+} from '../../comun/ui';
 import { usePedido } from '../../comun/usePedido';
 import './terminal.css';
 
-const TIPOS: TipoRuta[] = ['NORMAL', 'EXPRES'];
-type Aviso = { tono: 'error' | 'exito' | 'aviso' | 'info'; texto: string } | null;
+const TIPOS: TipoRuta[] = ['EXPRES', 'NORMAL'];
+type Resultado = { tono: TonoAviso; texto: string } | null;
+
+/** Tiempo de la animacion de salida de una fila (debe coincidir con --dur-media). */
+const SALIDA_MS = 220;
+const sinMovimiento = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const nombreTipo = (t: TipoRuta) => (t === 'EXPRES' ? 'exprés' : 'normal');
 
 export function Despacho() {
   const orden = usePedido(() => api.get<Unidad[]>('/terminal/orden'), []);
@@ -26,10 +43,11 @@ export function Despacho() {
   const [idUnidad, setIdUnidad] = useState('');
   const [tipo, setTipo] = useState<TipoRuta>('NORMAL');
   const [horaProg, setHoraProg] = useState('07:00');
-  const [avisoUnidad, setAvisoUnidad] = useState<Aviso>(null);
+  const [avisoUnidad, setAvisoUnidad] = useState<Resultado>(null);
   const [despachada, setDespachada] = useState<Unidad | null>(null);
-  const [avisoDespacho, setAvisoDespacho] = useState<Aviso>(null);
+  const [avisoDespacho, setAvisoDespacho] = useState<Resultado>(null);
   const [ocupado, setOcupado] = useState(false);
+  const [saliendo, setSaliendo] = useState<string | null>(null);
 
   async function registrar(ev: FormEvent) {
     ev.preventDefault();
@@ -41,7 +59,7 @@ export function Despacho() {
     setOcupado(true);
     try {
       await api.post('/terminal/unidades', { id: idUnidad.trim(), tipoRuta: tipo, horaProgramada: horaProg });
-      setAvisoUnidad({ tono: 'exito', texto: `Unidad ${idUnidad.trim()} (${tipo}) registrada para las ${horaProg}.` });
+      setAvisoUnidad({ tono: 'exito', texto: `Unidad ${idUnidad.trim()} (${nombreTipo(tipo)}) registrada para las ${horaProg}.` });
       setIdUnidad('');
       orden.recargar();
     } catch (e) {
@@ -57,7 +75,15 @@ export function Despacho() {
     try {
       const u = await api.post<Unidad>('/terminal/despachar');
       setDespachada(u);
-      orden.recargar();
+      // La fila de la unidad sale de la tabla y luego se recarga el orden real del servidor.
+      setSaliendo(u.id);
+      window.setTimeout(
+        () => {
+          setSaliendo(null);
+          orden.recargar();
+        },
+        sinMovimiento() ? 0 : SALIDA_MS,
+      );
     } catch (e) {
       setDespachada(null);
       setAvisoDespacho(
@@ -73,105 +99,105 @@ export function Despacho() {
   // ---- Filas de pasajeros (copia local, ver LIMITACION arriba) ----
   const [filas, setFilas] = useState<Record<TipoRuta, Pasajero[]>>({ NORMAL: [], EXPRES: [] });
   const [contador, setContador] = useState(1);
+  const unidades = orden.datos ?? [];
 
   return (
-    <Pagina figura="Fig. 10 · Terminal" titulo="Despacho" descripcion="Las unidades EXPRES salen primero; entre iguales, la de hora más próxima (RN-4).">
+    <Pagina figura="Fig. 10" titulo="Despacho" descripcion="Las unidades exprés salen primero; entre iguales, la de hora más próxima (RN-4).">
       <div className="rejilla-2">
-        <section className="tarjeta tarjeta--relleno" aria-labelledby="orden-titulo">
-          <div className="tarjeta__titulo">
-            <h2 id="orden-titulo">Orden de salida</h2>
-            <button type="button" className="boton boton--primario" onClick={despachar} disabled={ocupado}>
+        <Tarjeta
+          titulo="Orden de salida"
+          detalle={orden.datos ? `${unidades.length} en espera` : undefined}
+          acciones={
+            <Boton variante="primario" icono="despachar" onClick={despachar} disabled={ocupado}>
               Despachar siguiente
-            </button>
-          </div>
+            </Boton>
+          }
+        >
+          <div className="pila">
+            {despachada && (
+              <div className="salida" role="status" aria-live="polite" key={despachada.id}>
+                <Icono nombre="check" tamano={20} className="salida__icono" />
+                <span className="salida__texto">
+                  Salió <strong className="salida__id">{despachada.id}</strong>
+                </span>
+                <InsigniaTipo tipo={despachada.tipoRuta} />
+                <span className="salida__hora cifra">{hora(despachada.horaProgramada)}</span>
+              </div>
+            )}
+            {avisoDespacho && <Aviso tono={avisoDespacho.tono}>{avisoDespacho.texto}</Aviso>}
 
-          {despachada && (
-            <div className="despachada" role="status" aria-live="polite">
-              <span className="despachada__etiqueta">Despachada</span>
-              <strong className="despachada__id">{despachada.id}</strong>
-              <span className={`insignia insignia--${despachada.tipoRuta}`}>{despachada.tipoRuta}</span>
-              <span className="texto-suave">{hora(despachada.horaProgramada)}</span>
-            </div>
-          )}
-          {avisoDespacho && <MensajeError tono={avisoDespacho.tono} mensaje={avisoDespacho.texto} />}
-
-          {orden.cargando && !orden.datos ? (
-            <Cargando />
-          ) : orden.error ? (
-            <MensajeError mensaje={orden.error.message} />
-          ) : (
-            <div className="tabla-contenedor terminal__tabla">
-              <table className="tabla">
+            {orden.cargando && !orden.datos ? (
+              <Esqueleto lineas={4} etiqueta="Cargando el orden de salida…" />
+            ) : orden.error ? (
+              <Aviso tono="error" titulo="No se pudo cargar el orden de salida">
+                {orden.error.message}
+              </Aviso>
+            ) : (
+              <Tabla etiqueta="Orden de salida de las unidades">
                 <thead>
                   <tr>
-                    <th scope="col" className="num">#</th>
+                    <th scope="col" className="num">
+                      Turno
+                    </th>
                     <th scope="col">Unidad</th>
                     <th scope="col">Tipo</th>
-                    <th scope="col" className="num">Hora</th>
+                    <th scope="col" className="num">
+                      Hora
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {(orden.datos ?? []).length === 0 ? (
-                    <tr>
-                      <td colSpan={4} className="vacio">
-                        No hay unidades en espera.
-                      </td>
-                    </tr>
+                  {unidades.length === 0 ? (
+                    <FilaVacia columnas={4}>No hay unidades en espera. Registra una con el formulario.</FilaVacia>
                   ) : (
-                    orden.datos!.map((u, i) => (
-                      <tr key={u.id} className={i === 0 ? 'es-siguiente' : ''}>
-                        <td className="num">{i + 1}</td>
-                        <td className="mono">
-                          {u.id}
-                          {i === 0 && <span className="terminal__siguiente">siguiente</span>}
+                    unidades.map((u, i) => (
+                      <tr key={u.id} className={[i === 0 && 'es-siguiente', saliendo === u.id && 'es-saliendo'].filter(Boolean).join(' ')}>
+                        <td className="num cifra">{i + 1}</td>
+                        <td>
+                          <span className="despacho__unidad cifra">{u.id}</span>
+                          {i === 0 && <span className="despacho__siguiente">Siguiente</span>}
                         </td>
                         <td>
-                          <span className={`insignia insignia--${u.tipoRuta}`}>{u.tipoRuta}</span>
+                          <InsigniaTipo tipo={u.tipoRuta} />
                         </td>
-                        <td className="num">{hora(u.horaProgramada)}</td>
+                        <td className="num cifra">{hora(u.horaProgramada)}</td>
                       </tr>
                     ))
                   )}
                 </tbody>
-              </table>
-            </div>
-          )}
-        </section>
+              </Tabla>
+            )}
+          </div>
+        </Tarjeta>
 
-        <section className="tarjeta tarjeta--relleno" aria-labelledby="unidad-titulo">
-          <h2 id="unidad-titulo">Registrar unidad</h2>
-          <form className="formulario" onSubmit={registrar} noValidate>
-            <label className="campo">
-              <span>Id de la unidad</span>
-              <input value={idUnidad} onChange={(e) => setIdUnidad(e.target.value)} placeholder="Ej. U-014" />
-            </label>
-            <fieldset className="campo terminal__tipos">
-              <legend>Tipo de ruta</legend>
-              <div className="segmentado" role="radiogroup" aria-label="Tipo de ruta">
-                {TIPOS.map((t) => (
-                  <button key={t} type="button" role="radio" aria-checked={tipo === t} onClick={() => setTipo(t)}>
-                    {t === 'EXPRES' ? 'Exprés' : 'Normal'}
-                  </button>
-                ))}
-              </div>
-            </fieldset>
-            <label className="campo">
-              <span>Hora programada</span>
-              <input type="time" value={horaProg} onChange={(e) => setHoraProg(e.target.value)} />
-            </label>
-            {avisoUnidad && <MensajeError tono={avisoUnidad.tono} mensaje={avisoUnidad.texto} />}
-            <button className="boton boton--primario" type="submit" disabled={ocupado}>
+        <Tarjeta titulo="Registrar unidad">
+          <form className="pila" onSubmit={registrar} noValidate>
+            <Campo etiqueta="Id de la unidad">
+              <Entrada value={idUnidad} onChange={(e) => setIdUnidad(e.target.value)} placeholder="Ej. U-014" autoComplete="off" />
+            </Campo>
+            <Segmentado
+              nombre="tipo-ruta"
+              etiqueta="Tipo de ruta"
+              valor={tipo}
+              alCambiar={setTipo}
+              opciones={TIPOS.map((t) => ({ valor: t, texto: <InsigniaTipo tipo={t} /> }))}
+            />
+            <Campo etiqueta="Hora programada">
+              <Entrada type="time" value={horaProg} onChange={(e) => setHoraProg(e.target.value)} />
+            </Campo>
+            {avisoUnidad && <Aviso tono={avisoUnidad.tono}>{avisoUnidad.texto}</Aviso>}
+            <Boton variante="primario" type="submit" icono="mas" disabled={ocupado}>
               Registrar unidad
-            </button>
+            </Boton>
           </form>
-        </section>
+        </Tarjeta>
       </div>
 
-      <section aria-labelledby="filas-titulo" className="terminal__filas">
-        <h2 id="filas-titulo">Filas de pasajeros</h2>
-        <p className="texto-suave terminal__nota">
-          Primero en llegar, primero en ser atendido (FIFO). La lista muestra lo encolado desde esta pantalla.
-        </p>
+      <section aria-labelledby="filas-titulo" className="pila">
+        <div className="despacho__filas-cabeza">
+          <h2 id="filas-titulo">Filas de pasajeros</h2>
+          <p className="texto-suave">El primero en llegar es el primero en subir (FIFO). La lista muestra lo que se agregó desde esta pantalla.</p>
+        </div>
         <div className="rejilla-2 rejilla-2--pareja">
           {TIPOS.map((t) => (
             <Fila
@@ -216,9 +242,10 @@ function Fila({
 }) {
   const [nombre, setNombre] = useState('');
   const [id, setId] = useState('');
-  const [aviso, setAviso] = useState<Aviso>(null);
+  const [aviso, setAviso] = useState<Resultado>(null);
   const [atendido, setAtendido] = useState<Pasajero | null>(null);
   const [ocupado, setOcupado] = useState(false);
+  const [saliendo, setSaliendo] = useState<string | null>(null);
 
   async function encolar(ev: FormEvent) {
     ev.preventDefault();
@@ -247,11 +274,18 @@ function Fila({
     try {
       const p = await api.post<Pasajero>(`/terminal/filas/${tipo}/atender`);
       setAtendido(p);
-      alAtender(p);
+      setSaliendo(p.id);
+      window.setTimeout(
+        () => {
+          setSaliendo(null);
+          alAtender(p);
+        },
+        sinMovimiento() ? 0 : SALIDA_MS,
+      );
     } catch (e) {
       setAtendido(null);
       if (e instanceof ApiError && e.status === 409) {
-        setAviso({ tono: 'aviso', texto: `La fila ${tipo === 'EXPRES' ? 'exprés' : 'normal'} está vacía: no hay a quién atender.` });
+        setAviso({ tono: 'aviso', texto: `La fila ${nombreTipo(tipo)} está vacía: no hay a quién atender.` });
         alVaciar();
       } else {
         setAviso({ tono: 'error', texto: mensajeDe(e) });
@@ -262,51 +296,53 @@ function Fila({
   }
 
   return (
-    <section className={`tarjeta tarjeta--relleno fila fila--${tipo}`} aria-labelledby={`fila-${tipo}`}>
-      <div className="tarjeta__titulo">
-        <h3 id={`fila-${tipo}`} className="fila__titulo">
-          <span className={`insignia insignia--${tipo}`}>{tipo}</span> Fila {tipo === 'EXPRES' ? 'exprés' : 'normal'}
-        </h3>
-        <span className="texto-suave fila__conteo">{pasajeros.length} en espera</span>
-      </div>
+    <Tarjeta
+      nivel={3}
+      acento={tipo === 'EXPRES' ? 'expres' : 'normal'}
+      titulo={<>Fila {nombreTipo(tipo)}</>}
+      detalle={`${pasajeros.length} en espera`}
+      acciones={<InsigniaTipo tipo={tipo} />}
+      className="fila"
+    >
+      <div className="pila">
+        <ol className="fila__lista" aria-label={`Pasajeros en la fila ${nombreTipo(tipo)}`}>
+          {pasajeros.length === 0 ? (
+            <li className="fila__vacia">Nadie en espera.</li>
+          ) : (
+            pasajeros.map((p, i) => (
+              <li key={`${p.id}-${i}`} className={['fila__pasajero', i === 0 && 'es-primero', saliendo === p.id && i === 0 && 'es-saliendo'].filter(Boolean).join(' ')}>
+                <span className="fila__pos cifra">{i + 1}</span>
+                <span className="fila__nombre">{p.nombre}</span>
+                <span className="fila__id cifra">{p.id}</span>
+                {i === 0 && <span className="fila__turno">Siguiente</span>}
+              </li>
+            ))
+          )}
+        </ol>
 
-      <ol className="fila__lista" aria-label={`Pasajeros en la fila ${tipo}`}>
-        {pasajeros.length === 0 ? (
-          <li className="fila__vacia texto-suave">Sin pasajeros</li>
-        ) : (
-          pasajeros.map((p, i) => (
-            <li key={`${p.id}-${i}`} className={`fila__pasajero ${i === 0 ? 'es-primero' : ''}`}>
-              <span className="fila__pos">{i + 1}</span>
-              <span>{p.nombre}</span>
-              <span className="mono texto-suave">{p.id}</span>
-            </li>
-          ))
+        {atendido && (
+          <p className="fila__atendido" role="status">
+            <Icono nombre="check" tamano={16} /> Atendido: <strong>{atendido.nombre}</strong> <span className="texto-suave">({atendido.id})</span>
+          </p>
         )}
-      </ol>
+        {aviso && <Aviso tono={aviso.tono}>{aviso.texto}</Aviso>}
 
-      {atendido && (
-        <p className="fila__atendido" role="status">
-          Atendido: <strong>{atendido.nombre}</strong> <span className="texto-suave">({atendido.id})</span>
-        </p>
-      )}
-      {aviso && <MensajeError tono={aviso.tono} mensaje={aviso.texto} />}
+        <Boton variante="primario" ancho icono="persona" onClick={atender} disabled={ocupado}>
+          Atender siguiente
+        </Boton>
 
-      <form className="fila__form" onSubmit={encolar} noValidate>
-        <label className="campo">
-          <span>Nombre</span>
-          <input value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Ej. Ana" />
-        </label>
-        <label className="campo fila__id">
-          <span>Id</span>
-          <input value={id} onChange={(e) => setId(e.target.value)} placeholder={sugerido} />
-        </label>
-        <button className="boton" type="submit" disabled={ocupado}>
-          Agregar
-        </button>
-      </form>
-      <button type="button" className="boton boton--primario boton--ancho" onClick={atender} disabled={ocupado}>
-        Atender siguiente
-      </button>
-    </section>
+        <form className="fila__form" onSubmit={encolar} noValidate aria-label={`Agregar pasajero a la fila ${nombreTipo(tipo)}`}>
+          <Campo etiqueta="Nombre">
+            <Entrada value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Ej. Ana" autoComplete="off" />
+          </Campo>
+          <Campo etiqueta="Id" className="fila__campo-id">
+            <Entrada value={id} onChange={(e) => setId(e.target.value)} placeholder={sugerido} autoComplete="off" />
+          </Campo>
+          <Boton type="submit" icono="mas" disabled={ocupado}>
+            Agregar
+          </Boton>
+        </form>
+      </div>
+    </Tarjeta>
   );
 }
