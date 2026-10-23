@@ -1,0 +1,22 @@
+.login {
+  min-height: 100dvh;
+  display: grid;
+  place-content: center;
+  gap: var(--esp-4);
+  padding: var(--esp-4);
+  background:
+    radial-gradient(circle at 15% 10%, var(--acento-suave), transparent 45%),
+    radial-gradient(circle at 90% 90%, var(--expres-suave), transparent 40%),
+    var(--fondo);
+}
+.login__tarjeta {
+  width: min(420px, calc(100vw - 2 * var(--esp-4)));
+  padding: var(--esp-6);
+  display: grid;
+  gap: var(--esp-5);
+}
+.login__marca { display: flex; align-items: center; gap: var(--esp-3); }
+.login__marca h1 { margin: 0; font-size: var(--fs-2xl); letter-spacing: -0.02em; }
+.login__marca p { margin: 0; }
+.login__pie { margin: 0; font-size: var(--fs-sm); text-align: center; }
+.login__credito { text-align: center; font-size: var(--fs-xs); margin: 0; }

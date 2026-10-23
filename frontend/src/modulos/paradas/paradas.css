@@ -1,0 +1,19 @@
+.paradas__conteo { font-size: var(--fs-sm); }
+.paradas__buscar { display: flex; gap: var(--esp-2); margin-bottom: var(--esp-3); }
+.paradas__buscar .entrada { flex: 1; min-width: 0; }
+.paradas__tabla { margin-top: var(--esp-3); }
+.paradas__fila-acciones { display: flex; gap: var(--esp-2); justify-content: flex-end; }
+.paradas__acciones { display: flex; gap: var(--esp-2); flex-wrap: wrap; }
+.tabla tr.es-resaltada td { background: var(--acento-suave); }
+.paradas__aviso td { padding-top: 0; background: transparent; }
+@media (max-width: 640px) {
+  .col-zona, .col-xy { display: none; }
+  .tabla th, .tabla td { padding: var(--esp-2) var(--esp-3); }
+  .paradas__fila-acciones { flex-direction: column; }
+}
+.paradas { display: grid; gap: var(--esp-5); }
+.paradas__form { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); align-items: end; }
+.paradas__form .formulario__fila { grid-column: span 2; }
+.paradas__form .casilla { min-height: 42px; }
+.paradas__form .mensaje, .paradas__form .pendiente--linea { grid-column: 1 / -1; }
+@media (max-width: 640px) { .paradas__form .formulario__fila { grid-column: auto; } }
