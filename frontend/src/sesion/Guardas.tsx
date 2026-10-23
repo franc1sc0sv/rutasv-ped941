@@ -1,6 +1,6 @@
 // Guardas de ruta: RequiereSesion (cualquier usuario) y RequiereAdmin (RN-1).
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
-import { Cargando } from '../comun/Cargando';
+import { Cargando } from '../comun/ui';
 import { inicioPara, useSesion } from './SesionContext';
 
 export function RequiereSesion() {
