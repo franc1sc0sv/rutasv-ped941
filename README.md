@@ -65,6 +65,8 @@ mvn -version                            # Maven 3.9 o superior
 
 Para el frontend: Node 20 o superior.
 
+En Windows, sigue la [guia de PowerShell](docs/windows.md) para compilar, iniciar ambos servicios y comprobar una ruta.
+
 ## Compilar y probar
 
 ```bash
