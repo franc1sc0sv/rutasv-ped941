@@ -4,7 +4,7 @@ Planificador de rutas de transporte publico para el proyecto PED941 (equipo de 5
 El nucleo esta hecho en Java 21 con Maven (`core`), con una capa HTTP delgada (`api`) y una interfaz en React (`frontend`).
 
 Funcionan de punta a punta: login y roles, busqueda con autocompletado, calculo de ruta con Dijkstra, red vial y despacho de unidades.
-Faltan la tabla hash, la lista dinamica, el historial y la edicion de paradas. El estado completo y la guia del video estan en [docs/entrega-fase2.md](docs/entrega-fase2.md).
+La lista dinamica, el historial y las estadisticas ya estan implementados y conectados. Faltan la tabla hash propia y la edicion y activacion/desactivacion de paradas. El estado completo y la guia del video estan en [docs/entrega-fase2.md](docs/entrega-fase2.md).
 
 ## Las 7 estructuras
 
@@ -27,6 +27,8 @@ mvn -version                            # Maven 3.9 o superior
 ```
 
 Para el frontend: Node 20 o superior.
+
+En Windows, sigue la [guia de PowerShell](docs/windows.md) para compilar, iniciar ambos servicios y comprobar una ruta.
 
 ## Compilar y probar
 
