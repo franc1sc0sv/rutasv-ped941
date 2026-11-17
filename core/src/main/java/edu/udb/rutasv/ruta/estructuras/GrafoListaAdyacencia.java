@@ -27,7 +27,7 @@ public class GrafoListaAdyacencia implements RedVial {
     /** Codigos en orden de alta, para listar la red siempre en el mismo orden. */
     private final Lista<String> orden = nuevaLista();
 
-    /** Usa las tablas hash temporales hasta que llegue {@code TablaHash} (rol Paradas). */
+    /** Usa tablas temporales por defecto; desde {@code app} se inyecta {@code TablaHash} (rol Paradas). */
     public GrafoListaAdyacencia() {
         this(new MapaTemporal<>(), new MapaTemporal<>());
     }

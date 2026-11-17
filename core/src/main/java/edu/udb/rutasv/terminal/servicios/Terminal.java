@@ -23,8 +23,7 @@ public class Terminal {
     private final Cola<Pasajero> filaPasajeros;
     /** Crea una cola vacia con la misma regla que {@code unidadesDisponibles}, para ver el orden sobre una copia. */
     private final Supplier<ColaPrioridad<UnidadTransporte>> colaVacia;
-    // TODO: reemplazar MapaTemporal por la tabla hash propia cuando llegue (rol Paradas).
-    private final Mapa<String, UnidadTransporte> unidadesEnEspera = new MapaTemporal<>();
+    private final Mapa<String, UnidadTransporte> unidadesEnEspera;
 
     /** Terminal con la regla RN-4: {@code verOrdenDespacho} arma su copia con {@link ReglaDespacho}. */
     public Terminal(
@@ -38,16 +37,28 @@ public class Terminal {
      */
     public Terminal(String nombre, ColaPrioridad<UnidadTransporte> unidadesDisponibles, Cola<Pasajero> filaPasajeros,
                     Supplier<ColaPrioridad<UnidadTransporte>> colaVacia) {
+        this(nombre, unidadesDisponibles, filaPasajeros, colaVacia, new MapaTemporal<>());
+    }
+
+    /**
+     * Terminal con el mapa de unidades en espera inyectado. Desde {@code app} se pasa la
+     * {@code TablaHash} del rol Paradas; este modulo solo conoce la interfaz {@link Mapa} de
+     * {@code nucleo}, asi que no depende de la implementacion concreta.
+     */
+    public Terminal(String nombre, ColaPrioridad<UnidadTransporte> unidadesDisponibles, Cola<Pasajero> filaPasajeros,
+                    Supplier<ColaPrioridad<UnidadTransporte>> colaVacia,
+                    Mapa<String, UnidadTransporte> unidadesEnEspera) {
         if (nombre == null || nombre.trim().isEmpty()) {
             throw new IllegalArgumentException("El nombre de la terminal no puede estar vacio");
         }
-        if (unidadesDisponibles == null || filaPasajeros == null || colaVacia == null) {
-            throw new IllegalArgumentException("Las colas de la terminal no pueden ser nulas");
+        if (unidadesDisponibles == null || filaPasajeros == null || colaVacia == null || unidadesEnEspera == null) {
+            throw new IllegalArgumentException("Las colas y el mapa de la terminal no pueden ser nulos");
         }
         this.nombre = nombre.trim();
         this.unidadesDisponibles = unidadesDisponibles;
         this.filaPasajeros = filaPasajeros;
         this.colaVacia = colaVacia;
+        this.unidadesEnEspera = unidadesEnEspera;
     }
 
     public String getNombre() {
