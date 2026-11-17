@@ -4,7 +4,7 @@ Planificador de rutas de transporte publico para el proyecto PED941 (equipo de 5
 El nucleo esta hecho en Java 21 con Maven (`core`), con una capa HTTP delgada (`api`) y una interfaz en React (`frontend`).
 
 Funcionan de punta a punta: login y roles, busqueda con autocompletado, calculo de ruta con Dijkstra, red vial y despacho de unidades.
-Faltan la tabla hash, la lista dinamica, el historial y la edicion de paradas. El estado completo y la guia del video estan en [docs/entrega-fase2.md](docs/entrega-fase2.md).
+La tabla hash del rol Paradas ya esta implementada y conectada en lugar de `MapaTemporal` (estaciones y login). El estado completo y la guia del video estan en [docs/entrega-fase2.md](docs/entrega-fase2.md); el cierre tecnico esta en [docs/documento-tecnico-final.md](docs/documento-tecnico-final.md).
 
 ## Las 7 estructuras
 
@@ -14,7 +14,7 @@ Faltan la tabla hash, la lista dinamica, el historial y la edicion de paradas. E
 | Pila | `Pila<T>` | Ruta | Reconstruir la ruta | ✅ `PilaEnlazada` |
 | Cola FIFO | `Cola<T>` | Terminal | Fila de pasajeros | ✅ `ColaEnlazada` |
 | Cola de prioridad | `ColaPrioridad<T>` | Terminal | Despacho, Dijkstra, top 5 | ✅ `MonticuloBinario` |
-| Tabla hash | `Mapa<K,V>` | Paradas | Estaciones, usuarios, conteos | ❌ pendiente |
+| Tabla hash | `Mapa<K,V>` | Paradas | Estaciones, usuarios, conteos | ✅ `TablaHash` |
 | Arbol AVL | `IndiceNombres` | Busqueda | Busqueda por prefijo | ✅ `ArbolAvl` |
 | Grafo | `RedVial` | Ruta | Red de estaciones y tramos | ✅ `GrafoListaAdyacencia` |
 
@@ -100,3 +100,4 @@ docs/                    documentacion del equipo
 - [docs/api.md](docs/api.md): endpoints HTTP
 - [docs/entrega-fase2.md](docs/entrega-fase2.md): estado, guion del video, bitacora, correcciones del documento y pendientes por rol
 - [docs/documento-ruta.md](docs/documento-ruta.md): texto del rol Ruta para el documento (pseudocodigo y complejidad)
+- [docs/documento-tecnico-final.md](docs/documento-tecnico-final.md): documento técnico final (Tabla Hash, Big-O, diagramas, pruebas y arranque)
