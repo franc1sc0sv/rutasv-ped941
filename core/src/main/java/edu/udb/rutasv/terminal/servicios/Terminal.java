@@ -15,7 +15,7 @@ import java.util.function.Supplier;
 /**
  * Una terminal: sus unidades esperan en una cola de prioridad (RN-4) y sus pasajeros en una fila
  * FIFO (RN-5). Las dos colas llegan por el constructor, como interfaces de {@code nucleo}, para que
- * la terminal no dependa de una implementación concreta.
+ * la terminal no dependa de una implementaciÃ³n concreta.
  */
 public class Terminal {
     private final String nombre;
@@ -23,8 +23,7 @@ public class Terminal {
     private final Cola<Pasajero> filaPasajeros;
     /** Crea una cola vacia con la misma regla que {@code unidadesDisponibles}, para ver el orden sobre una copia. */
     private final Supplier<ColaPrioridad<UnidadTransporte>> colaVacia;
-    // TODO: reemplazar MapaTemporal por la tabla hash propia cuando llegue (rol Paradas).
-    private final Mapa<String, UnidadTransporte> unidadesEnEspera = new MapaTemporal<>();
+    private final Mapa<String, UnidadTransporte> unidadesEnEspera;
 
     /** Terminal con la regla RN-4: {@code verOrdenDespacho} arma su copia con {@link ReglaDespacho}. */
     public Terminal(
@@ -38,6 +37,17 @@ public class Terminal {
      */
     public Terminal(String nombre, ColaPrioridad<UnidadTransporte> unidadesDisponibles, Cola<Pasajero> filaPasajeros,
                     Supplier<ColaPrioridad<UnidadTransporte>> colaVacia) {
+        this(nombre, unidadesDisponibles, filaPasajeros, colaVacia, new MapaTemporal<>());
+    }
+
+    /** Permite inyectar el indice propio desde la raiz de composicion. */
+    public Terminal(String nombre, ColaPrioridad<UnidadTransporte> unidadesDisponibles, Cola<Pasajero> filaPasajeros,
+                    Supplier<ColaPrioridad<UnidadTransporte>> colaVacia,
+                    Mapa<String, UnidadTransporte> unidadesEnEspera) {
+        if (unidadesEnEspera == null || unidadesEnEspera.tamano() != 0) {
+            throw new IllegalArgumentException("El indice de unidades debe estar vacio y no ser nulo");
+        }
+        this.unidadesEnEspera = unidadesEnEspera;
         if (nombre == null || nombre.trim().isEmpty()) {
             throw new IllegalArgumentException("El nombre de la terminal no puede estar vacio");
         }
@@ -65,7 +75,7 @@ public class Terminal {
         unidadesDisponibles.insertar(unidad);
     }
 
-    /** Unidad que saldría ahora, sin despacharla. Lanza ColeccionVaciaException si no hay. */
+    /** Unidad que saldrÃ­a ahora, sin despacharla. Lanza ColeccionVaciaException si no hay. */
     public UnidadTransporte proximaUnidadASalir() {
         return unidadesDisponibles.ver();
     }

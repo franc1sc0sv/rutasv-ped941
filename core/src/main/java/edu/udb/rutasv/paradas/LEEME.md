@@ -20,22 +20,22 @@ git checkout -b feat/paradas-<tarea>
 
 ## Pendiente
 
-- `estructuras/TablaHash.java` sigue siendo esqueleto; `TablaHashContratoTest` tiene `@Disabled`.
+- `estructuras/TablaHash.java` implementada; contrato habilitado y pruebas de colisiones, redimension y operaciones mixtas.
 - `editar` y `activar/desactivar` en el directorio y en la fachada. Al desactivar, actualiza tambien la red (`red.agregarEstacion` con la estacion inactiva) para que Dijkstra la salte, y el indice de nombres.
 - Revision del 23/10: la unicidad de nombre usa `toLowerCase()` sin quitar tildes, mientras el AVL si las quita ("Estacion" y "Estación" chocan en el indice); la columna `activa` del CSV toma cualquier valor distinto de `true` como inactiva sin avisar.
 
-## Cuando `TablaHash` pase su contrato
+## Integracion actual de `TablaHash`
 
-Cambia `MapaTemporal` por `TablaHash` en todos estos lugares:
+La aplicacion usa `TablaHash` por inyeccion desde `Aplicacion` para evitar dependencias entre modulos:
 
 - `app/configuracion/Aplicacion.java`: usuarios (login), `MapaTemporal::new` de Dijkstra, `filas` y el mapa de `BusquedaService`.
-- Constructores sin argumentos de `ruta/estructuras/GrafoListaAdyacencia` y `paradas/servicios/DirectorioEstaciones` (o pasa las tablas desde `Aplicacion`).
-- `terminal/servicios/Terminal.unidadesEnEspera`.
+- Grafo: recibe las tablas desde `Aplicacion`. Directorio: usa tablas propias por defecto.
+- `terminal/servicios/Terminal.unidadesEnEspera`: nuevo constructor con mapa inyectado. Los constructores antiguos conservan compatibilidad.
 
 ## Tus tareas (de la Fase 2)
 
 - [x] 1. Repositorio y proyecto (**ya hecho**).
-- [ ] 2. Tabla hash propia: funcion hash, encadenamiento, redimension con factor 0.75.
+- [x] 2. Tabla hash propia: funcion hash, encadenamiento, redimension con factor 0.75.
 - [ ] 3. Directorio de estaciones: alta, edicion, activar/desactivar (RN-1). Codigo y nombre unicos.
 - [x] 4. Carga CSV de estaciones y tramos con errores claros por linea.
 - [ ] 5. Pantalla Registro de paradas (Fig 9).
