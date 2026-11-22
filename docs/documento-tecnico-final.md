@@ -1,6 +1,6 @@
 # Documento técnico final — RutaSV PED941
 
-**Fecha:** 17 de noviembre de 2026
+**Fecha:** 17 de noviembre de 2026 (actualizado el 22 de noviembre tras la revisión del PR #40)
 **Repositorio:** https://github.com/franc1sc0sv/rutasv-ped941 (rama `main`, commit base `bbf1e7f`)
 **Alcance de este entregable:** implementación de la **Tabla Hash** del rol **Paradas**, conexión en lugar de `MapaTemporal`, verificación de complejidad y puesta en marcha de la aplicación completa (API + frontend).
 
@@ -10,7 +10,7 @@
 
 El proyecto RutaSV es un planificador de rutas de transporte público construido por un equipo de 5. La arquitectura es modular: un `core` Java 21 con siete estructuras de datos propias, una capa HTTP delgada (`api`, Javalin) y una interfaz React (`frontend`, Vite + TypeScript).
 
-Cada rol entregó su estructura. El rol **Paradas** tenía como pendiente reemplazar el adaptador temporal `MapaTemporal` por una **tabla hash propia**. Este trabajo cierra esa brecha y, además, conecta la tabla en el login (`Aplicacion`) para que el mismo índice sirva a usuarios y estaciones.
+Cada rol entregó su estructura. El rol **Paradas** tenía como pendiente reemplazar el adaptador temporal `MapaTemporal` por una **tabla hash propia**. Este trabajo cierra esa brecha y usa la **misma estructura** (`TablaHash`) en el login (`Aplicacion`) y en el directorio de estaciones, con instancias distintas: una para usuarios, dos para el directorio (código y nombre).
 
 > Nota importante: se trabajó sobre el `main` real de GitHub, que contiene la aplicación completa (login/roles, búsqueda con autocompletado, Dijkstra, red vial, terminal y despacho). La carpeta local inicial era una copia antigua e incompleta con `api/` y `frontend/` vacíos; por eso el demo mínimo que se había armado ahí no se usó para la entrega final.
 
@@ -29,6 +29,7 @@ Cada rol entregó su estructura. El rol **Paradas** tenía como pendiente reempl
 | **Capacidad potencia de dos** | Permite calcular el índice con máscara de bits `hash & (capacidad - 1)` en vez de `%`, más barato y sin signo negativo. |
 | **Mezcla de 16 bits altos** | `hash ^= (hash >>> 16)` evita que los bits altos del `hashCode` se ignoren cuando la capacidad es pequeña; distribuye mejor las claves. |
 | **Factor de carga máximo 0.75** | Al superarse se duplica el arreglo y se reinsertan los nodos (*rehash*). Equilibrio entre uso de memoria y longitud de cadenas. |
+| **Tope de capacidad 2^30** | Evita desbordar `int` al pedir una capacidad enorme o al duplicar. Si ya se alcanzó el tope, se inserta sin redimensionar. |
 | **Sin `java.util` para almacenar** | El almacenamiento interno usa solo arreglos y nodos propios. `claves()` devuelve la interfaz `Lista` del proyecto (se apoya en `ListaTemporal` solo como adaptador de salida, no como almacén). |
 | **Clave `null` permitida** | Se indexa en el cubo 0, cubriendo el contrato de `Mapa`. |
 | **`contiene` distingue valor `null`** | La existencia se decide por el nodo, no por el valor, así que `contiene(k)` es `true` aunque `obtener(k)` devuelva `null`. |
@@ -51,11 +52,11 @@ Sean **n** pares almacenados y **m** cubos. Bajo el supuesto de hash uniforme, l
 
 ### 2.3 Verificación empírica
 
-- `TablaHashTest` (5 pruebas): colisiones forzadas con capacidad 1, rehash al superar factor de carga (capacidad 2 → 4 con 4 pares), reemplazo sin crecer, eliminación de cabeza/media/cola, 1000 claves y mezcla de bits altos.
+- `TablaHashTest` (8 pruebas): colisiones forzadas con `"Aa"`/`"BB"`, límite exacto del factor de carga (12 pares siguen en 16 cubos; el par 13 pasa a 32), eliminación de cabeza/media/cola con `hashCode` controlado, mezcla de bits altos, tope de capacidad 2^30, reemplazo sin crecer, 1000 claves y clave con valor `null`.
 - `TablaHashContratoTest` (7 pruebas del `MapaContractTest` del equipo) activo al quitar `@Disabled`.
 - `DirectorioEstacionesTest` (6 pruebas) valida alta/búsqueda por código y nombre normalizado usando la tabla.
 
-Resultado: **12/12 pruebas de la tabla y 6/6 del directorio pasan**.
+Resultado: **15/15 pruebas de la tabla (8 específicas + 7 de contrato) y 6/6 del directorio pasan**.
 
 ```mermaid
 classDiagram
@@ -152,10 +153,10 @@ Salida resumida:
 
 ```text
 T E S T S  (core)
-Tests run: 278, Failures: 0, Errors: 0, Skipped: 0
+Tests run: 281, Failures: 0, Errors: 0, Skipped: 0
 
   TablaHashContratoTest .......... Tests run: 7,  Failures: 0, Errors: 0
-  TablaHashTest .................. Tests run: 5,  Failures: 0, Errors: 0
+  TablaHashTest .................. Tests run: 8,  Failures: 0, Errors: 0
   DirectorioEstacionesTest ....... Tests run: 6,  Failures: 0, Errors: 0
 
 T E S T S  (api)
@@ -168,7 +169,7 @@ RutaSV api ......................... SUCCESS
 BUILD SUCCESS
 ```
 
-**Total: 287 pruebas, 0 fallos, 0 errores, 0 omitidas.**
+**Total: 290 pruebas, 0 fallos, 0 errores, 0 omitidas.**
 
 ---
 
@@ -269,13 +270,14 @@ flowchart TB
 | 2026-11-17 | `mvn21.ps1 -B verify` → BUILD SUCCESS, 287 pruebas, 0 fallos. |
 | 2026-11-17 | `npm install` + `npm run dev` + API Javalin → app real abierta en browser y login admin verificado. |
 | 2026-11-17 | Se redacta este documento técnico final. |
+| 2026-11-22 | Se atienden los 8 comentarios de la revisión del PR #40: tope de capacidad 2^30 sin desbordar, aserción del factor 0.75 exacto, pruebas de borrado en cadena y mezcla de bits, correcciones de redacción y constructor de `Terminal` sin duplicar la regla de despacho. |
 
 ---
 
 ## 10. Entregables y enlaces
 
 - **Repositorio:** https://github.com/franc1sc0sv/rutasv-ped941
-- **Rama:** `main`
+- **Rama:** `feat/paradas-tablahash` (PR #40; `main` aún sin merge)
 - **Documento técnico:** `docs/documento-tecnico-final.md`
 - **Contrato API:** `docs/api.md`
 - **Estado Fase 2:** `docs/entrega-fase2.md`

@@ -30,6 +30,12 @@ public class TablaHash<K, V> implements Mapa<K, V> {
     /** Factor de carga maximo antes de duplicar el arreglo. */
     private static final double FACTOR_CARGA_MAXIMO = 0.75;
 
+    /**
+     * Capacidad maxima: 2^30, la ultima potencia de dos positiva. Duplicarla desbordaria
+     * {@code int} (pasaria a negativo o a cero) y echaria a perder la tabla a medias.
+     */
+    static final int MAX_CAPACIDAD = 1 << 30;
+
     private Nodo<K, V>[] cubos;
     private int tamano;
 
@@ -157,8 +163,13 @@ public class TablaHash<K, V> implements Mapa<K, V> {
     /** Mezcla los bits altos y usa mascara porque la capacidad siempre es potencia de dos. */
     private int indice(K clave) {
         int hash = (clave == null) ? 0 : clave.hashCode();
+        return indiceDe(hash, cubos.length);
+    }
+
+    /** Calculo puro del cubo; separado para poder probar la mezcla de bits altos. */
+    static int indiceDe(int hash, int capacidad) {
         hash ^= (hash >>> 16);
-        return hash & (cubos.length - 1);
+        return hash & (capacidad - 1);
     }
 
     private static boolean iguales(Object a, Object b) {
@@ -168,6 +179,10 @@ public class TablaHash<K, V> implements Mapa<K, V> {
     /** Duplica los cubos y reinserta los nodos existentes. O(n). */
     @SuppressWarnings("unchecked")
     private void redimensionar() {
+        if (cubos.length >= MAX_CAPACIDAD) {
+            // No se puede duplicar 2^30 en un int: se conserva el arreglo y se acepta una cadena mas larga.
+            return;
+        }
         Nodo<K, V>[] anteriores = cubos;
         cubos = (Nodo<K, V>[]) new Nodo[anteriores.length * 2];
         for (Nodo<K, V> cubo : anteriores) {
@@ -182,7 +197,11 @@ public class TablaHash<K, V> implements Mapa<K, V> {
         }
     }
 
-    private static int siguientePotenciaDeDos(int n) {
+    static int siguientePotenciaDeDos(int n) {
+        if (n > MAX_CAPACIDAD) {
+            // Sin este tope, 1 << 31 se desborda a Integer.MIN_VALUE y el while nunca termina.
+            return MAX_CAPACIDAD;
+        }
         int potencia = 1;
         while (potencia < n) {
             potencia <<= 1;

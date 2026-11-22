@@ -72,8 +72,7 @@ public final class Aplicacion {
 
         Dijkstra dijkstra = new Dijkstra(MonticuloBinario::new, TablaHash::new);
         Terminal terminal = new Terminal("Terminal principal",
-                new MonticuloBinario<>(new ReglaDespacho()), new ColaEnlazada<>(),
-                () -> new MonticuloBinario<>(new ReglaDespacho()), new TablaHash<>());
+                new MonticuloBinario<>(new ReglaDespacho()), new ColaEnlazada<>(), new TablaHash<>());
         Mapa<TipoRuta, Cola<Pasajero>> filas = new TablaHash<>();
         for (TipoRuta tipo : TipoRuta.values()) {
             filas.poner(tipo, new ColaEnlazada<>());

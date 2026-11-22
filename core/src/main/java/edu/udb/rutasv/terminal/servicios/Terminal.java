@@ -32,6 +32,16 @@ public class Terminal {
     }
 
     /**
+     * Terminal con la regla de despacho por defecto y el mapa de unidades en espera inyectado.
+     * Evita repetir {@code () -> new MonticuloBinario<>(new ReglaDespacho())} desde {@code app}.
+     */
+    public Terminal(String nombre, ColaPrioridad<UnidadTransporte> unidadesDisponibles, Cola<Pasajero> filaPasajeros,
+                    Mapa<String, UnidadTransporte> unidadesEnEspera) {
+        this(nombre, unidadesDisponibles, filaPasajeros,
+                () -> new MonticuloBinario<>(new ReglaDespacho()), unidadesEnEspera);
+    }
+
+    /**
      * Terminal con una regla de despacho cualquiera. {@code colaVacia} debe crear colas vacias que
      * ordenen igual que {@code unidadesDisponibles}.
      */

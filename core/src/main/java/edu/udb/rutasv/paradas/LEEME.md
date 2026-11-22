@@ -24,13 +24,13 @@ git checkout -b feat/paradas-<tarea>
 - `TablaHashContratoTest` **ya no tiene `@Disabled`** y pasa junto con `TablaHashTest`.
 - `DirectorioEstaciones` usa `TablaHash` en sus dos indices (codigo y nombre normalizado).
 - `Aplicacion` usa `TablaHash` para el mapa de usuarios del login.
+- Los `MapaTemporal` del cableado de `Aplicacion` ya fueron reemplazados por `TablaHash` (usuarios, grafo, Dijkstra, filas, búsqueda, estadísticas y terminal). Solo quedan los constructores por defecto de `GrafoListaAdyacencia` y `Terminal` para compatibilidad con pruebas de otros roles.
 - Detalle completo en `docs/documento-tecnico-final.md`.
 
 ## Pendiente
 
 - `editar` y `activar/desactivar` en el directorio y en la fachada. Al desactivar, actualiza tambien la red (`red.agregarEstacion` con la estacion inactiva) para que Dijkstra la salte, y el indice de nombres.
 - Revision del 23/10: la unicidad de nombre usa `toLowerCase()` sin quitar tildes, mientras el AVL si las quita ("Estacion" y "Estación" chocan en el indice); la columna `activa` del CSV toma cualquier valor distinto de `true` como inactiva sin avisar.
-- Los `MapaTemporal` del cableado de `Aplicacion` ya fueron reemplazados por `TablaHash` (usuarios, grafo, Dijkstra, filas, búsqueda, estadísticas y terminal). Solo quedan los constructores por defecto de `GrafoListaAdyacencia` y `Terminal` para compatibilidad con pruebas de otros roles.
 
 ## Tus tareas (de la Fase 2)
 

@@ -4,7 +4,7 @@ Planificador de rutas de transporte publico para el proyecto PED941 (equipo de 5
 El nucleo esta hecho en Java 21 con Maven (`core`), con una capa HTTP delgada (`api`) y una interfaz en React (`frontend`).
 
 Funcionan de punta a punta: login y roles, busqueda con autocompletado, calculo de ruta con Dijkstra, red vial y despacho de unidades.
-La tabla hash del rol Paradas ya esta implementada y conectada en lugar de `MapaTemporal` (estaciones y login). El estado completo y la guia del video estan en [docs/entrega-fase2.md](docs/entrega-fase2.md); el cierre tecnico esta en [docs/documento-tecnico-final.md](docs/documento-tecnico-final.md).
+La tabla hash del rol Paradas ya esta implementada y conectada en lugar de `MapaTemporal` en **todo el cableado de `Aplicacion`** (estaciones, login, grafo, Dijkstra, filas, busqueda, estadisticas y terminal). Los constructores por defecto de `GrafoListaAdyacencia` y `Terminal` conservan `MapaTemporal` solo para pruebas de otros roles; la aplicacion real inyecta `TablaHash`. El estado completo y la guia del video estan en [docs/entrega-fase2.md](docs/entrega-fase2.md); el cierre tecnico esta en [docs/documento-tecnico-final.md](docs/documento-tecnico-final.md).
 
 ## Las 7 estructuras
 
