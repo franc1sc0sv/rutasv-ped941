@@ -4,8 +4,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import edu.udb.rutasv.nucleo.estructuras.Lista;
+import edu.udb.rutasv.nucleo.excepciones.IndiceFueraDeRangoException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.NoSuchElementException;
+import java.util.Random;
 import org.junit.jupiter.api.Test;
 
 /** Pruebas especificas de la tabla hash: colisiones, redimension, limites y casos borde. */
@@ -145,6 +152,115 @@ class TablaHashTest {
         assertEquals(500, tabla.tamano());
         assertNull(tabla.obtener("k0"));
         assertEquals(1, tabla.obtener("k1"));
+    }
+
+    // ---- Pruebas aportadas en el PR #41 (Carlos) ----
+
+    private record Clave(int id, int hash) {
+        @Override
+        public int hashCode() {
+            return hash;
+        }
+    }
+
+    @Test
+    void colisionesPersistenTrasVariosRehashYHashMinimo() {
+        TablaHash<Clave, Integer> tabla = new TablaHash<>();
+        for (int i = 0; i < 1000; i++) tabla.poner(new Clave(i, Integer.MIN_VALUE), i);
+        for (int i = 0; i < 1000; i++) assertEquals(i, tabla.obtener(new Clave(i, Integer.MIN_VALUE)));
+        tabla.poner(new Clave(500, Integer.MIN_VALUE), -7);
+        assertEquals(1000, tabla.tamano());
+        assertEquals(-7, tabla.obtener(new Clave(500, Integer.MIN_VALUE)));
+    }
+
+    @Test
+    void nullEsUnaClaveYUnValorValido() {
+        TablaHash<String, Integer> tabla = new TablaHash<>();
+        tabla.poner(null, null);
+        assertTrue(tabla.contiene(null));
+        assertNull(tabla.obtener(null));
+        tabla.poner(null, 7);
+        tabla.poner("nulo", null);
+        assertEquals(2, tabla.tamano());
+        assertEquals(7, tabla.eliminar(null));
+        assertNull(tabla.eliminar("nulo"));
+        assertFalse(tabla.contiene("nulo"));
+        assertEquals(0, tabla.tamano());
+    }
+
+    @Test
+    void copiaDeClavesEsIndependienteYRespetaContratoLista() {
+        TablaHash<Integer, Integer> tabla = new TablaHash<>();
+        for (int i = 0; i < 30; i++) tabla.poner(i, i);
+        Lista<Integer> copia = tabla.claves();
+        Integer primera = copia.eliminar(0);
+        assertTrue(tabla.contiene(primera));
+        copia.agregar(99);
+        assertFalse(tabla.contiene(99));
+        tabla.poner(100, 100);
+        assertEquals(30, copia.tamano());
+        assertThrows(IndiceFueraDeRangoException.class, () -> copia.obtener(-1));
+        assertThrows(IndiceFueraDeRangoException.class, () -> copia.eliminar(30));
+        var iterador = copia.iterator();
+        while (iterador.hasNext()) iterador.next();
+        assertThrows(NoSuchElementException.class, iterador::next);
+    }
+
+    @Test
+    void operacionesMezcladasCoincidenConModeloDeReferencia() {
+        TablaHash<Integer, Integer> tabla = new TablaHash<>();
+        HashMap<Integer, Integer> modelo = new HashMap<>();
+        Random azar = new Random(941);
+        for (int i = 0; i < 20000; i++) {
+            Integer clave = azar.nextInt(100) == 0 ? null : azar.nextInt(500);
+            Integer valor = azar.nextBoolean() ? null : azar.nextInt();
+            switch (azar.nextInt(3)) {
+                case 0 -> { tabla.poner(clave, valor); modelo.put(clave, valor); }
+                case 1 -> assertEquals(modelo.remove(clave), tabla.eliminar(clave));
+                default -> {
+                    assertEquals(modelo.get(clave), tabla.obtener(clave));
+                    assertEquals(modelo.containsKey(clave), tabla.contiene(clave));
+                }
+            }
+            assertEquals(modelo.size(), tabla.tamano());
+            if (i % 100 == 0) {
+                HashSet<Integer> claves = new HashSet<>();
+                for (Integer k : tabla.claves()) claves.add(k);
+                assertEquals(modelo.keySet(), claves);
+                assertEquals(modelo.size(), tabla.claves().tamano());
+            }
+        }
+    }
+
+    // ---- Orden de insercion (combinacion de #40 y #41) ----
+
+    @Test
+    void clavesSalenEnOrdenDeInsercionAunTrasRehashYBorrados() {
+        TablaHash<String, Integer> tabla = new TablaHash<>();
+        for (int i = 0; i < 40; i++) tabla.poner("k" + i, i);
+        tabla.eliminar("k0");
+        tabla.eliminar("k20");
+        tabla.eliminar("k39");
+        tabla.poner("k5", -5);
+        tabla.poner("nueva", 1);
+        Lista<String> claves = tabla.claves();
+        assertEquals(38, claves.tamano());
+        assertEquals("k1", claves.obtener(0));
+        assertEquals("k5", claves.obtener(4));
+        assertEquals("k21", claves.obtener(19));
+        assertEquals("nueva", claves.obtener(37));
+    }
+
+    @Test
+    void borrarTodoYVolverAInsertarDejaElOrdenLimpio() {
+        TablaHash<Integer, Integer> tabla = new TablaHash<>();
+        for (int i = 0; i < 5; i++) tabla.poner(i, i);
+        for (int i = 0; i < 5; i++) tabla.eliminar(i);
+        assertTrue(tabla.claves().estaVacia());
+        tabla.poner(7, 7);
+        tabla.poner(3, 3);
+        assertEquals(7, tabla.claves().obtener(0));
+        assertEquals(3, tabla.claves().obtener(1));
     }
 
     /** Clave con hashCode controlado para forzar colisiones sin depender de String. */

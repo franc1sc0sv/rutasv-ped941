@@ -14,6 +14,11 @@ import edu.udb.rutasv.nucleo.temporal.ListaTemporal;
  * pares y cubos supera {@value #FACTOR_CARGA_MAXIMO}, se duplica la capacidad y se reinsertan
  * todos los nodos (rehash).
  *
+ * <p>Ademas, cada nodo pertenece a una segunda lista doblemente enlazada que guarda el
+ * <em>orden de insercion</em> (idea del PR #41). Asi {@code claves} recorre solo los pares vivos,
+ * en O(n) aunque el arreglo tenga muchos cubos vacios, y devuelve siempre el mismo orden. Borrar
+ * sigue siendo O(1) porque el nodo conoce a su anterior y a su siguiente en ese orden.
+ *
  * <p>Complejidad: {@code poner}, {@code obtener}, {@code contiene} y {@code eliminar} son O(1) en
  * promedio y O(n) en el peor caso (todas las claves colisionan en el mismo cubo). El rehash es
  * O(n), pero amortizado no cambia el O(1) promedio de {@code poner}. {@code claves} es O(n) y
@@ -38,12 +43,17 @@ public class TablaHash<K, V> implements Mapa<K, V> {
 
     private Nodo<K, V>[] cubos;
     private int tamano;
+    /** Primer y ultimo nodo en orden de insercion. */
+    private Nodo<K, V> primero;
+    private Nodo<K, V> ultimo;
 
-    /** Nodo de la cadena de un cubo. */
+    /** Nodo de la cadena de un cubo y, a la vez, de la lista de orden de insercion. */
     private static final class Nodo<K, V> {
         private final K clave;
         private V valor;
         private Nodo<K, V> siguiente;
+        private Nodo<K, V> anteriorOrden;
+        private Nodo<K, V> siguienteOrden;
 
         private Nodo(K clave, V valor, Nodo<K, V> siguiente) {
             this.clave = clave;
@@ -85,7 +95,9 @@ public class TablaHash<K, V> implements Mapa<K, V> {
                 return;
             }
         }
-        cubos[indice] = new Nodo<>(clave, valor, cubos[indice]);
+        Nodo<K, V> nuevo = new Nodo<>(clave, valor, cubos[indice]);
+        cubos[indice] = nuevo;
+        enlazarAlFinal(nuevo);
         tamano++;
         if ((double) tamano / cubos.length > FACTOR_CARGA_MAXIMO) {
             redimensionar();
@@ -119,6 +131,7 @@ public class TablaHash<K, V> implements Mapa<K, V> {
                 } else {
                     anterior.siguiente = actual.siguiente;
                 }
+                desenlazar(actual);
                 tamano--;
                 return valorAnterior;
             }
@@ -128,14 +141,15 @@ public class TablaHash<K, V> implements Mapa<K, V> {
         return null;
     }
 
-    /** Devuelve todas las claves sin orden garantizado. O(n). */
+    /**
+     * Copia de las claves en orden de insercion. O(n): recorre la lista de orden, no los cubos,
+     * asi que no depende de la capacidad. Cambiar la copia no cambia la tabla.
+     */
     @Override
     public Lista<K> claves() {
         Lista<K> resultado = new ListaTemporal<>();
-        for (Nodo<K, V> cubo : cubos) {
-            for (Nodo<K, V> nodo = cubo; nodo != null; nodo = nodo.siguiente) {
-                resultado.agregar(nodo.clave);
-            }
+        for (Nodo<K, V> nodo = primero; nodo != null; nodo = nodo.siguienteOrden) {
+            resultado.agregar(nodo.clave);
         }
         return resultado;
     }
@@ -149,6 +163,33 @@ public class TablaHash<K, V> implements Mapa<K, V> {
     /** Numero actual de cubos; util para comprobar el redimension en pruebas. */
     int capacidad() {
         return cubos.length;
+    }
+
+    /** Pone el nodo al final de la lista de orden. O(1). */
+    private void enlazarAlFinal(Nodo<K, V> nodo) {
+        nodo.anteriorOrden = ultimo;
+        if (ultimo == null) {
+            primero = nodo;
+        } else {
+            ultimo.siguienteOrden = nodo;
+        }
+        ultimo = nodo;
+    }
+
+    /** Saca el nodo de la lista de orden. O(1) porque conoce a sus dos vecinos. */
+    private void desenlazar(Nodo<K, V> nodo) {
+        if (nodo.anteriorOrden == null) {
+            primero = nodo.siguienteOrden;
+        } else {
+            nodo.anteriorOrden.siguienteOrden = nodo.siguienteOrden;
+        }
+        if (nodo.siguienteOrden == null) {
+            ultimo = nodo.anteriorOrden;
+        } else {
+            nodo.siguienteOrden.anteriorOrden = nodo.anteriorOrden;
+        }
+        nodo.anteriorOrden = null;
+        nodo.siguienteOrden = null;
     }
 
     private Nodo<K, V> buscar(K clave) {
