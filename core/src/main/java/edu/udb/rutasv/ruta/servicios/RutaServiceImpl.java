@@ -11,6 +11,7 @@ import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 /** Calcula la ruta con Dijkstra sobre la red y la entrega como {@link RutaCalculada}. */
@@ -33,27 +34,34 @@ public class RutaServiceImpl implements RutaService {
 
     @Override
     public Optional<RutaCalculada> calcular(String origenCodigo, String destinoCodigo, String usuario) {
-        exigirEstacion(origenCodigo, "origen");
-        exigirEstacion(destinoCodigo, "destino");
+        String origen = exigirEstacion(origenCodigo, "origen").codigo();
+        String destino = exigirEstacion(destinoCodigo, "destino").codigo();
+        if (origen.equals(destino)) {
+            throw new ValidacionException("El origen y el destino son la misma estacion: elige dos distintas");
+        }
 
         long inicio = System.nanoTime();
-        Optional<Camino> camino = dijkstra.calcular(red, origenCodigo, destinoCodigo);
+        Optional<Camino> camino = dijkstra.calcular(red, origen, destino);
         long tiempoNs = System.nanoTime() - inicio;
 
-        return camino.map(c -> new RutaCalculada(origenCodigo, destinoCodigo, aLista(c), c.minutos(),
+        return camino.map(c -> new RutaCalculada(origen, destino, aLista(c), c.minutos(),
                 redondear(c.km()), LocalDateTime.now(reloj), tiempoNs, usuario));
     }
 
-    private void exigirEstacion(String codigo, String cual) {
+    /** Busca la estacion en O(1) promedio (tabla hash del grafo); acepta minusculas y espacios. */
+    private Estacion exigirEstacion(String codigo, String cual) {
         if (codigo == null || codigo.isBlank()) {
             throw new ValidacionException("Falta la estacion de " + cual);
         }
-        for (Estacion e : red.estaciones()) {
-            if (e.codigo().equals(codigo)) {
-                return;
-            }
+        String limpio = codigo.strip().toUpperCase(Locale.ROOT);
+        Estacion e = red.estacion(limpio);
+        if (e == null) {
+            throw new ValidacionException("No existe la estacion de " + cual + ": " + limpio);
         }
-        throw new ValidacionException("No existe la estacion de " + cual + ": " + codigo);
+        if (!e.activa()) {
+            throw new ValidacionException("La estacion de " + cual + " (" + e.nombre() + ") esta inactiva");
+        }
+        return e;
     }
 
     // RutaCalculada (nucleo) guarda los tramos como java.util.List inmutable.

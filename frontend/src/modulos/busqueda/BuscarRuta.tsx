@@ -36,7 +36,16 @@ export function BuscarRuta() {
     setError(null);
   }
 
+  /** Una reciente es "Origen → Destino": llena los dos campos. */
   function usarReciente(texto: string) {
+    const [o, d] = texto.split(' → ');
+    if (o && d) {
+      setOrigen(o);
+      setDestino(d);
+      setError(null);
+      refDestino.current?.focus();
+      return;
+    }
     if (enfocado === 'origen') {
       setOrigen(texto);
       refOrigen.current?.focus();
@@ -137,7 +146,7 @@ export function BuscarRuta() {
           </Boton>
         </div>
         <p className="texto-suave recientes__nota">
-          Toca una para escribirla en <strong>{enfocado === 'origen' ? 'Origen' : 'Destino'}</strong>.
+          Las últimas rutas que calculaste. Toca una para repetirla.
         </p>
         {recientes.cargando && !recientes.datos ? (
           <Esqueleto lineas={2} etiqueta="Cargando búsquedas recientes…" />
@@ -155,7 +164,7 @@ export function BuscarRuta() {
             ))}
           </ul>
         ) : (
-          <p className="texto-suave">Aún no tienes búsquedas. Escribe una estación arriba para empezar.</p>
+          <p className="texto-suave">Aún no tienes búsquedas. Calcula una ruta y aparecerá aquí.</p>
         )}
       </section>
     </Pagina>

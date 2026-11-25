@@ -91,4 +91,7 @@ public interface SistemaTransporte {
 
     /** Atiende al primer pasajero de la cola del tipo de ruta. Solo ADMIN. */
     Pasajero atenderPasajero(Sesion sesion, TipoRuta tipo);
+
+    /** Pasajeros que esperan en la fila de ese tipo, en orden de llegada (RN-5). Solo ADMIN. */
+    Lista<Pasajero> verFila(Sesion sesion, TipoRuta tipo);
 }

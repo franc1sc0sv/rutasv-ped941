@@ -8,8 +8,8 @@ import edu.udb.rutasv.nucleo.modelo.RutaCalculada;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 /**
@@ -20,19 +20,30 @@ public class HistorialRepositorioArchivo implements HistorialRepositorio {
 
     private static final Pattern SEPARADORES = Pattern.compile("[;>\r\n]");
 
+    private static final Logger LOG = Logger.getLogger(HistorialRepositorioArchivo.class.getName());
+
     private final Path archivo;
 
     public HistorialRepositorioArchivo(Path archivo) {
         this.archivo = archivo;
     }
 
+    /**
+     * Lee todo el historial. Una linea danada se salta con un aviso en el log, para que un archivo
+     * editado a mano no impida arrancar el sistema. O(n).
+     */
     @Override
     public synchronized Lista<RutaCalculada> cargar() {
         Lista<RutaCalculada> resultado = new ListaDinamica<>();
         List<String> lineas = ArchivoAtomico.leer(archivo);
         for (int i = 0; i < lineas.size(); i++) {
-            if (!lineas.get(i).isBlank()) {
+            if (lineas.get(i).isBlank()) {
+                continue;
+            }
+            try {
                 resultado.agregar(parsear(lineas.get(i), i + 1));
+            } catch (PersistenciaException e) {
+                LOG.warning(e.getMessage() + " (se omite)");
             }
         }
         return resultado;
@@ -49,11 +60,10 @@ public class HistorialRepositorioArchivo implements HistorialRepositorio {
         for (String tramo : ruta.tramos()) {
             validar("tramo", tramo);
         }
-        List<String> lineas = new ArrayList<>(ArchivoAtomico.leer(archivo));
-        lineas.add(String.join(";", ruta.origen(), ruta.destino(), String.join(">", ruta.tramos()),
-                String.valueOf(ruta.minutos()), String.valueOf(ruta.km()), ruta.fecha().toString(),
-                String.valueOf(ruta.tiempoCalculoNs()), ruta.usuario()));
-        ArchivoAtomico.escribir(archivo, lineas);
+        // Se agrega una linea al final: O(1), sin leer ni reescribir el archivo entero.
+        ArchivoAtomico.agregarLinea(archivo, String.join(";", ruta.origen(), ruta.destino(),
+                String.join(">", ruta.tramos()), String.valueOf(ruta.minutos()), String.valueOf(ruta.km()),
+                ruta.fecha().toString(), String.valueOf(ruta.tiempoCalculoNs()), ruta.usuario()));
     }
 
     private RutaCalculada parsear(String linea, int numero) {

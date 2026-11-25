@@ -1,6 +1,6 @@
 package edu.udb.rutasv.busqueda.estructuras;
 
-import edu.udb.rutasv.busqueda.servicios.Normalizador;
+import edu.udb.rutasv.nucleo.texto.Normalizador;
 import edu.udb.rutasv.nucleo.estructuras.IndiceNombres;
 import edu.udb.rutasv.nucleo.estructuras.Lista;
 import edu.udb.rutasv.nucleo.modelo.Estacion;

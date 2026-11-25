@@ -50,7 +50,7 @@ class HistorialRepositorioArchivoTest {
     }
 
     @Test
-    void lineaMalFormadaLanzaConSuNumero() throws IOException {
+    void lineaMalFormadaSeOmiteYNoImpideCargar() throws IOException {
         Path archivo = dir.resolve("historial.txt");
         String buena = "E01;E04;E01>E02>E04;18;7.5;2026-10-22T08:30:15;125000;ana";
         for (String mala : new String[] {
@@ -61,8 +61,10 @@ class HistorialRepositorioArchivoTest {
                 "E01;E04;E01>>E04;18;7.5;2026-10-22T08:30:15;125000;ana"}) {
             Files.writeString(archivo, buena + "\n" + mala + "\n");
             HistorialRepositorioArchivo repo = new HistorialRepositorioArchivo(archivo);
-            PersistenciaException e = assertThrows(PersistenciaException.class, repo::cargar);
-            assertTrue(e.getMessage().startsWith("Linea 2 mal formada en historial.txt"), e.getMessage());
+            // La linea danada se omite (con aviso en el log) y la buena se conserva.
+            Lista<RutaCalculada> cargadas = repo.cargar();
+            assertEquals(1, cargadas.tamano(), mala);
+            assertEquals("ana", cargadas.obtener(0).usuario());
         }
     }
 

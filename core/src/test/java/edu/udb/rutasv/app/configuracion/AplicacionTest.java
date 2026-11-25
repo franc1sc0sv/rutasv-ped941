@@ -55,7 +55,7 @@ class AplicacionTest {
     }
 
     @Test
-    void sugiereEstacionesDelCsvYRecuerdaLaBusqueda() throws IOException {
+    void sugiereSoloEstacionesActivasDelCsv() throws IOException {
         Files.writeString(dir.resolve("estaciones.csv"), String.join("\n",
                 "codigo;nombre;zona;x;y",
                 "E01;Terminal Occidente;Occidente;10;50",
@@ -69,7 +69,7 @@ class AplicacionTest {
         assertEquals(2, sugeridas.tamano());
         assertEquals("Terminal Occidente", sugeridas.obtener(0));
         assertEquals("Terminal Oriente", sugeridas.obtener(1));
-        assertEquals("ter", sistema.busquedasRecientes(s).obtener(0));
+        assertTrue(sistema.busquedasRecientes(s).estaVacia());
     }
 
     @Test

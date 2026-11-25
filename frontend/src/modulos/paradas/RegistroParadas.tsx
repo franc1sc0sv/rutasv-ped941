@@ -1,7 +1,8 @@
 // Registro de paradas (Fig. 9). Rol dueno: Paradas. Solo ADMIN.
 // Endpoints: GET /estaciones, GET /estaciones/buscar?texto=, POST /estaciones,
-//            PUT /estaciones/{codigo} (pendiente, 501), PATCH /estaciones/{codigo}/estado (pendiente, 501).
-// Editar y Activar/Desactivar ya llaman a su endpoint: cuando respondan 204 la tabla se recarga sola.
+//            PUT /estaciones/{codigo}, PATCH /estaciones/{codigo}/estado.
+// Al editar o activar/desactivar, el servidor actualiza el directorio, el grafo y el autocompletado;
+// la tabla se recarga sola con la respuesta 204.
 import { useState, type FormEvent } from 'react';
 import { api, ApiError, mensajeDe } from '../../api/cliente';
 import type { Estacion } from '../../api/tipos';

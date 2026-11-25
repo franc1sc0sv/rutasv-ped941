@@ -26,7 +26,9 @@ import java.util.Optional;
  *       salen de origen a destino.
  * </ol>
  *
- * Complejidad: O((V + E) log V) con el montículo binario; memoria O(V + E).
+ * Complejidad: O((V + E) log V) con el montículo binario. Se usa "borrado perezoso": una estacion
+ * puede entrar varias veces a la cola y las copias viejas se ignoran al salir, asi que la cola
+ * guarda hasta O(E) elementos: O(E log E) = O(E log V), porque E < V². Memoria O(V + E).
  * Las estaciones inactivas no se visitan. Si el destino no se alcanza no hay ruta (RN-6).
  */
 public class Dijkstra {
@@ -52,11 +54,7 @@ public class Dijkstra {
      * tiene una sola estacion y 0 minutos.
      */
     public Optional<Camino> calcular(RedVial red, String origen, String destino) {
-        Mapa<String, Estacion> porCodigo = mapas.crear();
-        for (Estacion e : red.estaciones()) {
-            porCodigo.poner(e.codigo(), e);
-        }
-        if (!activa(porCodigo, origen) || !activa(porCodigo, destino)) {
+        if (!activa(red, origen) || !activa(red, destino)) {
             return Optional.empty();
         }
 
@@ -81,7 +79,7 @@ public class Dijkstra {
             }
             for (Arista tramo : red.vecinos(actual.codigo())) {
                 String vecino = tramo.destinoCodigo();
-                if (cerrada.contiene(vecino) || !activa(porCodigo, vecino)) {
+                if (cerrada.contiene(vecino) || !activa(red, vecino)) {
                     continue;
                 }
                 int nuevoPeso = actual.minutos() + tramo.minutos();
@@ -114,8 +112,9 @@ public class Dijkstra {
         return ruta;
     }
 
-    private static boolean activa(Mapa<String, Estacion> porCodigo, String codigo) {
-        Estacion e = codigo == null ? null : porCodigo.obtener(codigo);
+    /** Consulta O(1) promedio en la tabla hash del grafo. */
+    private static boolean activa(RedVial red, String codigo) {
+        Estacion e = codigo == null ? null : red.estacion(codigo);
         return e != null && e.activa();
     }
 }

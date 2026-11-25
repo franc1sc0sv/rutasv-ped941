@@ -53,4 +53,9 @@ final class RedSoloLectura implements RedVial {
     public Lista<Estacion> estaciones() {
         return red.estaciones();
     }
+
+    @Override
+    public Estacion estacion(String codigo) {
+        return red.estacion(codigo);
+    }
 }

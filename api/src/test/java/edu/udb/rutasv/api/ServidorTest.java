@@ -171,15 +171,52 @@ class ServidorTest {
     }
 
     @Test
-    void paradasBuscarYPendientes() throws Exception {
+    void paradasBuscarEditarYActivar() throws Exception {
         String admin = token("/api/auth/login", "admin", "clave-sintetica-9");
         assertEquals("E04", pedir("GET", "/api/estaciones/buscar?texto=metrocentro", admin, null)
                 .cuerpo().get("codigo").asText());
         assertEquals(404, pedir("GET", "/api/estaciones/buscar?texto=nada", admin, null).estado());
-        assertEquals(8, pedir("GET", "/api/estaciones", admin, null).cuerpo().size());
-        Respuesta pendiente = pedir("PATCH", "/api/estaciones/E01/estado", admin, "{\"activa\":false}");
-        assertEquals(501, pendiente.estado());
-        assertTrue(pendiente.cuerpo().get("pendiente").asBoolean());
+        int total = pedir("GET", "/api/estaciones", admin, null).cuerpo().size();
+        assertTrue(total >= 8);
+
+        assertEquals(204, pedir("PATCH", "/api/estaciones/E02/estado", admin, "{\"activa\":false}").estado());
+        assertEquals(204, pedir("PUT", "/api/estaciones/E04", admin,
+                "{\"nombre\":\"Metrocentro Sur\",\"zona\":\"Centro\",\"x\":52,\"y\":48}").estado());
+        assertEquals("E04", pedir("GET", "/api/estaciones/buscar?texto=metrocentro%20sur", admin, null)
+                .cuerpo().get("codigo").asText());
+        assertEquals(400, pedir("PATCH", "/api/estaciones/E02/estado", admin, "{}").estado());
+        assertEquals(400, pedir("PATCH", "/api/estaciones/E99/estado", admin, "{\"activa\":true}").estado());
+    }
+
+    @Test
+    void pedidosMalFormadosDan400YNunca500() throws Exception {
+        String admin = token("/api/auth/login", "admin", "clave-sintetica-9");
+        String ana = token("/api/auth/registro", "ana_01", "clave-sintetica-1");
+        for (String[] p : new String[][] {
+                {"POST", "/api/estaciones", "null"},
+                {"POST", "/api/terminal/unidades", "null"},
+                {"POST", "/api/terminal/filas/NORMAL/pasajeros", "null"},
+                {"POST", "/api/red/tramos", "{\"origen\":\"E01\",\"destino\":\"E03\",\"minutos\":5}"},
+                {"POST", "/api/estaciones", "{\"codigo\":\"E>16\",\"nombre\":\"X\",\"zona\":\"Z\",\"x\":1,\"y\":1}"},
+                {"POST", "/api/estaciones", "{\"codigo\":\"E16\",\"nombre\":\"X\",\"zona\":\"Z\"}"},
+                {"POST", "/api/terminal/unidades", "{\"id\":\"  \",\"tipoRuta\":\"NORMAL\",\"horaProgramada\":\"07:00\"}"}}) {
+            Respuesta r = pedir(p[0], p[1], admin, p[2]);
+            assertEquals(400, r.estado(), p[1] + " " + p[2]);
+        }
+        assertEquals(400, pedir("GET", "/api/rutas?origen=E01&destino=E01", ana, null).estado());
+        assertEquals(200, pedir("GET", "/api/rutas?origen=e01&destino=%20E04", ana, null).estado());
+    }
+
+    @Test
+    void estacionSinCampoActivaEntraActiva() throws Exception {
+        String admin = token("/api/auth/login", "admin", "clave-sintetica-9");
+        assertEquals(201, pedir("POST", "/api/estaciones", admin,
+                "{\"codigo\":\"e16\",\"nombre\":\"Plaza Mundo\",\"zona\":\"Oriente\",\"x\":95,\"y\":52}").estado());
+        Respuesta e = pedir("GET", "/api/estaciones/buscar?texto=plaza%20mundo", admin, null);
+        assertEquals("E16", e.cuerpo().get("codigo").asText());
+        assertTrue(e.cuerpo().get("activa").asBoolean());
+        assertEquals("Plaza Mundo", pedir("GET", "/api/estaciones/sugerencias?prefijo=plaza%20mu", admin, null)
+                .cuerpo().get(0).asText());
     }
 
     @Test
@@ -189,6 +226,9 @@ class ServidorTest {
                 "{\"id\":\"P1\",\"nombre\":\"Ana\"}").estado());
         assertEquals(201, pedir("POST", "/api/terminal/filas/NORMAL/pasajeros", admin,
                 "{\"id\":\"P2\",\"nombre\":\"Luis\"}").estado());
+        Respuesta fila = pedir("GET", "/api/terminal/filas/normal", admin, null);
+        assertEquals(2, fila.cuerpo().size());
+        assertEquals("P1", fila.cuerpo().get(0).get("id").asText());
         assertEquals("P1", pedir("POST", "/api/terminal/filas/NORMAL/atender", admin, null).cuerpo().get("id").asText());
         assertEquals(409, pedir("POST", "/api/terminal/filas/EXPRES/atender", admin, null).estado());
         assertEquals(400, pedir("POST", "/api/terminal/filas/OTRA/atender", admin, null).estado());

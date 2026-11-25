@@ -4,6 +4,7 @@ import edu.udb.rutasv.auth.modelo.Sesion;
 import edu.udb.rutasv.nucleo.estructuras.Lista;
 import edu.udb.rutasv.nucleo.estructuras.RedVial;
 import edu.udb.rutasv.nucleo.modelo.Arista;
+import edu.udb.rutasv.nucleo.excepciones.ValidacionException;
 import edu.udb.rutasv.nucleo.modelo.Estacion;
 import edu.udb.rutasv.nucleo.modelo.RutaCalculada;
 import java.time.LocalDateTime;
@@ -21,13 +22,28 @@ final class Dto {
 
     // ---- Entrada ----
 
+    /**
+     * Estacion que llega del frontend. {@code activa} es opcional y por defecto es {@code true}: una
+     * estacion nueva entra en servicio salvo que se diga lo contrario.
+     */
+    record NuevaEstacion(String codigo, String nombre, String zona, Double x, Double y, Boolean activa) {
+        Estacion aEstacion(String codigoRuta) {
+            if (x == null || y == null) {
+                throw new ValidacionException("Las coordenadas x e y son obligatorias");
+            }
+            return new Estacion(codigoRuta != null ? codigoRuta : codigo, nombre, zona, x, y,
+                    activa == null || activa);
+        }
+    }
+
     record Credenciales(String usuario, String contrasena) {
     }
 
-    record NuevoTramo(String origen, String destino, int minutos, double km) {
+    /** {@code km} es obligatorio: un tramo sin distancia no tiene sentido en el mapa. */
+    record NuevoTramo(String origen, String destino, Integer minutos, Double km) {
     }
 
-    record CambioEstado(boolean activa) {
+    record CambioEstado(Boolean activa) {
     }
 
     // ---- Salida ----

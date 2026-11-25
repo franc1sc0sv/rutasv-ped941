@@ -13,6 +13,11 @@ import java.util.function.Supplier;
 /**
  * Estadisticas globales del historial (rol Historial): total, ruta mas consultada, top 5 y tiempo promedio.
  * El conteo por par usa un {@link Mapa} y el top 5 una {@link ColaPrioridad}, ambos creados por fabricas.
+ *
+ * <p>Complejidad con R rutas y P pares distintos: contar es O(R) (tabla hash). El top 5 usa un
+ * montículo <em>acotado</em> de 5 elementos cuya raiz es el peor de los 5: cada par entra y, si
+ * sobran, sale el peor. Cada operacion es O(log 5) = O(1), asi que el top cuesta O(P) en vez de
+ * O(P log P) que costaria meter todos los pares a la cola. Total: O(R + P) = O(R).
  */
 public class EstadisticasService {
 
@@ -41,16 +46,22 @@ public class EstadisticasService {
             conteos.poner(par, veces == null ? 1 : veces + 1);
         }
 
-        ColaPrioridad<String> cola = fabricaColas.apply((a, b) -> {
+        // Orden del ranking: mas consultas primero; si empatan, orden alfabetico.
+        Comparator<String> mejorPrimero = (a, b) -> {
             int porConteo = Integer.compare(conteos.obtener(b), conteos.obtener(a));
             return porConteo != 0 ? porConteo : a.compareTo(b);
-        });
+        };
+        // Montículo acotado: la raiz es el PEOR de los que estan, para sacarlo cuando sobra.
+        ColaPrioridad<String> peores = fabricaColas.apply(mejorPrimero.reversed());
         for (String par : conteos.claves()) {
-            cola.insertar(par);
+            peores.insertar(par);
+            if (peores.tamano() > TOP) {
+                peores.extraer();
+            }
         }
-        String[] top = new String[Math.min(TOP, cola.tamano())];
-        for (int i = 0; i < top.length; i++) {
-            top[i] = cola.extraer();
+        String[] top = new String[peores.tamano()];
+        for (int i = top.length - 1; i >= 0; i--) {
+            top[i] = peores.extraer();
         }
 
         int total = rutas.tamano();

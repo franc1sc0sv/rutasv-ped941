@@ -13,6 +13,7 @@ import edu.udb.rutasv.auth.excepciones.UsuarioExistenteException;
 import edu.udb.rutasv.auth.modelo.Sesion;
 import edu.udb.rutasv.nucleo.excepciones.ColeccionVaciaException;
 import edu.udb.rutasv.nucleo.excepciones.NoImplementadoException;
+import edu.udb.rutasv.nucleo.excepciones.PersistenciaException;
 import edu.udb.rutasv.nucleo.excepciones.ValidacionException;
 import edu.udb.rutasv.nucleo.modelo.Estacion;
 import edu.udb.rutasv.nucleo.modelo.Pasajero;
@@ -23,6 +24,7 @@ import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
 import io.javalin.json.JavalinJackson;
 import java.nio.file.Path;
+import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -67,13 +69,13 @@ public final class Servidor {
 
         // ---- Autenticacion ----
         app.post("/api/auth/registro", ctx -> {
-            Dto.Credenciales c = ctx.bodyAsClass(Dto.Credenciales.class);
+            Dto.Credenciales c = cuerpo(ctx, Dto.Credenciales.class);
             Sesion s = sistema.registrar(c.usuario(), c.contrasena());
             sesiones.guardar(s);
             ctx.status(HttpStatus.CREATED).json(Dto.SesionDto.de(s));
         });
         app.post("/api/auth/login", ctx -> {
-            Dto.Credenciales c = ctx.bodyAsClass(Dto.Credenciales.class);
+            Dto.Credenciales c = cuerpo(ctx, Dto.Credenciales.class);
             Sesion s = sistema.iniciarSesion(c.usuario(), c.contrasena());
             sesiones.guardar(s);
             ctx.json(Dto.SesionDto.de(s));
@@ -107,7 +109,10 @@ public final class Servidor {
         // ---- Red vial ----
         app.get("/api/red", ctx -> ctx.json(Dto.Red.de(sistema.verRed(sesiones.de(ctx)))));
         app.post("/api/red/tramos", ctx -> {
-            Dto.NuevoTramo t = ctx.bodyAsClass(Dto.NuevoTramo.class);
+            Dto.NuevoTramo t = cuerpo(ctx, Dto.NuevoTramo.class);
+            if (t.minutos() == null || t.km() == null) {
+                throw new ValidacionException("El tramo necesita minutos y km");
+            }
             sistema.agregarTramo(sesiones.de(ctx), t.origen(), t.destino(), t.minutos(), t.km());
             ctx.status(HttpStatus.CREATED);
         });
@@ -127,32 +132,36 @@ public final class Servidor {
             ctx.json(e.get());
         });
         app.post("/api/estaciones", ctx -> {
-            sistema.crearEstacion(sesiones.de(ctx), ctx.bodyAsClass(Estacion.class));
+            sistema.crearEstacion(sesiones.de(ctx), cuerpo(ctx, Dto.NuevaEstacion.class).aEstacion(null));
             ctx.status(HttpStatus.CREATED);
         });
         app.put("/api/estaciones/{codigo}", ctx -> {
-            Estacion e = ctx.bodyAsClass(Estacion.class);
-            sistema.editarEstacion(sesiones.de(ctx), new Estacion(ctx.pathParam("codigo"), e.nombre(), e.zona(),
-                    e.x(), e.y(), e.activa()));
+            Estacion e = cuerpo(ctx, Dto.NuevaEstacion.class).aEstacion(ctx.pathParam("codigo"));
+            sistema.editarEstacion(sesiones.de(ctx), e);
             ctx.status(HttpStatus.NO_CONTENT);
         });
         app.patch("/api/estaciones/{codigo}/estado", ctx -> {
-            Dto.CambioEstado c = ctx.bodyAsClass(Dto.CambioEstado.class);
+            Dto.CambioEstado c = cuerpo(ctx, Dto.CambioEstado.class);
+            if (c.activa() == null) {
+                throw new ValidacionException("Falta el campo activa (true o false)");
+            }
             sistema.activarDesactivarEstacion(sesiones.de(ctx), ctx.pathParam("codigo"), c.activa());
             ctx.status(HttpStatus.NO_CONTENT);
         });
 
         // ---- Terminal ----
         app.post("/api/terminal/unidades", ctx -> {
-            sistema.registrarUnidad(sesiones.de(ctx), ctx.bodyAsClass(UnidadTransporte.class));
+            sistema.registrarUnidad(sesiones.de(ctx), cuerpo(ctx, UnidadTransporte.class));
             ctx.status(HttpStatus.CREATED);
         });
         app.get("/api/terminal/orden", ctx -> ctx.json(Dto.lista(sistema.verOrdenDespacho(sesiones.de(ctx)))));
         app.post("/api/terminal/despachar", ctx -> ctx.json(sistema.despacharSiguiente(sesiones.de(ctx))));
         app.post("/api/terminal/filas/{tipo}/pasajeros", ctx -> {
-            sistema.encolarPasajero(sesiones.de(ctx), tipo(ctx), ctx.bodyAsClass(Pasajero.class));
+            sistema.encolarPasajero(sesiones.de(ctx), tipo(ctx), cuerpo(ctx, Pasajero.class));
             ctx.status(HttpStatus.CREATED);
         });
+        app.get("/api/terminal/filas/{tipo}",
+                ctx -> ctx.json(Dto.lista(sistema.verFila(sesiones.de(ctx), tipo(ctx)))));
         app.post("/api/terminal/filas/{tipo}/atender",
                 ctx -> ctx.json(sistema.atenderPasajero(sesiones.de(ctx), tipo(ctx))));
 
@@ -161,10 +170,23 @@ public final class Servidor {
 
     private static TipoRuta tipo(Context ctx) {
         try {
-            return TipoRuta.valueOf(ctx.pathParam("tipo").toUpperCase());
+            return TipoRuta.valueOf(ctx.pathParam("tipo").strip().toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException e) {
             throw new ValidacionException("Tipo de ruta invalido: usa NORMAL o EXPRES");
         }
+    }
+
+    /** Lee el cuerpo JSON; si falta o es {@code null}, el pedido es invalido (400), no un error interno. */
+    private static <T> T cuerpo(Context ctx, Class<T> tipo) {
+        String texto = ctx.body().strip();
+        if (texto.isEmpty() || texto.equals("null")) {
+            throw new ValidacionException("Falta el cuerpo JSON del pedido");
+        }
+        T valor = ctx.bodyAsClass(tipo);
+        if (valor == null) {
+            throw new ValidacionException("Falta el cuerpo JSON del pedido");
+        }
+        return valor;
     }
 
     /** Cada excepcion del core se traduce a un codigo HTTP con {@code {"error": "..."}}. */
@@ -185,6 +207,10 @@ public final class Servidor {
         app.exception(AccesoDenegadoException.class, (e, ctx) -> error(ctx, HttpStatus.FORBIDDEN, e, false));
         app.exception(UsuarioExistenteException.class, (e, ctx) -> error(ctx, HttpStatus.CONFLICT, e, false));
         app.exception(ColeccionVaciaException.class, (e, ctx) -> error(ctx, HttpStatus.CONFLICT, e, false));
+        app.exception(PersistenciaException.class, (e, ctx) -> {
+            LOG.severe("No se pudo guardar en disco en " + ctx.path() + ": " + e.getMessage());
+            error(ctx, HttpStatus.INTERNAL_SERVER_ERROR, "No se pudo guardar el cambio en disco; intenta de nuevo");
+        });
         app.exception(NoImplementadoException.class, (e, ctx) -> error(ctx, HttpStatus.NOT_IMPLEMENTED, e, true));
         app.exception(Exception.class, (e, ctx) -> {
             LOG.severe("Error no controlado en " + ctx.path() + ": " + e);
