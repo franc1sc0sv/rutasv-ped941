@@ -1,8 +1,10 @@
-# Documento técnico final — RutaSV PED941
+# Tabla hash propia (rol Paradas) — RutaSV PED941
 
-**Fecha:** 17 de noviembre de 2026 (actualizado el 22 de noviembre tras la revisión del PR #40)
+**Fecha:** 17 de noviembre de 2026 (actualizado el 22 de noviembre tras la revisión del PR #40 y el 25 de noviembre al fusionar #40 y #41)
 **Repositorio:** https://github.com/franc1sc0sv/rutasv-ped941 (rama `main`, commit base `bbf1e7f`)
-**Alcance de este entregable:** implementación de la **Tabla Hash** del rol **Paradas**, conexión en lugar de `MapaTemporal`, verificación de complejidad y puesta en marcha de la aplicación completa (API + frontend).
+**Alcance:** implementación de la **Tabla Hash** del rol **Paradas**, su complejidad y su verificación. Hoy vive en `core/src/main/java/edu/udb/rutasv/nucleo/estructuras/impl/TablaHash.java`.
+
+> **Actualización del 25/11 (Fase 3).** Se fusionaron los PR #40 (Yoselyn) y #41 (Carlos). La tabla final es la de #40 más la **lista de orden de inserción** de #41: cada nodo pertenece también a una lista doblemente enlazada, así `claves()` recorre solo los pares vivos, en orden de inserción y en O(n), sin depender de la cantidad de cubos. Además, la tabla y las demás estructuras genéricas se movieron a `nucleo/estructuras/impl` y se borraron todas las clases `Temporal`. Las secciones de abajo que hablan de `MapaTemporal` describen el estado del 22/11 y se conservan como bitácora.
 
 ---
 
@@ -30,7 +32,8 @@ Cada rol entregó su estructura. El rol **Paradas** tenía como pendiente reempl
 | **Mezcla de 16 bits altos** | `hash ^= (hash >>> 16)` evita que los bits altos del `hashCode` se ignoren cuando la capacidad es pequeña; distribuye mejor las claves. |
 | **Factor de carga máximo 0.75** | Al superarse se duplica el arreglo y se reinsertan los nodos (*rehash*). Equilibrio entre uso de memoria y longitud de cadenas. |
 | **Tope de capacidad 2^30** | Evita desbordar `int` al pedir una capacidad enorme o al duplicar. Si ya se alcanzó el tope, se inserta sin redimensionar. |
-| **Sin `java.util` para almacenar** | El almacenamiento interno usa solo arreglos y nodos propios. `claves()` devuelve la interfaz `Lista` del proyecto (se apoya en `ListaTemporal` solo como adaptador de salida, no como almacén). |
+| **Sin `java.util` para almacenar** | El almacenamiento interno usa solo arreglos y nodos propios. `claves()` devuelve una `ListaDinamica` propia del proyecto. |
+| **Orden de inserción (PR #41)** | Cada nodo tiene `anteriorOrden` y `siguienteOrden`. Insertar lo enlaza al final y eliminar lo desenlaza en O(1). `claves()` sale siempre en el mismo orden. |
 | **Clave `null` permitida** | Se indexa en el cubo 0, cubriendo el contrato de `Mapa`. |
 | **`contiene` distingue valor `null`** | La existencia se decide por el nodo, no por el valor, así que `contiene(k)` es `true` aunque `obtener(k)` devuelva `null`. |
 
@@ -44,7 +47,7 @@ Sean **n** pares almacenados y **m** cubos. Bajo el supuesto de hash uniforme, l
 | `obtener(k)` | **O(1)** | O(n) | Igual búsqueda por cadena. |
 | `contiene(k)` | **O(1)** | O(n) | Misma búsqueda, sin devolver valor. |
 | `eliminar(k)` | **O(1)** | O(n) | Recorre la cadena con puntero anterior; O(1) al reenganchar. |
-| `claves()` | **O(n)** | O(n) | Visita los m cubos y todos los nodos exactamente una vez. |
+| `claves()` | **O(n)** | O(n) | Recorre la lista de orden de inserción: solo los n pares vivos, sin visitar los m cubos vacíos. |
 | `tamano()` | **O(1)** | O(1) | Contador mantenido en cada `poner`/`eliminar`. |
 | `redimensionar()` (interno) | **O(n)** | O(n) | Reinserta los n nodos existentes en el arreglo duplicado. |
 
@@ -52,7 +55,7 @@ Sean **n** pares almacenados y **m** cubos. Bajo el supuesto de hash uniforme, l
 
 ### 2.3 Verificación empírica
 
-- `TablaHashTest` (8 pruebas): colisiones forzadas con `"Aa"`/`"BB"`, límite exacto del factor de carga (12 pares siguen en 16 cubos; el par 13 pasa a 32), eliminación de cabeza/media/cola con `hashCode` controlado, mezcla de bits altos, tope de capacidad 2^30, reemplazo sin crecer, 1000 claves y clave con valor `null`.
+- `TablaHashTest` (14 pruebas al 25/11: las 8 de #40, 4 de #41 —colisiones tras varios rehash con hash mínimo, `null` como clave y valor, copia independiente de `claves()` y 20 000 operaciones contra `HashMap`— y 2 del orden de inserción). Las 8 originales: colisiones forzadas con `"Aa"`/`"BB"`, límite exacto del factor de carga (12 pares siguen en 16 cubos; el par 13 pasa a 32), eliminación de cabeza/media/cola con `hashCode` controlado, mezcla de bits altos, tope de capacidad 2^30, reemplazo sin crecer, 1000 claves y clave con valor `null`.
 - `TablaHashContratoTest` (7 pruebas del `MapaContractTest` del equipo) activo al quitar `@Disabled`.
 - `DirectorioEstacionesTest` (6 pruebas) valida alta/búsqueda por código y nombre normalizado usando la tabla.
 
@@ -72,6 +75,8 @@ classDiagram
     class TablaHash~K,V~ {
         -Nodo~K,V~[] cubos
         -int tamano
+        -Nodo~K,V~ primero
+        -Nodo~K,V~ ultimo
         -int indice(K)
         -redimensionar()
     }
@@ -79,6 +84,8 @@ classDiagram
         -K clave
         -V valor
         -Nodo~K,V~ siguiente
+        -Nodo~K,V~ anteriorOrden
+        -Nodo~K,V~ siguienteOrden
     }
     Mapa <|.. TablaHash
     TablaHash *-- Nodo
@@ -86,7 +93,7 @@ classDiagram
 
 ---
 
-## 3. Conexión en lugar de `MapaTemporal`
+## 3. Conexión en lugar de `MapaTemporal` (bitácora del 22/11)
 
 Se sustituyeron **todos** los `MapaTemporal` del cableado de `Aplicacion` por `TablaHash`, tal como indica la guía del rol `paradas/LEEME.md` para cuando el contrato quede activo:
 
@@ -105,7 +112,7 @@ La arquitectura se respetó: `ruta` y `terminal` **no importan** `paradas.estruc
 
 El resto del cableado (`ArbolAvl`, `Dijkstra`, `MonticuloBinario`, `ColaEnlazada`, `HistorialService`, `EstadisticasService`) se conservó intacto. Por eso la app real muestra todas las pantallas, no solo la demo.
 
-> Los constructores por defecto de `GrafoListaAdyacencia` y `Terminal` siguen usando `MapaTemporal` para no romper las pruebas unitarias de esos roles. En la aplicación real no se usan: `Aplicacion` inyecta `TablaHash` en ambos.
+> Al 25/11 ya no queda ningún `MapaTemporal`: con la tabla en `nucleo`, los constructores por defecto de `GrafoListaAdyacencia` y `Terminal` usan `TablaHash` directamente.
 
 ```mermaid
 flowchart LR
@@ -251,10 +258,10 @@ flowchart TB
 ## 8. Limitaciones
 
 1. **Claves con `hashCode` patológico:** si muchas claves comparten el mismo código hash, todas caen en un cubo y las operaciones degeneran a O(n). Mitigado con mezcla de bits, pero no eliminado.
-2. **`rehash` bloqueante:** duplicar el arreglo es O(n) y sucede dentro de `poner`. Aceptable para el tamaño del dominio (8 estaciones, usuarios de demo); para producción se podría hacer incremental.
-3. **`claves()` sin orden:** devuelve las claves en orden de cubos, no garantiza orden. Los reportes ordenados usan `MonticuloBinario` o `ArbolAvl` según el rol.
+2. **`rehash` bloqueante:** duplicar el arreglo es O(n) y sucede dentro de `poner`. Aceptable para el tamaño del dominio (30 estaciones en la red de demo); para producción se podría hacer incremental.
+3. **Memoria extra por el orden de inserción:** cada nodo guarda dos referencias más. A cambio, `claves()` es O(n) y estable. El orden es de inserción, no alfabético: los reportes ordenados usan `MonticuloBinario` o `ArbolAvl`.
 4. **No thread-safe:** la fachada `SistemaTransporteImpl` ya protege el acceso con `ReentrantReadWriteLock`; la tabla por sí sola no es segura entre hilos.
-5. **Constructores por defecto con `MapaTemporal`:** `GrafoListaAdyacencia()` y los constructores antiguos de `Terminal` conservan `MapaTemporal` para compatibilidad con pruebas unitarias. La app real los sustituye por `TablaHash` inyectada desde `Aplicacion`.
+5. **No se reduce al borrar:** la capacidad solo crece; una tabla que tuvo muchos pares y se vació conserva sus cubos.
 6. **Sin persistencia de la tabla:** usuarios y estaciones se recargan desde archivos/CSV en cada arranque. La tabla es un índice en memoria.
 
 ---
@@ -270,22 +277,22 @@ flowchart TB
 | 2026-11-17 | `mvn21.ps1 -B verify` → BUILD SUCCESS, 287 pruebas, 0 fallos. |
 | 2026-11-17 | `npm install` + `npm run dev` + API Javalin → app real abierta en browser y login admin verificado. |
 | 2026-11-17 | Se redacta este documento técnico final. |
+| 2026-11-22 | Carlos abre el PR #41 con otra versión de la tabla: agrega la lista de orden de inserción. |
 | 2026-11-22 | Se atienden los 8 comentarios de la revisión del PR #40: tope de capacidad 2^30 sin desbordar, aserción del factor 0.75 exacto, pruebas de borrado en cadena y mezcla de bits, correcciones de redacción y constructor de `Terminal` sin duplicar la regla de despacho. |
+| 2026-11-25 | Se fusionan #40 y #41 sin perder los commits de ninguno; la tabla final combina ambas. Se mueve a `nucleo/estructuras/impl` y se borran las clases `Temporal`. |
 
 ---
 
 ## 10. Entregables y enlaces
 
 - **Repositorio:** https://github.com/franc1sc0sv/rutasv-ped941
-- **Rama:** `feat/paradas-tablahash` (PR #40; `main` aún sin merge)
-- **Documento técnico:** `docs/documento-tecnico-final.md`
+- **PR:** #40 y #41, fusionados en `main` el 25/11
+- **Este documento:** `docs/tabla-hash.md`
 - **Contrato API:** `docs/api.md`
 - **Estado Fase 2:** `docs/entrega-fase2.md`
 - **Archivos clave del cambio:**
-  - `core/src/main/java/edu/udb/rutasv/paradas/estructuras/TablaHash.java`
+  - `core/src/main/java/edu/udb/rutasv/nucleo/estructuras/impl/TablaHash.java`
   - `core/src/main/java/edu/udb/rutasv/paradas/servicios/DirectorioEstaciones.java`
   - `core/src/main/java/edu/udb/rutasv/app/configuracion/Aplicacion.java`
-  - `core/src/test/java/edu/udb/rutasv/paradas/estructuras/TablaHashTest.java`
-  - `core/src/test/java/edu/udb/rutasv/paradas/estructuras/TablaHashContratoTest.java`
-
-> Los cambios se publican en la rama `feat/paradas-tablahash` mediante un pull request, sin modificar `main` directamente.
+  - `core/src/test/java/edu/udb/rutasv/nucleo/estructuras/impl/TablaHashTest.java`
+  - `core/src/test/java/edu/udb/rutasv/nucleo/estructuras/impl/TablaHashContratoTest.java`

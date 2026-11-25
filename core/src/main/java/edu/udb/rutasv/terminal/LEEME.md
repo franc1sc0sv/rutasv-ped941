@@ -1,43 +1,22 @@
 # Rol Terminal
 
-**Objetivo:** Ordenar la salida de las unidades por prioridad y atender pasajeros por orden de llegada.
+**Objetivo:** Ordenar la salida de las unidades por prioridad (RN-4) y atender pasajeros por orden de llegada (RN-5).
 
-Tu issue: https://github.com/franc1sc0sv/rutasv-ped941/issues/3 (asignatela y marca las casillas).
+## Estado final (Fase 3)
 
-## Empieza aqui
+- `servicios/ReglaDespacho.java`: EXPRES primero, luego hora programada y, si empatan, el id.
+- `servicios/Terminal.java`: unidades en un `MonticuloBinario` y una `TablaHash` id -> unidad (detecta repetidas en O(1) y permite ver el orden sobre una copia). Una `ColaEnlazada` por tipo de ruta para los pasajeros, en una `TablaHash`, y otra tabla id -> tipo para no repetir pasajeros.
+- El monticulo y la cola enlazada (autoria de este rol) viven en `nucleo/estructuras/impl`; Dijkstra y las estadisticas tambien usan el monticulo.
+- Pruebas: `DespachoFigura10Test` (U-014, U-031, U-009, U-022, U-005), `TerminalTest`, `TerminalOrdenTest`, `ReglaDespachoTest`, `MonticuloBinario*Test`, `ColaEnlazada*Test`.
 
-```bash
-git clone https://github.com/franc1sc0sv/rutasv-ped941.git && cd rutasv-ped941
-mvn verify                       # debe terminar en BUILD SUCCESS
-git checkout -b feat/terminal-<tarea>
-```
+## Por que estas estructuras
 
-## Que hay (hecho y conectado)
-
-- `estructuras/MonticuloBinario.java` (`ColaPrioridad` con `Comparator`) y `estructuras/ColaEnlazada.java` (`Cola`), con sus pruebas de contrato activas.
-- `servicios/ReglaDespacho.java` (RN-4: expres primero, luego hora; si empatan, el id) y `servicios/Terminal.java` (unidades + fila FIFO, RN-5).
-- Prueba de la Fig. 10: `DespachoFigura10Test` (salen U-014, U-031, U-009, U-022, U-005).
-- Conectado en `SistemaTransporteImpl`: `registrarUnidad`, `despacharSiguiente`, `verOrdenDespacho`, `encolarPasajero`, `atenderPasajero`. Dijkstra (Ruta) tambien usa `MonticuloBinario`.
-
-## Pendiente (revision del 23/10)
-
-- Fila de pasajeros: hoy la fachada usa una cola por tipo de ruta (`Modulos.filas`) y la fila de `Terminal` no se usa. Decide un solo dueno de RN-5 (ver `docs/decisiones.md`).
-- `Terminal` lanza `IllegalArgumentException` donde el resto usa `ValidacionException`.
-
-## Tus tareas (de la Fase 2)
-
-- [x] 1. Cola de prioridad propia (monticulo binario con `Comparator`).
-- [x] 2. Cola FIFO enlazada.
-- [x] 3. Regla de despacho RN-4.
-- [x] 4. Terminal y fila de pasajeros (RN-5).
-- [x] 5. `verOrdenDespacho` sin vaciar la cola real (extrae de una copia del monticulo).
-- [x] 6. Pantalla Despacho (Fig 10): `frontend/src/modulos/terminal/Despacho.tsx`.
-- [x] 7. Pruebas: U-014, U-031, U-009, U-022, U-005; terminal vacia; FIFO.
-- [ ] 8. Documento y autocritica (secciones 2.3, 2.6, 5.2).
+- Por que monticulo y no lista ordenada: insertar en una lista ordenada es O(n); en el monticulo, O(log n).
+- Por que cola enlazada y no arreglo: encolar y desencolar son O(1) sin mover elementos ni redimensionar.
+- `verOrdenDespacho` copia a un monticulo nuevo y extrae de la copia (O(n log n)) para no vaciar la cola real.
 
 ## Reglas
 
-- Tu codigo vive solo en `terminal/`. Depende solo de `nucleo`: `ArquitecturaTest` lo comprueba.
-- Si necesitas cambiar un contrato de `nucleo`, abre un PR aparte y avisa por el chat del grupo.
-- Un PR por tarea, que lo revise otra persona y con el CI en verde. Ver `CONTRIBUTING.md`.
-- La guia completa de tareas esta en `docs/tareas-por-rol.md`.
+- El codigo del modulo depende solo de `nucleo` (`ArquitecturaTest` lo comprueba). Las estructuras genericas estan en `nucleo/estructuras/impl`.
+- Un cambio de contrato de `nucleo` va en su propio PR y se avisa al equipo.
+- Un PR por tarea, con el CI en verde. Ver `CONTRIBUTING.md`.

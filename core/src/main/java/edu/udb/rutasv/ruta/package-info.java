@@ -1,5 +1,5 @@
 /**
- * Rol Ruta: grafo (RedVial), pila enlazada propia, Dijkstra y RutaService.
- * No depende de otros modulos ni de {@code app}: solo de {@code nucleo}.
+ * Rol Ruta: grafo (RedVial), Dijkstra y RutaService. Su pila enlazada vive en
+ * {@code nucleo.estructuras.impl} porque es generica. Solo depende de {@code nucleo}.
  */
 package edu.udb.rutasv.ruta;

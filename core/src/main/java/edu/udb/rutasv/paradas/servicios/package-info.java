@@ -1,5 +1,5 @@
 /**
- * Implementaciones de los servicios del modulo y su logica de negocio. Directorio de estaciones: alta, edicion, activar y desactivar.
- * Hecho: CargadorCSV y DirectorioEstaciones (alta y busqueda). Pendiente: edicion y activar/desactivar.
+ * Servicios del rol Paradas: directorio de estaciones (alta, edicion, activar y desactivar, busqueda
+ * por codigo o nombre en O(1) promedio) y carga de los CSV de la red.
  */
 package edu.udb.rutasv.paradas.servicios;

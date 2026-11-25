@@ -14,7 +14,7 @@ El sistema se organiza **por modulo**, uno por rol, mas un `nucleo` compartido y
       \        \        |        /        /        /
        +--------+-------+-------+--------+--------+
                          nucleo
-         (contratos, modelo, errores, temporales)
+   (contratos, estructuras propias en impl/, modelo, errores)
 ```
 
 ## Reglas (las hace cumplir `ArquitecturaTest`)
@@ -28,7 +28,8 @@ El sistema se organiza **por modulo**, uno por rol, mas un `nucleo` compartido y
 
 - **Abstraccion:** la interfaz de usuario solo habla con `SistemaTransporte`. El frontend React llega por la capa `api/`, que traduce cada pedido HTTP a una llamada de la fachada. El core no conoce ni a React ni a la API.
 - **Menos conflictos:** cada companero trabaja en su carpeta y sus pruebas. Solo `app/` se comparte.
-- **Reemplazo sin dolor:** las versiones `Temporal` de `nucleo/temporal` se sustituyen una por una en `Aplicacion`, y las pruebas de contrato dicen si la nueva cumple.
+- **Estructuras compartidas sin romper las reglas:** las cinco estructuras genericas (lista, pila, cola, cola de prioridad y tabla hash) viven en `nucleo/estructuras/impl`. Cualquier modulo puede usarlas porque solo dependen de `nucleo`. Durante la Fase 2 habia adaptadores `Temporal` con `java.util` mientras cada rol escribia la suya; en la Fase 3 se eliminaron.
+- **Pruebas de contrato:** cada implementacion pasa la prueba abstracta de su interfaz (`ListaContractTest`, `MapaContractTest`, ...), asi cualquier cambio interno se valida contra el mismo comportamiento.
 
 ## Carpetas dentro de cada modulo
 

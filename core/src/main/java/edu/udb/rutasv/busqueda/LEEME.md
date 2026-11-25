@@ -1,43 +1,22 @@
 # Rol Busqueda
 
-**Objetivo:** Que el pasajero encuentre una estacion mientras escribe (autocompletado).
+**Objetivo:** Autocompletar nombres de estaciones y recordar las ultimas busquedas.
 
-Tu issue: https://github.com/franc1sc0sv/rutasv-ped941/issues/2 (asignatela y marca las casillas).
+## Estado final (Fase 3)
 
-## Empieza aqui
+- `estructuras/ArbolAvl.java` (`IndiceNombres`): arbol AVL por nombre normalizado, con rotaciones LL, RR, LR y RL. Buscar, insertar y eliminar son O(L log n); `conPrefijo` es O(L log n + k). Solo guarda estaciones activas.
+- `servicios/BusquedaService.java`: sugerencias (solo lee el AVL) y busquedas recientes: las ultimas 5 rutas calculadas por usuario, en una `TablaHash` usuario -> arreglo fijo.
+- `Normalizador` (sin mayusculas ni tildes) vive en `nucleo/texto` porque tambien lo usa Paradas.
+- Pruebas: `ArbolAvlTest`, `ArbolAvlContratoTest`, `BusquedaServiceTest`, `NormalizadorTest`.
 
-```bash
-git clone https://github.com/franc1sc0sv/rutasv-ped941.git && cd rutasv-ped941
-mvn verify                       # debe terminar en BUILD SUCCESS
-git checkout -b feat/busqueda-<tarea>
-```
+## Por que estas estructuras
 
-## Que hay (hecho y conectado)
-
-- `estructuras/ArbolAvl.java` (`IndiceNombres`) con rotaciones LL, RR, LR y RL; su prueba de contrato esta activa.
-- `servicios/Normalizador.java` (sin tildes, minusculas) y `servicios/BusquedaService.java` (sugerencias y hasta 5 busquedas recientes por usuario).
-- Conectado en `SistemaTransporteImpl.sugerirEstaciones` y `busquedasRecientes`. Las estaciones que crea el admin entran al indice desde la fachada.
-
-## Pendiente (revision del 23/10)
-
-- `ArbolAvl` (estructura) importa `servicios.Normalizador`: conviene mover la normalizacion a `estructuras/` o inyectarla.
-- `BusquedaService.sugerir` lanza `IllegalArgumentException`; el resto del core usa `ValidacionException`.
-- El Javadoc de `IndiceNombres` (nucleo) da costos de trie, O(L); con AVL son O(log n) comparaciones y O(log n + k) por prefijo (seccion 2.7). Cambio de contrato: PR aparte.
-
-## Tus tareas (de la Fase 2)
-
-- [x] 1. Contrato de interfaces (**ya hecho**; revisalo).
-- [x] 2. Arbol AVL propio con rotaciones LL, RR, LR, RL, altura y factor de balance.
-- [x] 3. Busqueda por prefijo (inorden acotado).
-- [x] 4. Normalizacion de texto.
-- [ ] 5. Ventana base (menu, modo pasajero/admin).
-- [ ] 6. Pantalla Buscar ruta (Fig 5).
-- [x] 7. Pruebas: 8 nombres alfabeticos quedan balanceados, prefijos `Ter`, `metro`, `xyz`, eliminar con rotacion.
-- [ ] 8. Bitacora del equipo y documento (cambiar TreeMap por AVL propio, M5).
+- Por que AVL y no tabla hash: una tabla hash no puede listar "todo lo que empieza con ter" sin recorrerla entera. El AVL esta ordenado y poda las ramas que no comparten el prefijo.
+- Por que AVL y no un arbol binario simple: con nombres insertados en orden, un ABB se vuelve una lista (O(n)). El AVL mantiene la altura en O(log n) (ver `docs/rendimiento.md`).
+- Alternativa descartada: un trie. Seria O(L + k) por prefijo, pero gasta un nodo por letra y no estaba en el temario base.
 
 ## Reglas
 
-- Tu codigo vive solo en `busqueda/`. Depende solo de `nucleo`: `ArquitecturaTest` lo comprueba.
-- Si necesitas cambiar un contrato de `nucleo`, abre un PR aparte y avisa por el chat del grupo.
-- Un PR por tarea, que lo revise otra persona y con el CI en verde. Ver `CONTRIBUTING.md`.
-- La guia completa de tareas esta en `docs/tareas-por-rol.md`.
+- El codigo del modulo depende solo de `nucleo` (`ArquitecturaTest` lo comprueba). Las estructuras genericas estan en `nucleo/estructuras/impl`.
+- Un cambio de contrato de `nucleo` va en su propio PR y se avisa al equipo.
+- Un PR por tarea, con el CI en verde. Ver `CONTRIBUTING.md`.
