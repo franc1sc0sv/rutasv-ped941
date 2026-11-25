@@ -1,24 +1,32 @@
-# Contratos y como reemplazar una clase Temporal
+# Contratos de las estructuras
 
-Cada estructura tiene una interfaz en `edu.udb.rutasv.nucleo.estructuras` y un adaptador `...Temporal` en `nucleo.temporal`.
+Cada estructura tiene una interfaz en `edu.udb.rutasv.nucleo.estructuras` y una implementacion propia.
 
-## Pasos
+| Interfaz | Implementacion | Prueba de contrato |
+|---|---|---|
+| `Lista<T>` | `nucleo.estructuras.impl.ListaDinamica` | `ListaDinamicaContratoTest` |
+| `Pila<T>` | `nucleo.estructuras.impl.PilaEnlazada` | `PilaEnlazadaContratoTest` |
+| `Cola<T>` | `nucleo.estructuras.impl.ColaEnlazada` | `ColaEnlazadaContratoTest` |
+| `ColaPrioridad<T>` | `nucleo.estructuras.impl.MonticuloBinario` | `MonticuloBinarioContratoTest` |
+| `Mapa<K,V>` | `nucleo.estructuras.impl.TablaHash` | `TablaHashContratoTest` |
+| `IndiceNombres` | `busqueda.estructuras.ArbolAvl` | `ArbolAvlContratoTest` |
+| `RedVial` | `ruta.estructuras.GrafoListaAdyacencia` | `GrafoListaAdyacenciaContratoTest` |
 
-1. Crea tu clase en `estructuras/` de tu modulo (por ejemplo `paradas/estructuras/` para la tabla hash) e implementa la interfaz.
-2. Manten la misma forma del constructor que la clase Temporal (por ejemplo, `ColaPrioridad` recibe un `Comparator<T>`).
-3. Busca el test abstracto de tu contrato (por ejemplo `ListaContractTest`) y agrega una subclase de una linea:
+## Agregar otra implementacion
+
+1. Implementa la interfaz.
+2. Agrega una subclase de una linea del test abstracto:
 
    ```java
    class MiListaTest extends ListaContractTest {
        @Override protected Lista<Integer> crear() { return new MiLista<>(); }
    }
    ```
-   Nota: `ColaPrioridadContractTest` usa `crear(Comparator<Integer>)` y `MapaContractTest` usa `Mapa<String,Integer>`.
-4. Cambia el cableado en `Aplicacion` para usar tu clase. Algunos modulos crean Temporales por dentro: la lista completa esta en `docs/entrega-fase2.md`, seccion 9.
-5. Corre `mvn -B verify`, abre tu PR y marca la casilla de contratos.
+   `ColaPrioridadContractTest` usa `crear(Comparator<Integer>)` y `MapaContractTest` usa `Mapa<String,Integer>`.
+3. Cambia el cableado en `app/configuracion/Aplicacion`.
+4. Corre `mvn -B verify`.
 
 ## Reglas
 
-- No cambies la interfaz sin avisar al equipo. Un cambio de contrato va en su propio PR.
+- No cambies una interfaz sin avisar al equipo. Un cambio de contrato va en su propio PR.
 - Las excepciones del contrato son no verificadas (`ColeccionVaciaException`, `IndiceFueraDeRangoException`, `ValidacionException`).
-- No borres la clase Temporal hasta que todo el equipo ya use la propia.

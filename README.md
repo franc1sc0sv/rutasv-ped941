@@ -1,22 +1,59 @@
 # RutaSV
 
-Planificador de rutas de transporte publico para el proyecto PED941 (equipo de 5).
-El nucleo esta hecho en Java 21 con Maven (`core`), con una capa HTTP delgada (`api`) y una interfaz en React (`frontend`).
+Planificador de rutas de transporte público para el proyecto PED941 (equipo de 5).
+El núcleo está hecho en Java 21 con Maven (`core`), con una capa HTTP delgada (`api`) y una interfaz en React (`frontend`).
 
-Funcionan de punta a punta: login y roles, busqueda con autocompletado, calculo de ruta con Dijkstra, red vial y despacho de unidades.
-La tabla hash del rol Paradas ya esta implementada y conectada en lugar de `MapaTemporal` en **todo el cableado de `Aplicacion`** (estaciones, login, grafo, Dijkstra, filas, busqueda, estadisticas y terminal). Los constructores por defecto de `GrafoListaAdyacencia` y `Terminal` conservan `MapaTemporal` solo para pruebas de otros roles; la aplicacion real inyecta `TablaHash`. El estado completo y la guia del video estan en [docs/entrega-fase2.md](docs/entrega-fase2.md); el cierre tecnico esta en [docs/documento-tecnico-final.md](docs/documento-tecnico-final.md).
+Todo funciona de punta a punta:
+- login con roles;
+- autocompletado de estaciones;
+- ruta más rápida con Dijkstra;
+- historial y estadísticas;
+- red vial;
+- alta, edición y activación de paradas;
+- despacho de unidades y filas de pasajeros.
+
+Todas las estructuras son propias: no hay colecciones de `java.util` guardando datos del dominio.
 
 ## Las 7 estructuras
 
-| Estructura | Interfaz | Rol | Uso | Estado |
-|---|---|---|---|---|
-| Lista dinamica | `Lista<T>` | Historial | Usuarios, historial, vecinos | ✅ `ListaDinamica` |
-| Pila | `Pila<T>` | Ruta | Reconstruir la ruta | ✅ `PilaEnlazada` |
-| Cola FIFO | `Cola<T>` | Terminal | Fila de pasajeros | ✅ `ColaEnlazada` |
-| Cola de prioridad | `ColaPrioridad<T>` | Terminal | Despacho, Dijkstra, top 5 | ✅ `MonticuloBinario` |
-| Tabla hash | `Mapa<K,V>` | Paradas | Estaciones, usuarios, conteos | ✅ `TablaHash` |
-| Arbol AVL | `IndiceNombres` | Busqueda | Busqueda por prefijo | ✅ `ArbolAvl` |
-| Grafo | `RedVial` | Ruta | Red de estaciones y tramos | ✅ `GrafoListaAdyacencia` |
+| Estructura | Interfaz (`nucleo.estructuras`) | Implementación | Rol autor | Dónde se usa | Costo clave |
+|---|---|---|---|---|---|
+| Lista dinámica | `Lista<T>` | `nucleo.estructuras.impl.ListaDinamica` | Historial | Historial, vecinos del grafo, resultados | agregar O(1) amortizado |
+| Pila | `Pila<T>` | `nucleo.estructuras.impl.PilaEnlazada` | Ruta | Reconstruir la ruta de Dijkstra | apilar/desapilar O(1) |
+| Cola FIFO | `Cola<T>` | `nucleo.estructuras.impl.ColaEnlazada` | Terminal | Filas de pasajeros por tipo (RN-5) | encolar/desencolar O(1) |
+| Cola de prioridad | `ColaPrioridad<T>` | `nucleo.estructuras.impl.MonticuloBinario` | Terminal | Despacho (RN-4), Dijkstra, top 5 | insertar/extraer O(log n) |
+| Tabla hash | `Mapa<K,V>` | `nucleo.estructuras.impl.TablaHash` | Paradas | Estaciones, usuarios, sesiones, grafo, conteos | O(1) promedio |
+| Árbol AVL | `IndiceNombres` | `busqueda.estructuras.ArbolAvl` | Búsqueda | Autocompletado por prefijo | O(L log n) |
+| Grafo | `RedVial` | `ruta.estructuras.GrafoListaAdyacencia` | Ruta | Red de estaciones y tramos | vecinos O(1) + O(grado) |
+
+Las cinco genéricas viven en `nucleo/estructuras/impl`, el `java.util` propio del equipo, porque todos los módulos las usan.
+El grafo y el AVL son de un solo dominio y se quedan en su módulo.
+Mediciones reales contra el Big-O: [docs/rendimiento.md](docs/rendimiento.md).
+
+## Probar la demo (para la defensa)
+
+```bash
+./demo.sh --limpio      # compila, carga la red de 30 estaciones y los datos de demo, abre http://localhost:5173
+```
+
+`demo.sh` genera las contraseñas de `admin` y de los pasajeros `ana_01`, `luis.m` y `sofia-r`, y las muestra en pantalla.
+Usa la carpeta `.demo-data/`, que git ignora, así que `data/` nunca se ensucia.
+
+Qué trae la demo:
+- 30 rutas en el historial, para que el top 5 no salga vacío;
+- las 5 unidades de la Fig. 10 en la cola de despacho;
+- 4 pasajeros en cada fila.
+
+Casos de la red para mostrar en vivo:
+
+| Caso | Cómo verlo |
+|---|---|
+| Dijkstra no elige el tramo directo | Terminal Occidente → Terminal Oriente: 33 min por el centro, no 45 min por la Panamericana |
+| No existe ruta (RN-6) | Cualquier estación → Nejapa, Quezaltepeque o Aguilares (grupo aislado) |
+| Estación inactiva | Apopa, San Jacinto y Hospital Rosales: no se sugieren y Dijkstra las salta |
+| Grafo dirigido | Centro Histórico → Mercado Central es de un solo sentido |
+| Tildes y mayúsculas | "soya" sugiere Soyapango; no se puede crear "Soyapangó" |
+| Prefijo en el AVL | "ter" sugiere las tres terminales |
 
 ## Instalar JDK 21 y Maven
 
@@ -32,10 +69,13 @@ Para el frontend: Node 20 o superior.
 
 ```bash
 mvn -B verify          # compila y corre todas las pruebas (core y api)
-mvn -B test            # solo pruebas
+cd frontend && npm ci && npm run build
+
+# Mediciones de rendimiento (no corren en el CI); reescriben docs/rendimiento.md
+mvn -B -pl core test -Dtest=MedicionesRendimientoTest -Drendimiento=true -Dsurefire.failIfNoSpecifiedTests=false
 ```
 
-## Levantar el sistema
+## Levantar el sistema sin datos de demo
 
 ```bash
 mvn -B package -DskipTests
@@ -43,61 +83,57 @@ RUTASV_ADMIN_PASSWORD=una-clave-de-demo java -jar api/target/rutasv-api.jar   # 
 cd frontend && npm install && npm run dev                                     # http://localhost:5173
 ```
 
-Contrato de la API: [docs/api.md](docs/api.md). Como conectar tu pantalla: [frontend/README.md](frontend/README.md).
-
-## Empieza aqui (sin reuniones)
-
-1. Elige tu rol y asignate su issue: [Ruta #1](../../issues/1), [Busqueda #2](../../issues/2), [Terminal #3](../../issues/3), [Historial #4](../../issues/4), [Paradas #5](../../issues/5).
-2. Abre la guia de tu modulo: `core/src/main/java/edu/udb/rutasv/<modulo>/LEEME.md`. Dice que archivos ya existen, que te toca crear y en que orden.
-3. Clona, corre `mvn verify` y crea tu rama `feat/<rol>-<tarea>`.
-4. Implementa tu estructura, quita el `@Disabled` de su prueba de contrato y abre un PR chico por tarea.
-
-No necesitas esperar a nadie: `nucleo/temporal` trae versiones con `java.util` de todo lo que dependa de otro rol.
+Contrato de la API: [docs/api.md](docs/api.md).
 
 ## Estructura del repositorio
 
 ```
 core/                    modulo Java (edu.udb.rutasv)
-  nucleo/                contratos compartidos
+  nucleo/                lo compartido; no depende de ningun modulo
     estructuras/         interfaces (Lista, Pila, Cola, ColaPrioridad, Mapa, IndiceNombres, RedVial)
-    modelo/              registros del dominio
+      impl/              implementaciones propias: ListaDinamica, PilaEnlazada, ColaEnlazada,
+                         MonticuloBinario, TablaHash
+    modelo/              registros del dominio (Estacion, Arista, RutaCalculada, ...)
+    texto/               Normalizador (sin mayusculas ni tildes), lo usan Paradas y Busqueda
     excepciones/         excepciones compartidas
-    archivo/             escritura atomica de archivos
-    temporal/            adaptadores temporales (java.util), se reemplazan por los propios
-  <modulo>/              auth, ruta, paradas, busqueda, terminal, historial. Cada uno con las que necesite:
-    interfaces/          contratos del servicio
+    archivo/             escritura atomica y agregado de lineas
+  <modulo>/              auth, ruta, paradas, busqueda, terminal, historial
     servicios/           logica de negocio
     repositorios/        guardar y cargar datos
-    modelo/              clases propias del modulo
-    excepciones/         excepciones propias
-    estructuras/         estructuras de datos propias del rol
-    (ruta tambien tiene algoritmos/)
+    estructuras/         estructura propia del dominio (ruta: grafo; busqueda: AVL)
+    (ruta tambien tiene algoritmos/Dijkstra)
   app/                   unica puerta de entrada
-    interfaces/          SistemaTransporte
-    servicios/           SistemaTransporteImpl, Modulos (que modulos estan conectados) y RedSoloLectura
-    configuracion/       Aplicacion (cableado)
+    interfaces/          SistemaTransporte (fachada)
+    servicios/           SistemaTransporteImpl, Modulos y RedSoloLectura
+    configuracion/       Aplicacion (cableado) y DatosDemo
 api/                     capa HTTP delgada (Javalin): un endpoint por metodo de SistemaTransporte
 frontend/                React + Vite + TypeScript, una carpeta por rol en src/modulos/
-data/                    CSV de ejemplo (datos sinteticos)
+data/                    red de ejemplo en CSV (datos sinteticos)
 docs/                    documentacion del equipo
-.github/                 CI y plantilla de PR
 ```
+
+Reglas de arquitectura, verificadas por `ArquitecturaTest`:
+- `nucleo` no depende de ningún módulo;
+- cada módulo depende solo de `nucleo`;
+- solo `app` conoce a todos los módulos;
+- el core no conoce HTTP ni ninguna interfaz gráfica.
 
 ## Variables de entorno
 
 - `RUTASV_ADMIN_USER`: usuario admin inicial (por defecto `admin`).
-- `RUTASV_ADMIN_PASSWORD`: contrasena del admin inicial, minimo 8 caracteres. Sin ella no se crea el admin.
+- `RUTASV_ADMIN_PASSWORD`: contraseña del admin inicial, mínimo 8 caracteres. Sin ella no se crea el admin.
 - `RUTASV_PORT`: puerto de la API (por defecto `7070`).
-- `RUTASV_DATA_DIR`: carpeta con los CSV y los archivos de usuarios (por defecto `data`).
+- `RUTASV_DATA_DIR`: carpeta con los CSV y los archivos de usuarios e historial (por defecto `data`).
+- `RUTASV_DEMO=1` y `RUTASV_DEMO_PASSWORD`: cargan los datos de demostración (ver `DatosDemo`).
+- `RUTASV_API` (frontend): dirección de la API para el proxy de Vite (por defecto `http://localhost:7070`).
 
-## Documentacion
+## Documentación
 
 - [CONTRIBUTING.md](CONTRIBUTING.md): flujo de ramas y PR
-- [docs/arquitectura.md](docs/arquitectura.md)
-- [docs/decisiones.md](docs/decisiones.md)
-- [docs/contratos.md](docs/contratos.md)
-- [docs/tareas-por-rol.md](docs/tareas-por-rol.md)
+- [docs/arquitectura.md](docs/arquitectura.md) y [docs/decisiones.md](docs/decisiones.md)
+- [docs/tabla-hash.md](docs/tabla-hash.md): la tabla hash propia, su Big-O y su bitácora (PR #40 y #41)
+- [docs/rendimiento.md](docs/rendimiento.md): mediciones contra el Big-O
 - [docs/api.md](docs/api.md): endpoints HTTP
-- [docs/entrega-fase2.md](docs/entrega-fase2.md): estado, guion del video, bitacora, correcciones del documento y pendientes por rol
-- [docs/documento-ruta.md](docs/documento-ruta.md): texto del rol Ruta para el documento (pseudocodigo y complejidad)
-- [docs/documento-tecnico-final.md](docs/documento-tecnico-final.md): documento técnico final (Tabla Hash, Big-O, diagramas, pruebas y arranque)
+- [docs/contratos.md](docs/contratos.md)
+- [docs/documento-ruta.md](docs/documento-ruta.md): pseudocódigo y complejidad de Dijkstra
+- [docs/entrega-fase2.md](docs/entrega-fase2.md): histórico de la Fase 2

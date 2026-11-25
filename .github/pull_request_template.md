@@ -12,7 +12,7 @@
 ## Pruebas
 - [ ] `mvn -B verify` pasa en mi rama
 - [ ] Agregue o actualice pruebas
-- [ ] Si reemplazo una clase Temporal, agregue la subclase del test de contrato
+- [ ] Si agregue o cambie una estructura, su prueba de contrato sigue en verde
 
 ## Contratos
 - [ ] No cambia ninguna interfaz de `nucleo` ni `app`

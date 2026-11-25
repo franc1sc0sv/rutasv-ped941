@@ -1,51 +1,22 @@
 # Rol Paradas
 
-**Objetivo:** Guardar las estaciones con acceso directo por codigo o nombre. Su tabla hash tambien la usa el login.
+**Objetivo:** Registrar, editar, activar y buscar estaciones (RN-1).
 
-Tu issue: https://github.com/franc1sc0sv/rutasv-ped941/issues/5 (asignatela y marca las casillas).
+## Estado final (Fase 3)
 
-## Empieza aqui
+- `servicios/DirectorioEstaciones.java`: alta, edicion y activar/desactivar. Dos `TablaHash`: por codigo y por nombre normalizado (sin mayusculas ni tildes). Todo es O(1) promedio. Valida codigo, nombre y coordenadas.
+- `servicios/CargadorCSV.java`: lee `estaciones.csv` y `tramos.csv`. Una linea mala se reporta con su numero y no detiene la carga.
+- La tabla hash propia (`TablaHash`, autoria de este rol, con aportes de dos integrantes: tope de capacidad y orden de insercion) vive en `nucleo/estructuras/impl` porque la usan todos los modulos.
+- La fachada (`SistemaTransporteImpl.sincronizar`) lleva cada cambio al grafo y al arbol AVL.
+- Pruebas: `TablaHashTest`, `TablaHashContratoTest`, `DirectorioEstacionesTest`, `CargadorCSVTest`, `ParadasYRobustezTest`.
 
-```bash
-git clone https://github.com/franc1sc0sv/rutasv-ped941.git && cd rutasv-ped941
-mvn verify                       # debe terminar en BUILD SUCCESS
-git checkout -b feat/paradas-<tarea>
-```
+## Por que estas estructuras
 
-## Que hay
-
-- `servicios/CargadorCSV.java`: lee `data/estaciones.csv` y `data/tramos.csv` con errores por linea (hecho y probado).
-- `servicios/DirectorioEstaciones.java`: alta y busqueda por codigo o nombre, codigo y nombre unicos (hecho). Falta edicion y activar/desactivar.
-- Conectado en `SistemaTransporteImpl`: `buscarEstacion` y `crearEstacion`. `Aplicacion` ya carga los CSV en el directorio, la red y el autocompletado.
-
-## Estado de la tabla hash (actualizado 17/11)
-
-- `estructuras/TablaHash.java` **ya esta implementada**: encadenamiento, capacidad potencia de dos, mezcla de 16 bits altos y rehash al superar factor de carga 0.75.
-- `TablaHashContratoTest` **ya no tiene `@Disabled`** y pasa junto con `TablaHashTest`.
-- `DirectorioEstaciones` usa `TablaHash` en sus dos indices (codigo y nombre normalizado).
-- `Aplicacion` usa `TablaHash` para el mapa de usuarios del login.
-- Los `MapaTemporal` del cableado de `Aplicacion` ya fueron reemplazados por `TablaHash` (usuarios, grafo, Dijkstra, filas, búsqueda, estadísticas y terminal). Solo quedan los constructores por defecto de `GrafoListaAdyacencia` y `Terminal` para compatibilidad con pruebas de otros roles.
-- Detalle completo en `docs/documento-tecnico-final.md`.
-
-## Pendiente
-
-- `editar` y `activar/desactivar` en el directorio y en la fachada. Al desactivar, actualiza tambien la red (`red.agregarEstacion` con la estacion inactiva) para que Dijkstra la salte, y el indice de nombres.
-- Revision del 23/10: la unicidad de nombre usa `toLowerCase()` sin quitar tildes, mientras el AVL si las quita ("Estacion" y "Estación" chocan en el indice); la columna `activa` del CSV toma cualquier valor distinto de `true` como inactiva sin avisar.
-
-## Tus tareas (de la Fase 2)
-
-- [x] 1. Repositorio y proyecto (**ya hecho**).
-- [x] 2. Tabla hash propia: funcion hash, encadenamiento, redimension con factor 0.75.
-- [ ] 3. Directorio de estaciones: alta, edicion, activar/desactivar (RN-1). Codigo y nombre unicos.
-- [x] 4. Carga CSV de estaciones y tramos con errores claros por linea.
-- [ ] 5. Pantalla Registro de paradas (Fig 9).
-- [x] 6. Pruebas: 1000 claves antes y despues de redimensionar, colisiones, eliminar inexistente, codigos repetidos, CSV mal formado.
-- [ ] 7. Tabla de casos de prueba del equipo.
-- [x] 8. Documento seccion 2.2 tabla hash (ver `docs/documento-tecnico-final.md`).
+- Por que tabla hash y no arbol: el directorio solo busca por clave exacta (codigo o nombre). La tabla da O(1) promedio; un arbol daria O(log n). El orden alfabetico lo da el AVL de Busqueda.
+- Encadenamiento y no sondeo lineal: borrar no necesita marcas y la tabla no se degrada con muchas altas y bajas.
 
 ## Reglas
 
-- Tu codigo vive solo en `paradas/`. Depende solo de `nucleo`: `ArquitecturaTest` lo comprueba.
-- Si necesitas cambiar un contrato de `nucleo`, abre un PR aparte y avisa por el chat del grupo.
-- Un PR por tarea, que lo revise otra persona y con el CI en verde. Ver `CONTRIBUTING.md`.
-- La guia completa de tareas esta en `docs/tareas-por-rol.md`.
+- El codigo del modulo depende solo de `nucleo` (`ArquitecturaTest` lo comprueba). Las estructuras genericas estan en `nucleo/estructuras/impl`.
+- Un cambio de contrato de `nucleo` va en su propio PR y se avisa al equipo.
+- Un PR por tarea, con el CI en verde. Ver `CONTRIBUTING.md`.

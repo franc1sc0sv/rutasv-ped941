@@ -1,2 +1,2 @@
-/** Estructuras propias del rol Ruta: grafo con lista de adyacencia (RedVial) y pila enlazada. */
+/** Estructura propia del rol Ruta: grafo dirigido con listas de adyacencia (RedVial). */
 package edu.udb.rutasv.ruta.estructuras;

@@ -1,7 +1,7 @@
 # API HTTP (para el frontend React)
 
 La capa `api/` es delgada: cada endpoint llama a un metodo de `SistemaTransporte` y nada mas.
-La logica vive en `core`. Si tu modulo aun no esta conectado, su endpoint responde `501` con `"pendiente": true`.
+La logica vive en `core`. Todos los modulos estan conectados; `501` queda solo como respuesta de seguridad si un modulo faltara en el cableado.
 
 Base: `http://localhost:7070/api`. En desarrollo, Vite reenvia `/api` a ese puerto (ver `frontend/vite.config.ts`).
 
@@ -33,7 +33,7 @@ Siempre `{ "error": "mensaje", "pendiente": false }`.
 | `POST /auth/logout` | sesion | - | 204 | `cerrarSesion` | auth |
 | `GET /auth/yo` | sesion | - | sesion | - | api |
 | `GET /estaciones/sugerencias?prefijo=ter` | sesion | - | `["Terminal Occidente", ...]` | `sugerirEstaciones` | Busqueda |
-| `GET /busquedas/recientes` | sesion | - | `["ter", ...]` | `busquedasRecientes` | Busqueda |
+| `GET /busquedas/recientes` | sesion | - | `["Terminal Occidente → Metrocentro", ...]` (ultimas 5 rutas calculadas) | `busquedasRecientes` | Busqueda |
 | `GET /rutas?origen=E01&destino=E04` | sesion | - | ruta (abajo) | `calcularRuta` | Ruta |
 | `GET /red` | sesion | - | `{estaciones: [Estacion], tramos: [Tramo]}` | `verRed` | Ruta |
 | `POST /red/tramos` | ADMIN | `{origen, destino, minutos, km}` | 201 | `agregarTramo` | Ruta |
@@ -42,11 +42,12 @@ Siempre `{ "error": "mensaje", "pendiente": false }`.
 | `GET /estaciones` | sesion | - | `[Estacion]` | `verRed` | Paradas |
 | `GET /estaciones/buscar?texto=Metrocentro` | sesion | - | `Estacion` o 404 | `buscarEstacion` | Paradas |
 | `POST /estaciones` | ADMIN | `Estacion` | 201 | `crearEstacion` | Paradas |
-| `PUT /estaciones/{codigo}` | ADMIN | `Estacion` | 204 | `editarEstacion` | Paradas (pendiente) |
-| `PATCH /estaciones/{codigo}/estado` | ADMIN | `{activa}` | 204 | `activarDesactivarEstacion` | Paradas (pendiente) |
+| `PUT /estaciones/{codigo}` | ADMIN | `{nombre, zona, x, y, activa?}` | 204 | `editarEstacion` | Paradas |
+| `PATCH /estaciones/{codigo}/estado` | ADMIN | `{activa}` (obligatorio) | 204 | `activarDesactivarEstacion` | Paradas |
 | `POST /terminal/unidades` | ADMIN | `{id, tipoRuta, horaProgramada: "07:30"}` | 201 | `registrarUnidad` | Terminal |
 | `GET /terminal/orden` | ADMIN | - | `[Unidad]` en orden de salida | `verOrdenDespacho` | Terminal |
 | `POST /terminal/despachar` | ADMIN | - | `Unidad` despachada | `despacharSiguiente` | Terminal |
+| `GET /terminal/filas/{NORMAL o EXPRES}` | ADMIN | - | `Pasajero[]` en orden de llegada | `verFila` | Terminal |
 | `POST /terminal/filas/{NORMAL o EXPRES}/pasajeros` | ADMIN | `{id, nombre}` | 201 | `encolarPasajero` | Terminal |
 | `POST /terminal/filas/{NORMAL o EXPRES}/atender` | ADMIN | - | `Pasajero` | `atenderPasajero` | Terminal |
 
@@ -83,3 +84,12 @@ Siempre `{ "error": "mensaje", "pendiente": false }`.
 1. Si el metodo ya existe en `SistemaTransporte`, solo agrega la linea en `api/.../Servidor.java`.
 2. Si no existe, primero cambia el contrato en `core` (PR aparte, avisa al equipo) y luego agrega el endpoint.
 3. Agrega su caso en `ServidorTest` y actualiza esta tabla.
+
+## Validaciones (Fase 3)
+
+- Un cuerpo JSON vacio o `null` responde 400, nunca 500.
+- `POST /estaciones`: `x` e `y` son obligatorias y estan acotadas (±10 000). `activa` es opcional y por defecto es `true`. El codigo admite letras, numeros, guion y guion bajo (maximo 12) y se guarda en mayusculas. El nombre no admite `;` ni `>` y no puede repetir otro sin importar mayusculas ni tildes.
+- `POST /red/tramos`: `minutos` (entero de 1 a 1440) y `km` son obligatorios.
+- `GET /rutas`: los codigos aceptan minusculas y espacios. Mismo origen y destino, o una estacion inactiva, responde 400 con el motivo. Sin camino responde 404 (RN-6).
+- `POST /terminal/unidades`: el id no puede estar en blanco ni repetido.
+- `POST /terminal/filas/{tipo}/pasajeros`: un pasajero no puede estar en dos filas a la vez.

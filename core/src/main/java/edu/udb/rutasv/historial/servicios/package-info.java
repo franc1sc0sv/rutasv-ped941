@@ -1,5 +1,4 @@
 /**
- * Implementaciones de los servicios del modulo y su logica de negocio. Historial por usuario y estadisticas (top 5).
- * Pendiente: lo escribe el rol Historial.
+ * Servicios del rol Historial: historial por usuario (RN-7) y estadisticas globales con el top 5.
  */
 package edu.udb.rutasv.historial.servicios;
