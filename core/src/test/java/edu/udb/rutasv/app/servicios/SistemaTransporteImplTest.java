@@ -22,9 +22,9 @@ import edu.udb.rutasv.nucleo.modelo.Estacion;
 import edu.udb.rutasv.nucleo.modelo.EstadisticasGlobales;
 import edu.udb.rutasv.nucleo.modelo.RutaCalculada;
 import edu.udb.rutasv.nucleo.modelo.TipoRuta;
-import edu.udb.rutasv.nucleo.temporal.ColaPrioridadTemporal;
-import edu.udb.rutasv.nucleo.temporal.ListaTemporal;
-import edu.udb.rutasv.nucleo.temporal.MapaTemporal;
+import edu.udb.rutasv.nucleo.estructuras.impl.MonticuloBinario;
+import edu.udb.rutasv.nucleo.estructuras.impl.ListaDinamica;
+import edu.udb.rutasv.nucleo.estructuras.impl.TablaHash;
 import edu.udb.rutasv.ruta.interfaces.RutaService;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -44,11 +44,11 @@ class SistemaTransporteImplTest {
 
     private static final String CLAVE = "clave-sintetica-1";
     private final PasswordHasher hasher = new PasswordHasher(1000);
-    private final MapaTemporal<String, Usuario> mapa = new MapaTemporal<>();
+    private final TablaHash<String, Usuario> mapa = new TablaHash<>();
     private final AuthService auth = new AuthServiceImpl(mapa, new UsuarioRepositorio() {
         @Override
         public Lista<Usuario> cargar() {
-            return new ListaTemporal<>();
+            return new ListaDinamica<>();
         }
 
         @Override
@@ -57,11 +57,11 @@ class SistemaTransporteImplTest {
     }, hasher);
     private final ArbolAvl indice = new ArbolAvl();
     private final SistemaTransporte sistema =
-            new SistemaTransporteImpl(auth, new Autorizador(auth), soloBusqueda(new BusquedaService(indice, new MapaTemporal<>())));
+            new SistemaTransporteImpl(auth, new Autorizador(auth), soloBusqueda(new BusquedaService(indice, new TablaHash<>())));
     private final HistorialService historial = new HistorialService(new HistorialRepositorio() {
         @Override
         public Lista<RutaCalculada> cargar() {
-            return new ListaTemporal<>();
+            return new ListaDinamica<>();
         }
 
         @Override
@@ -70,7 +70,7 @@ class SistemaTransporteImplTest {
     });
     private final SistemaTransporte conHistorial = new SistemaTransporteImpl(auth, new Autorizador(auth),
             new Modulos(null, null, null, null, null, null, null, historial,
-                    new EstadisticasService(historial, MapaTemporal::new, ColaPrioridadTemporal::new)));
+                    new EstadisticasService(historial, TablaHash::new, MonticuloBinario::new)));
     private final Sesion pasajero;
     private final Sesion admin;
 

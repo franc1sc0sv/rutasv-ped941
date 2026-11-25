@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import edu.udb.rutasv.nucleo.modelo.TipoRuta;
 import edu.udb.rutasv.nucleo.modelo.UnidadTransporte;
-import edu.udb.rutasv.nucleo.temporal.ColaPrioridadTemporal;
+import edu.udb.rutasv.nucleo.estructuras.impl.MonticuloBinario;
 import java.time.LocalTime;
 import org.junit.jupiter.api.Test;
 
@@ -42,7 +42,7 @@ class ReglaDespachoTest {
 
     @Test
     void laColaDespachaEnElOrdenDeLaRegla() {
-        ColaPrioridadTemporal<UnidadTransporte> cola = new ColaPrioridadTemporal<>(regla);
+        MonticuloBinario<UnidadTransporte> cola = new MonticuloBinario<>(regla);
         cola.insertar(unidad("N-2", TipoRuta.NORMAL, "07:30"));
         cola.insertar(unidad("X-2", TipoRuta.EXPRES, "08:00"));
         cola.insertar(unidad("N-1", TipoRuta.NORMAL, "06:45"));

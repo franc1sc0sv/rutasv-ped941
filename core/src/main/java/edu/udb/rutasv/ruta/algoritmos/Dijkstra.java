@@ -7,8 +7,8 @@ import edu.udb.rutasv.nucleo.estructuras.Pila;
 import edu.udb.rutasv.nucleo.estructuras.RedVial;
 import edu.udb.rutasv.nucleo.modelo.Arista;
 import edu.udb.rutasv.nucleo.modelo.Estacion;
-import edu.udb.rutasv.nucleo.temporal.ListaTemporal;
-import edu.udb.rutasv.ruta.estructuras.PilaEnlazada;
+import edu.udb.rutasv.nucleo.estructuras.impl.ListaDinamica;
+import edu.udb.rutasv.nucleo.estructuras.impl.PilaEnlazada;
 import edu.udb.rutasv.ruta.interfaces.FabricaColaPrioridad;
 import edu.udb.rutasv.ruta.interfaces.FabricaMapa;
 import edu.udb.rutasv.ruta.modelo.Camino;
@@ -107,7 +107,7 @@ public class Dijkstra {
         for (String codigo = destino; codigo != null; codigo = anterior.obtener(codigo)) {
             pila.apilar(codigo);
         }
-        Lista<String> ruta = new ListaTemporal<>();
+        Lista<String> ruta = new ListaDinamica<>();
         while (!pila.estaVacia()) {
             ruta.agregar(pila.desapilar());
         }

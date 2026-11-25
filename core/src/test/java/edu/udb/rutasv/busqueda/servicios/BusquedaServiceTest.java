@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import edu.udb.rutasv.busqueda.estructuras.ArbolAvl;
 import edu.udb.rutasv.nucleo.estructuras.Lista;
 import edu.udb.rutasv.nucleo.modelo.Estacion;
-import edu.udb.rutasv.nucleo.temporal.MapaTemporal;
+import edu.udb.rutasv.nucleo.estructuras.impl.TablaHash;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -20,7 +20,7 @@ class BusquedaServiceTest {
         for (String nombre : new String[] {"Terminal Occidente", "Terminal Oriente", "Metrocentro"}) {
             indice.insertar(nombre, new Estacion("E1", nombre, "Z1", 0, 0, true));
         }
-        servicio = new BusquedaService(indice, new MapaTemporal<>());
+        servicio = new BusquedaService(indice, new TablaHash<>());
     }
 
     private static List<String> aJava(Lista<String> lista) {

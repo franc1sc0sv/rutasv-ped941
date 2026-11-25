@@ -4,7 +4,7 @@ import edu.udb.rutasv.nucleo.estructuras.Mapa;
 
 /**
  * Crea tablas hash vacias para los pesos y anteriores de Dijkstra. Desde {@code app} se pasa
- * {@code TablaHash::new} (rol Paradas).
+ * {@code TablaHash::new}; en pruebas se puede pasar otra implementacion de {@link Mapa}.
  */
 @FunctionalInterface
 public interface FabricaMapa {

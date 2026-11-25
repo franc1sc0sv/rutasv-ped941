@@ -3,7 +3,7 @@ package edu.udb.rutasv.busqueda.servicios;
 import edu.udb.rutasv.nucleo.estructuras.IndiceNombres;
 import edu.udb.rutasv.nucleo.estructuras.Lista;
 import edu.udb.rutasv.nucleo.estructuras.Mapa;
-import edu.udb.rutasv.nucleo.temporal.ListaTemporal;
+import edu.udb.rutasv.nucleo.estructuras.impl.ListaDinamica;
 
 /**
  * Autocompletado de estaciones y busquedas recientes por usuario (rol Busqueda).
@@ -34,7 +34,7 @@ public class BusquedaService {
     }
 
     public Lista<String> recientes(String usuario) {
-        Lista<String> resultado = new ListaTemporal<>();
+        Lista<String> resultado = new ListaDinamica<>();
         String[] guardadas = recientes.obtener(usuario);
         if (guardadas != null) {
             for (String texto : guardadas) {

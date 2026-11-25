@@ -1,6 +1,6 @@
 package edu.udb.rutasv.historial.servicios;
 
-import edu.udb.rutasv.historial.estructuras.ListaDinamica;
+import edu.udb.rutasv.nucleo.estructuras.impl.ListaDinamica;
 import edu.udb.rutasv.historial.repositorios.HistorialRepositorio;
 import edu.udb.rutasv.nucleo.estructuras.Lista;
 import edu.udb.rutasv.nucleo.modelo.RutaCalculada;

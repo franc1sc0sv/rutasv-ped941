@@ -4,11 +4,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import edu.udb.rutasv.nucleo.modelo.Estacion;
-import edu.udb.rutasv.nucleo.temporal.MapaTemporal;
+import edu.udb.rutasv.nucleo.estructuras.impl.TablaHash;
 import edu.udb.rutasv.ruta.algoritmos.Dijkstra;
 import edu.udb.rutasv.ruta.estructuras.GrafoListaAdyacencia;
 import edu.udb.rutasv.ruta.modelo.Camino;
-import edu.udb.rutasv.terminal.estructuras.MonticuloBinario;
+import edu.udb.rutasv.nucleo.estructuras.impl.MonticuloBinario;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -17,7 +17,7 @@ import org.junit.jupiter.api.Test;
  */
 class DijkstraConMonticuloTest {
 
-    private final Dijkstra dijkstra = new Dijkstra(MonticuloBinario::new, MapaTemporal::new);
+    private final Dijkstra dijkstra = new Dijkstra(MonticuloBinario::new, TablaHash::new);
 
     @Test
     void rutaDelEjemploCon18Minutos() {

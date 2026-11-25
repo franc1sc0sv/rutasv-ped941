@@ -5,7 +5,7 @@ import edu.udb.rutasv.auth.modelo.Usuario;
 import edu.udb.rutasv.auth.repositorios.UsuarioRepositorio;
 import edu.udb.rutasv.nucleo.estructuras.Lista;
 import edu.udb.rutasv.nucleo.estructuras.Mapa;
-import edu.udb.rutasv.nucleo.temporal.ListaTemporal;
+import edu.udb.rutasv.nucleo.estructuras.impl.ListaDinamica;
 import java.util.Map;
 import java.util.function.Supplier;
 import java.util.logging.Logger;
@@ -24,7 +24,7 @@ public class SeedAdmin {
     private final UsuarioRepositorio repo;
     private final PasswordHasher hasher;
     private final Map<String, String> entorno;
-    private final Supplier<Lista<Usuario>> fabricaListas = ListaTemporal::new;
+    private final Supplier<Lista<Usuario>> fabricaListas = ListaDinamica::new;
 
     /** El entorno se inyecta para poder probar sin leer variables reales. */
     public SeedAdmin(Mapa<String, Usuario> usuarios, UsuarioRepositorio repo, PasswordHasher hasher,

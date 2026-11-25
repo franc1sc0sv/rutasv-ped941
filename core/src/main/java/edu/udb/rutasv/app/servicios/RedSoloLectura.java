@@ -5,7 +5,7 @@ import edu.udb.rutasv.nucleo.estructuras.Lista;
 import edu.udb.rutasv.nucleo.estructuras.RedVial;
 import edu.udb.rutasv.nucleo.modelo.Arista;
 import edu.udb.rutasv.nucleo.modelo.Estacion;
-import edu.udb.rutasv.nucleo.temporal.RedVialTemporal;
+import edu.udb.rutasv.ruta.estructuras.GrafoListaAdyacencia;
 
 /**
  * Copia de la red que se entrega en {@code verRed}: se puede leer, pero los cambios solo entran por
@@ -22,7 +22,7 @@ final class RedSoloLectura implements RedVial {
 
     /** Copia estaciones y tramos de {@code original}. O(V + E). */
     static RedSoloLectura copiaDe(RedVial original) {
-        RedVial copia = new RedVialTemporal();
+        RedVial copia = new GrafoListaAdyacencia();
         for (Estacion e : original.estaciones()) {
             copia.agregarEstacion(e);
         }

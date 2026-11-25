@@ -7,8 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import edu.udb.rutasv.nucleo.excepciones.ValidacionException;
 import edu.udb.rutasv.nucleo.modelo.Estacion;
 import edu.udb.rutasv.nucleo.modelo.RutaCalculada;
-import edu.udb.rutasv.nucleo.temporal.ColaPrioridadTemporal;
-import edu.udb.rutasv.nucleo.temporal.MapaTemporal;
+import edu.udb.rutasv.nucleo.estructuras.impl.MonticuloBinario;
+import edu.udb.rutasv.nucleo.estructuras.impl.TablaHash;
 import edu.udb.rutasv.ruta.RedDeEjemplo;
 import edu.udb.rutasv.ruta.algoritmos.Dijkstra;
 import edu.udb.rutasv.ruta.estructuras.GrafoListaAdyacencia;
@@ -25,7 +25,7 @@ class RutaServiceImplTest {
 
     private final GrafoListaAdyacencia red = RedDeEjemplo.crear();
     private final RutaServiceImpl servicio =
-            new RutaServiceImpl(red, new Dijkstra(ColaPrioridadTemporal::new, MapaTemporal::new), RELOJ);
+            new RutaServiceImpl(red, new Dijkstra(MonticuloBinario::new, TablaHash::new), RELOJ);
 
     @Test
     void armaLaRutaCalculadaCompleta() {

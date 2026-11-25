@@ -3,7 +3,7 @@ package edu.udb.rutasv.paradas.servicios;
 import edu.udb.rutasv.nucleo.estructuras.Mapa;
 import edu.udb.rutasv.nucleo.excepciones.ValidacionException;
 import edu.udb.rutasv.nucleo.modelo.Estacion;
-import edu.udb.rutasv.paradas.estructuras.TablaHash;
+import edu.udb.rutasv.nucleo.estructuras.impl.TablaHash;
 
 /**
  * Directorio de estaciones (rol Paradas): busqueda directa por codigo o por nombre. Codigo y nombre

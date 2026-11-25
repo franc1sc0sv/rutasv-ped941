@@ -6,7 +6,7 @@ import edu.udb.rutasv.auth.servicios.AuthServiceImpl;
 import edu.udb.rutasv.nucleo.archivo.ArchivoAtomico;
 import edu.udb.rutasv.nucleo.estructuras.Lista;
 import edu.udb.rutasv.nucleo.excepciones.PersistenciaException;
-import edu.udb.rutasv.nucleo.temporal.ListaTemporal;
+import edu.udb.rutasv.nucleo.estructuras.impl.ListaDinamica;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -22,12 +22,12 @@ public class UsuarioRepositorioArchivo implements UsuarioRepositorio {
     private final Path archivo;
     private final Supplier<Lista<Usuario>> fabrica;
 
-    /** Usa la lista temporal por defecto. */
+    /** Devuelve los usuarios en una {@code ListaDinamica}. */
     public UsuarioRepositorioArchivo(Path archivo) {
-        this(archivo, ListaTemporal::new);
+        this(archivo, ListaDinamica::new);
     }
 
-    /** Permite elegir la lista que se devuelve (por ejemplo la propia del equipo). */
+    /** Permite elegir la lista que se devuelve (util en pruebas). */
     public UsuarioRepositorioArchivo(Path archivo, Supplier<Lista<Usuario>> fabrica) {
         this.archivo = archivo;
         this.fabrica = fabrica;

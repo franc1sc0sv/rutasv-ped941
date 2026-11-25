@@ -7,9 +7,9 @@ import edu.udb.rutasv.nucleo.estructuras.Mapa;
 import edu.udb.rutasv.nucleo.excepciones.ValidacionException;
 import edu.udb.rutasv.nucleo.modelo.Pasajero;
 import edu.udb.rutasv.nucleo.modelo.UnidadTransporte;
-import edu.udb.rutasv.nucleo.temporal.ListaTemporal;
-import edu.udb.rutasv.nucleo.temporal.MapaTemporal;
-import edu.udb.rutasv.terminal.estructuras.MonticuloBinario;
+import edu.udb.rutasv.nucleo.estructuras.impl.ListaDinamica;
+import edu.udb.rutasv.nucleo.estructuras.impl.TablaHash;
+import edu.udb.rutasv.nucleo.estructuras.impl.MonticuloBinario;
 import java.util.function.Supplier;
 
 /**
@@ -47,7 +47,7 @@ public class Terminal {
      */
     public Terminal(String nombre, ColaPrioridad<UnidadTransporte> unidadesDisponibles, Cola<Pasajero> filaPasajeros,
                     Supplier<ColaPrioridad<UnidadTransporte>> colaVacia) {
-        this(nombre, unidadesDisponibles, filaPasajeros, colaVacia, new MapaTemporal<>());
+        this(nombre, unidadesDisponibles, filaPasajeros, colaVacia, new TablaHash<>());
     }
 
     /**
@@ -108,7 +108,7 @@ public class Terminal {
         for (String id : unidadesEnEspera.claves()) {
             copia.insertar(unidadesEnEspera.obtener(id));
         }
-        Lista<UnidadTransporte> orden = new ListaTemporal<>();
+        Lista<UnidadTransporte> orden = new ListaDinamica<>();
         while (!copia.estaVacia()) {
             orden.agregar(copia.extraer());
         }
@@ -142,7 +142,7 @@ public class Terminal {
 
     /** Pasajeros en la fila, en orden de llegada, sin atender a nadie. */
     public Lista<Pasajero> verFila() {
-        Lista<Pasajero> fila = new ListaTemporal<>();
+        Lista<Pasajero> fila = new ListaDinamica<>();
         int total = filaPasajeros.tamano();
         for (int i = 0; i < total; i++) {
             Pasajero pasajero = filaPasajeros.desencolar();
