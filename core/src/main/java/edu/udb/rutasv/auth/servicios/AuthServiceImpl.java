@@ -10,12 +10,11 @@ import edu.udb.rutasv.auth.repositorios.UsuarioRepositorio;
 import edu.udb.rutasv.nucleo.estructuras.Lista;
 import edu.udb.rutasv.nucleo.estructuras.Mapa;
 import edu.udb.rutasv.nucleo.excepciones.ValidacionException;
-import edu.udb.rutasv.nucleo.temporal.ListaTemporal;
+import edu.udb.rutasv.nucleo.estructuras.impl.ListaDinamica;
+import edu.udb.rutasv.nucleo.estructuras.impl.TablaHash;
 import java.security.SecureRandom;
 import java.util.Base64;
-import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
@@ -37,15 +36,15 @@ public class AuthServiceImpl implements AuthService {
     private final Supplier<Lista<Usuario>> fabricaListas;
     /** Todo acceso al Mapa pasa por este candado: la estructura propia no es segura entre hilos. */
     private final ReentrantReadWriteLock candado = new ReentrantReadWriteLock();
-    /** token -> usuario de las sesiones abiertas. */
-    private final Map<String, String> sesiones = new ConcurrentHashMap<>();
+    /** token -> usuario de las sesiones abiertas. Tabla hash propia: buscar un token es O(1) promedio. */
+    private final Mapa<String, String> sesiones = new TablaHash<>();
     private final SecureRandom azar = new SecureRandom();
 
     public AuthServiceImpl(Mapa<String, Usuario> usuarios, UsuarioRepositorio repo, PasswordHasher hasher) {
-        this(usuarios, repo, hasher, ListaTemporal::new);
+        this(usuarios, repo, hasher, ListaDinamica::new);
     }
 
-    /** Permite elegir la lista usada al guardar (por ejemplo la propia del equipo). */
+    /** Permite elegir la lista usada al guardar (util en pruebas). */
     public AuthServiceImpl(Mapa<String, Usuario> usuarios, UsuarioRepositorio repo, PasswordHasher hasher,
                            Supplier<Lista<Usuario>> fabricaListas) {
         this.usuarios = usuarios;
@@ -112,7 +111,9 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public void cerrarSesion(Sesion sesion) {
         if (sesion != null) {
-            sesiones.remove(sesion.token());
+            synchronized (sesiones) {
+                sesiones.eliminar(sesion.token());
+            }
         }
     }
 
@@ -121,7 +122,10 @@ public class AuthServiceImpl implements AuthService {
         if (sesion == null || sesion.token() == null) {
             return Optional.empty();
         }
-        String dueno = sesiones.get(sesion.token());
+        String dueno;
+        synchronized (sesiones) {
+            dueno = sesiones.obtener(sesion.token());
+        }
         if (dueno == null || !dueno.equals(sesion.usuario())) {
             return Optional.empty();
         }
@@ -138,7 +142,9 @@ public class AuthServiceImpl implements AuthService {
         byte[] bytes = new byte[16];
         azar.nextBytes(bytes);
         String token = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
-        sesiones.put(token, usuario);
+        synchronized (sesiones) {
+            sesiones.poner(token, usuario);
+        }
         return new Sesion(usuario, rol, token);
     }
 }

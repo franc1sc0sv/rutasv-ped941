@@ -6,8 +6,8 @@ import edu.udb.rutasv.nucleo.estructuras.RedVial;
 import edu.udb.rutasv.nucleo.excepciones.ValidacionException;
 import edu.udb.rutasv.nucleo.modelo.Arista;
 import edu.udb.rutasv.nucleo.modelo.Estacion;
-import edu.udb.rutasv.nucleo.temporal.ListaTemporal;
-import edu.udb.rutasv.nucleo.temporal.MapaTemporal;
+import edu.udb.rutasv.nucleo.estructuras.impl.ListaDinamica;
+import edu.udb.rutasv.nucleo.estructuras.impl.TablaHash;
 
 /**
  * Grafo ponderado y dirigido de la red vial con lista de adyacencia (rol Ruta).
@@ -27,9 +27,9 @@ public class GrafoListaAdyacencia implements RedVial {
     /** Codigos en orden de alta, para listar la red siempre en el mismo orden. */
     private final Lista<String> orden = nuevaLista();
 
-    /** Usa tablas temporales por defecto; desde {@code app} se inyecta {@code TablaHash} (rol Paradas). */
+    /** Grafo vacio con dos {@code TablaHash}: estaciones por codigo y tramos salientes por codigo. */
     public GrafoListaAdyacencia() {
-        this(new MapaTemporal<>(), new MapaTemporal<>());
+        this(new TablaHash<>(), new TablaHash<>());
     }
 
     /** Recibe las dos tablas hash vacias: estaciones por codigo y tramos salientes por codigo. */
@@ -38,9 +38,9 @@ public class GrafoListaAdyacencia implements RedVial {
         this.adyacencia = adyacencia;
     }
 
-    // Cuando llegue ListaDinamica (rol Historial) basta con cambiar esta linea.
+    /** Lista de vecinos de cada estacion: arreglo dinamico, agregar es O(1) amortizado. */
     private static <T> Lista<T> nuevaLista() {
-        return new ListaTemporal<>();
+        return new ListaDinamica<>();
     }
 
     @Override

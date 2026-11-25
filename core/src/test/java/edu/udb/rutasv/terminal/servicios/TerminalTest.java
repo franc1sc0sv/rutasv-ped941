@@ -9,8 +9,8 @@ import edu.udb.rutasv.nucleo.excepciones.ColeccionVaciaException;
 import edu.udb.rutasv.nucleo.modelo.Pasajero;
 import edu.udb.rutasv.nucleo.modelo.TipoRuta;
 import edu.udb.rutasv.nucleo.modelo.UnidadTransporte;
-import edu.udb.rutasv.nucleo.temporal.ColaPrioridadTemporal;
-import edu.udb.rutasv.nucleo.temporal.ColaTemporal;
+import edu.udb.rutasv.nucleo.estructuras.impl.MonticuloBinario;
+import edu.udb.rutasv.nucleo.estructuras.impl.ColaEnlazada;
 import java.time.LocalTime;
 import java.util.Comparator;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,11 +22,11 @@ class TerminalTest {
 
     @BeforeEach
     void preparar() {
-        // Mientras llegan las colas propias (PR de cola de prioridad y de cola FIFO) se usan las temporales.
+        // Se prueba con las colas propias: monticulo binario y cola enlazada.
         terminal = new Terminal(
                 "Terminal Occidente",
-                new ColaPrioridadTemporal<>(Comparator.comparing(UnidadTransporte::horaProgramada)),
-                new ColaTemporal<>());
+                new MonticuloBinario<>(Comparator.comparing(UnidadTransporte::horaProgramada)),
+                new ColaEnlazada<>());
     }
 
     private static UnidadTransporte unidad(String id, String hora) {
@@ -37,7 +37,7 @@ class TerminalTest {
     void nombreVacioSeRechaza() {
         assertThrows(
                 IllegalArgumentException.class,
-                () -> new Terminal(" ", new ColaPrioridadTemporal<>(Comparator.comparing(UnidadTransporte::id)), new ColaTemporal<>()));
+                () -> new Terminal(" ", new MonticuloBinario<>(Comparator.comparing(UnidadTransporte::id)), new ColaEnlazada<>()));
     }
 
     @Test

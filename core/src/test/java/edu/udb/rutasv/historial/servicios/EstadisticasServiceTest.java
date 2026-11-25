@@ -6,8 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import edu.udb.rutasv.historial.repositorios.HistorialRepositorioArchivo;
 import edu.udb.rutasv.nucleo.modelo.EstadisticasGlobales;
 import edu.udb.rutasv.nucleo.modelo.RutaCalculada;
-import edu.udb.rutasv.nucleo.temporal.ColaPrioridadTemporal;
-import edu.udb.rutasv.nucleo.temporal.MapaTemporal;
+import edu.udb.rutasv.nucleo.estructuras.impl.MonticuloBinario;
+import edu.udb.rutasv.nucleo.estructuras.impl.TablaHash;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -26,7 +26,7 @@ class EstadisticasServiceTest {
     @BeforeEach
     void crear() {
         historial = new HistorialService(new HistorialRepositorioArchivo(dir.resolve("historial.txt")));
-        estadisticas = new EstadisticasService(historial, MapaTemporal::new, ColaPrioridadTemporal::new);
+        estadisticas = new EstadisticasService(historial, TablaHash::new, MonticuloBinario::new);
     }
 
     private void registrar(String origen, String destino, long tiempoNs) {

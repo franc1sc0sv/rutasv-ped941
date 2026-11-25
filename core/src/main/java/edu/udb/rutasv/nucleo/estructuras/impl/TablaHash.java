@@ -1,11 +1,12 @@
-package edu.udb.rutasv.paradas.estructuras;
+package edu.udb.rutasv.nucleo.estructuras.impl;
 
 import edu.udb.rutasv.nucleo.estructuras.Lista;
 import edu.udb.rutasv.nucleo.estructuras.Mapa;
-import edu.udb.rutasv.nucleo.temporal.ListaTemporal;
+import edu.udb.rutasv.nucleo.estructuras.impl.ListaDinamica;
 
 /**
- * Tabla hash propia (rol Paradas). Tambien la usa el login y la usaran Ruta e Historial.
+ * Tabla hash propia (autoria: rol Paradas). La usan el login, el grafo, Dijkstra, la busqueda, la
+ * terminal y las estadisticas.
  *
  * <p>Guarda los pares en un arreglo de cubos con <em>encadenamiento</em>: cada cubo es una lista
  * enlazada de nodos, asi que las colisiones no se pierden ni desplazan a otras claves. La funcion
@@ -147,7 +148,7 @@ public class TablaHash<K, V> implements Mapa<K, V> {
      */
     @Override
     public Lista<K> claves() {
-        Lista<K> resultado = new ListaTemporal<>();
+        Lista<K> resultado = new ListaDinamica<>();
         for (Nodo<K, V> nodo = primero; nodo != null; nodo = nodo.siguienteOrden) {
             resultado.agregar(nodo.clave);
         }

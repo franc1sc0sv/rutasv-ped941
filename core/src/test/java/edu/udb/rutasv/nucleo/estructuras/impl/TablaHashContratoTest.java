@@ -1,4 +1,4 @@
-package edu.udb.rutasv.paradas.estructuras;
+package edu.udb.rutasv.nucleo.estructuras.impl;
 
 import edu.udb.rutasv.nucleo.estructuras.Mapa;
 import edu.udb.rutasv.nucleo.estructuras.MapaContractTest;

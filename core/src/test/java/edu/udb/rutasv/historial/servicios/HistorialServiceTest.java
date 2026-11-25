@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import edu.udb.rutasv.historial.estructuras.ListaDinamica;
+import edu.udb.rutasv.nucleo.estructuras.impl.ListaDinamica;
 import edu.udb.rutasv.historial.repositorios.HistorialRepositorio;
 import edu.udb.rutasv.historial.repositorios.HistorialRepositorioArchivo;
 import edu.udb.rutasv.nucleo.estructuras.Lista;

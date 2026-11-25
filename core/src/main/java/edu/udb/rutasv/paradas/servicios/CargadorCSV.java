@@ -1,13 +1,13 @@
 package edu.udb.rutasv.paradas.servicios;
 
+import edu.udb.rutasv.nucleo.estructuras.Lista;
+import edu.udb.rutasv.nucleo.estructuras.impl.ListaDinamica;
 import edu.udb.rutasv.nucleo.modelo.Estacion;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Carga de los CSV de datos (rol Paradas). Separador {@code ;}, como en {@code data/}:
@@ -19,8 +19,8 @@ public class CargadorCSV {
     private static final String SEPARADOR = ";";
 
     public static class ResultadoCargaEstaciones {
-        public List<Estacion> estacionesValidas = new ArrayList<>();
-        public List<String> errores = new ArrayList<>();
+        public Lista<Estacion> estacionesValidas = new ListaDinamica<>();
+        public Lista<String> errores = new ListaDinamica<>();
     }
 
     public static class TramoCSV {
@@ -38,8 +38,8 @@ public class CargadorCSV {
     }
 
     public static class ResultadoCargaTramos {
-        public List<TramoCSV> tramosValidos = new ArrayList<>();
-        public List<String> errores = new ArrayList<>();
+        public Lista<TramoCSV> tramosValidos = new ListaDinamica<>();
+        public Lista<String> errores = new ListaDinamica<>();
     }
 
     public ResultadoCargaEstaciones cargarEstacionesDesdeCSV(String rutaArchivo) {
@@ -64,7 +64,7 @@ public class CargadorCSV {
 
                 String[] partes = linea.split(SEPARADOR, -1);
                 if (partes.length < 5) {
-                    resultado.errores.add("Línea " + numeroLinea + ": Formato inválido, se esperaban al menos 5 campos (codigo;nombre;zona;x;y).");
+                    resultado.errores.agregar("Línea " + numeroLinea + ": Formato inválido, se esperaban al menos 5 campos (codigo;nombre;zona;x;y).");
                     continue;
                 }
 
@@ -73,7 +73,7 @@ public class CargadorCSV {
                 String zona = partes[2].trim();
 
                 if (codigo.isEmpty() || nombre.isEmpty()) {
-                    resultado.errores.add("Línea " + numeroLinea + ": Código o Nombre vacío.");
+                    resultado.errores.agregar("Línea " + numeroLinea + ": Código o Nombre vacío.");
                     continue;
                 }
 
@@ -81,13 +81,13 @@ public class CargadorCSV {
                     double x = Double.parseDouble(partes[3].trim());
                     double y = Double.parseDouble(partes[4].trim());
                     boolean activa = partes.length < 6 || partes[5].trim().isEmpty() || Boolean.parseBoolean(partes[5].trim());
-                    resultado.estacionesValidas.add(new Estacion(codigo, nombre, zona, x, y, activa));
+                    resultado.estacionesValidas.agregar(new Estacion(codigo, nombre, zona, x, y, activa));
                 } catch (NumberFormatException e) {
-                    resultado.errores.add("Línea " + numeroLinea + ": Error numérico en las coordenadas x o y.");
+                    resultado.errores.agregar("Línea " + numeroLinea + ": Error numérico en las coordenadas x o y.");
                 }
             }
         } catch (IOException e) {
-            resultado.errores.add("Error al leer el archivo CSV de estaciones: " + e.getMessage());
+            resultado.errores.agregar("Error al leer el archivo CSV de estaciones: " + e.getMessage());
         }
 
         return resultado;
@@ -115,7 +115,7 @@ public class CargadorCSV {
 
                 String[] partes = linea.split(SEPARADOR, -1);
                 if (partes.length < 4) {
-                    resultado.errores.add("Línea " + numeroLinea + ": Formato de tramo inválido (origen;destino;minutos;km).");
+                    resultado.errores.agregar("Línea " + numeroLinea + ": Formato de tramo inválido (origen;destino;minutos;km).");
                     continue;
                 }
 
@@ -126,21 +126,21 @@ public class CargadorCSV {
                     double km = Double.parseDouble(partes[3].trim());
 
                     if (origen.isEmpty() || destino.isEmpty()) {
-                        resultado.errores.add("Línea " + numeroLinea + ": Origen o destino vacíos.");
+                        resultado.errores.agregar("Línea " + numeroLinea + ": Origen o destino vacíos.");
                         continue;
                     }
                     if (minutos <= 0) {
-                        resultado.errores.add("Línea " + numeroLinea + ": Los minutos deben ser mayores que 0 (RN-2).");
+                        resultado.errores.agregar("Línea " + numeroLinea + ": Los minutos deben ser mayores que 0 (RN-2).");
                         continue;
                     }
 
-                    resultado.tramosValidos.add(new TramoCSV(origen, destino, minutos, km));
+                    resultado.tramosValidos.agregar(new TramoCSV(origen, destino, minutos, km));
                 } catch (NumberFormatException e) {
-                    resultado.errores.add("Línea " + numeroLinea + ": Error numérico en minutos o kilómetros.");
+                    resultado.errores.agregar("Línea " + numeroLinea + ": Error numérico en minutos o kilómetros.");
                 }
             }
         } catch (IOException e) {
-            resultado.errores.add("Error al leer el archivo CSV de tramos: " + e.getMessage());
+            resultado.errores.agregar("Error al leer el archivo CSV de tramos: " + e.getMessage());
         }
 
         return resultado;

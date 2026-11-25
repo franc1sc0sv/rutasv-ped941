@@ -8,8 +8,8 @@ import edu.udb.rutasv.auth.modelo.Sesion;
 import edu.udb.rutasv.auth.modelo.Usuario;
 import edu.udb.rutasv.auth.repositorios.UsuarioRepositorio;
 import edu.udb.rutasv.nucleo.estructuras.Lista;
-import edu.udb.rutasv.nucleo.temporal.ListaTemporal;
-import edu.udb.rutasv.nucleo.temporal.MapaTemporal;
+import edu.udb.rutasv.nucleo.estructuras.impl.ListaDinamica;
+import edu.udb.rutasv.nucleo.estructuras.impl.TablaHash;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -19,11 +19,11 @@ import org.junit.jupiter.api.Test;
 class AutorizadorTest {
     private static final String CLAVE = "clave-sintetica-1";
     private final PasswordHasher hasher = new PasswordHasher(1000);
-    private final MapaTemporal<String, Usuario> mapa = new MapaTemporal<>();
+    private final TablaHash<String, Usuario> mapa = new TablaHash<>();
     private final AuthService auth = new AuthServiceImpl(mapa, new UsuarioRepositorio() {
         @Override
         public Lista<Usuario> cargar() {
-            return new ListaTemporal<>();
+            return new ListaDinamica<>();
         }
 
         @Override
@@ -93,7 +93,7 @@ class AutorizadorTest {
         Autorizador otro = new Autorizador(new AuthServiceImpl(mapa, new UsuarioRepositorio() {
             @Override
             public Lista<Usuario> cargar() {
-                return new ListaTemporal<>();
+                return new ListaDinamica<>();
             }
 
             @Override

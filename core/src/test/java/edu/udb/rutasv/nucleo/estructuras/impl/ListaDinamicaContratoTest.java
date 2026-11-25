@@ -1,4 +1,4 @@
-package edu.udb.rutasv.historial.estructuras;
+package edu.udb.rutasv.nucleo.estructuras.impl;
 
 import edu.udb.rutasv.nucleo.estructuras.Lista;
 import edu.udb.rutasv.nucleo.estructuras.ListaContractTest;

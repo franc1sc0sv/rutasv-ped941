@@ -10,7 +10,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-/** Dobles de prueba minimos, sin depender de las clases temporales. */
+/** Dobles de prueba minimos, sin depender de las estructuras reales. */
 final class Fakes {
     private Fakes() {
     }

@@ -1,4 +1,4 @@
-package edu.udb.rutasv.terminal.estructuras;
+package edu.udb.rutasv.nucleo.estructuras.impl;
 
 import org.junit.jupiter.api.Test;
 import edu.udb.rutasv.nucleo.excepciones.ColeccionVaciaException;

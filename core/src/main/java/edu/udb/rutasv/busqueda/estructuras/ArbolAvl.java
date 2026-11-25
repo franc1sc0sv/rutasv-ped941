@@ -4,7 +4,7 @@ import edu.udb.rutasv.busqueda.servicios.Normalizador;
 import edu.udb.rutasv.nucleo.estructuras.IndiceNombres;
 import edu.udb.rutasv.nucleo.estructuras.Lista;
 import edu.udb.rutasv.nucleo.modelo.Estacion;
-import edu.udb.rutasv.nucleo.temporal.ListaTemporal;
+import edu.udb.rutasv.nucleo.estructuras.impl.ListaDinamica;
 
 /**
  * Arbol AVL del autocompletado (rol Busqueda), ordenado por nombre normalizado.
@@ -60,7 +60,7 @@ public class ArbolAvl implements IndiceNombres {
 
     @Override
     public Lista<String> conPrefijo(String texto) {
-        Lista<String> resultado = new ListaTemporal<>();
+        Lista<String> resultado = new ListaDinamica<>();
         conPrefijo(raiz, Normalizador.normalizar(texto), resultado);
         return resultado;
     }

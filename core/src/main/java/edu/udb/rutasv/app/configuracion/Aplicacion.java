@@ -23,14 +23,14 @@ import edu.udb.rutasv.nucleo.excepciones.ValidacionException;
 import edu.udb.rutasv.nucleo.modelo.Estacion;
 import edu.udb.rutasv.nucleo.modelo.Pasajero;
 import edu.udb.rutasv.nucleo.modelo.TipoRuta;
-import edu.udb.rutasv.paradas.estructuras.TablaHash;
+import edu.udb.rutasv.nucleo.estructuras.impl.TablaHash;
 import edu.udb.rutasv.paradas.servicios.CargadorCSV;
 import edu.udb.rutasv.paradas.servicios.DirectorioEstaciones;
 import edu.udb.rutasv.ruta.algoritmos.Dijkstra;
 import edu.udb.rutasv.ruta.estructuras.GrafoListaAdyacencia;
 import edu.udb.rutasv.ruta.servicios.RutaServiceImpl;
-import edu.udb.rutasv.terminal.estructuras.ColaEnlazada;
-import edu.udb.rutasv.terminal.estructuras.MonticuloBinario;
+import edu.udb.rutasv.nucleo.estructuras.impl.ColaEnlazada;
+import edu.udb.rutasv.nucleo.estructuras.impl.MonticuloBinario;
 import edu.udb.rutasv.terminal.servicios.ReglaDespacho;
 import edu.udb.rutasv.terminal.servicios.Terminal;
 import java.nio.file.Path;
@@ -39,8 +39,8 @@ import java.util.logging.Logger;
 
 
 /**
- * Raiz de composicion: arma las piezas y devuelve el sistema. Aqui se cambia cada estructura
- * temporal por la propia del rol cuando pasa su prueba de contrato.
+ * Raiz de composicion: arma las piezas y devuelve el sistema. Es el unico lugar que conoce todos los
+ * modulos y decide que implementacion concreta recibe cada interfaz de {@code nucleo}.
  */
 public final class Aplicacion {
 
@@ -65,7 +65,7 @@ public final class Aplicacion {
         new SeedAdmin(usuarios, repo, hasher, entorno).ejecutar();
         AuthService auth = new AuthServiceImpl(usuarios, repo, hasher);
 
-        GrafoListaAdyacencia red = new GrafoListaAdyacencia(new TablaHash<>(), new TablaHash<>());
+        GrafoListaAdyacencia red = new GrafoListaAdyacencia();
         DirectorioEstaciones directorio = new DirectorioEstaciones();
         IndiceNombres indice = new ArbolAvl();
         cargarRed(dirDatos, red, directorio, indice);

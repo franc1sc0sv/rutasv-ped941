@@ -5,8 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import edu.udb.rutasv.nucleo.estructuras.Lista;
 import edu.udb.rutasv.nucleo.modelo.Estacion;
-import edu.udb.rutasv.nucleo.temporal.ColaPrioridadTemporal;
-import edu.udb.rutasv.nucleo.temporal.MapaTemporal;
+import edu.udb.rutasv.nucleo.estructuras.impl.MonticuloBinario;
+import edu.udb.rutasv.nucleo.estructuras.impl.TablaHash;
 import edu.udb.rutasv.ruta.RedDeEjemplo;
 import edu.udb.rutasv.ruta.estructuras.GrafoListaAdyacencia;
 import edu.udb.rutasv.ruta.modelo.Camino;
@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
 
 class DijkstraTest {
 
-    private final Dijkstra dijkstra = new Dijkstra(ColaPrioridadTemporal::new, MapaTemporal::new);
+    private final Dijkstra dijkstra = new Dijkstra(MonticuloBinario::new, TablaHash::new);
     private final GrafoListaAdyacencia red = RedDeEjemplo.crear();
 
     private static List<String> codigos(Lista<String> lista) {

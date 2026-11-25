@@ -1,4 +1,4 @@
-package edu.udb.rutasv.terminal.estructuras;
+package edu.udb.rutasv.nucleo.estructuras.impl;
 
 import edu.udb.rutasv.nucleo.estructuras.ColaPrioridad;
 import edu.udb.rutasv.nucleo.excepciones.ColeccionVaciaException;
