@@ -37,7 +37,9 @@ echo "Compilando la API..."
 mvn -B -q package -DskipTests
 
 echo "API en http://localhost:$PUERTO/api (datos: $DIR)"
-RUTASV_PORT="$PUERTO" RUTASV_DATA_DIR="$DIR" java -jar api/target/rutasv-api.jar &
+# Se corre una copia del jar: si alguien recompila durante la demo, el servidor no se cae.
+cp api/target/rutasv-api.jar "$DIR/rutasv-api.jar"
+RUTASV_PORT="$PUERTO" RUTASV_DATA_DIR="$DIR" java -jar "$DIR/rutasv-api.jar" &
 API=$!
 trap 'kill $API 2>/dev/null || true' EXIT
 

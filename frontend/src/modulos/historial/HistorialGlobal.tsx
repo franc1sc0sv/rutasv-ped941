@@ -1,15 +1,24 @@
 // Historial global (Fig. 11). Rol dueno: Historial. Solo ADMIN.
-// Endpoint: GET /estadisticas -> { totalBusquedas, rutaMasConsultada, tiempoPromedioNs, top5 } (hoy 501 pendiente).
+// Endpoint: GET /estadisticas -> { totalBusquedas, rutaMasConsultada, tiempoPromedioNs, top5 }.
+// El servidor manda pares con codigos ("E01 -> E04"); aqui se muestran con el nombre de cada estacion.
 import type { ReactNode } from 'react';
 import { api } from '../../api/cliente';
 import type { Estadisticas } from '../../api/tipos';
 import { nsAMs } from '../../comun/formato';
 import { Aviso, Boton, Esqueleto, EstadoVacio, Pagina, Pendiente, Tarjeta } from '../../comun/ui';
 import { usePedido } from '../../comun/usePedido';
+import { useEstaciones } from '../../comun/useEstaciones';
 import './historial.css';
 
 export function HistorialGlobal() {
   const est = usePedido(() => api.get<Estadisticas>('/estadisticas'), []);
+  const estaciones = useEstaciones();
+  /** "E01 -> E04" pasa a "Terminal Occidente → Metrocentro"; si falta un nombre, queda el codigo. */
+  const legible = (par: string) =>
+    par
+      .split(' -> ')
+      .map((c) => estaciones.porCodigo.get(c)?.nombre ?? c)
+      .join(' → ');
 
   let cuerpo: ReactNode;
   if (est.cargando) {
@@ -33,7 +42,7 @@ export function HistorialGlobal() {
           </div>
           <div className="cifras__item">
             <dt>Ruta más consultada</dt>
-            <dd className="cifras__texto">{d.rutaMasConsultada || 'Sin datos'}</dd>
+            <dd className="cifras__texto">{d.rutaMasConsultada ? legible(d.rutaMasConsultada) : 'Sin datos'}</dd>
           </div>
           <div className="cifras__item">
             <dt>Tiempo promedio de cálculo</dt>
@@ -48,7 +57,8 @@ export function HistorialGlobal() {
               {d.top5.map((r, i) => (
                 <li key={`${r}-${i}`}>
                   <span className="top5__pos cifra">{i + 1}</span>
-                  <span>{r}</span>
+                  <span>{legible(r)}</span>
+                  <span className="texto-suave cifra">{r}</span>
                 </li>
               ))}
             </ol>
