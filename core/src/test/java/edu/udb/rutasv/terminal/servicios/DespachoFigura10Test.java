@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import edu.udb.rutasv.nucleo.estructuras.Lista;
 import edu.udb.rutasv.nucleo.excepciones.ColeccionVaciaException;
-import edu.udb.rutasv.nucleo.modelo.Pasajero;
 import edu.udb.rutasv.nucleo.modelo.TipoRuta;
 import edu.udb.rutasv.nucleo.modelo.UnidadTransporte;
 import edu.udb.rutasv.nucleo.estructuras.impl.MonticuloBinario;

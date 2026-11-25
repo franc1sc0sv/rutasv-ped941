@@ -1,9 +1,31 @@
-codigo;nombre;zona;x;y
-E01;Terminal Occidente;Occidente;10;50
-E02;Redondel Masferrer;Centro;30;50
-E03;Plaza Merliot;Sur;50;45
-E04;Metrocentro;Centro;52;50
-E05;Terminal Oriente;Oriente;90;55
-E06;Parque Central;Centro;40;60
-E07;Hospital Norte;Norte;35;80
-E08;Universidad Sur;Sur;55;20
+codigo;nombre;zona;x;y;activa
+E01;Terminal Occidente;Occidente;10;50;true
+E02;Redondel Masferrer;Centro;30;50;true
+E03;Plaza Merliot;Sur;50;45;true
+E04;Metrocentro;Centro;52;50;true
+E05;Terminal Oriente;Oriente;90;55;true
+E06;Parque Central;Centro;40;60;true
+E07;Hospital Norte;Norte;35;80;true
+E08;Universidad Sur;Sur;55;20;true
+E09;Terminal Sur;Sur;50;8;true
+E10;Soyapango;Oriente;78;62;true
+E11;Ilopango;Oriente;96;44;true
+E12;Mejicanos;Norte;40;88;true
+E13;Ciudad Delgado;Norte;56;80;true
+E14;Antiguo Cuscatlán;Sur;24;34;true
+E15;Santa Tecla;Occidente;4;34;true
+E16;San Marcos;Sur;62;12;true
+E17;Centro Histórico;Centro;45;55;true
+E18;Plaza Mundo;Oriente;86;50;true
+E19;Cuscatancingo;Norte;50;92;true
+E20;Zona Rosa;Centro;27;43;true
+E21;Estadio Cuscatlán;Sur;36;30;true
+E22;Mercado Central;Centro;47;61;true
+E23;Apopa;Norte;46;99;false
+E24;Nejapa;Norte;28;97;true
+E25;Quezaltepeque;Norte;14;94;true
+E26;Aguilares;Norte;22;100;true
+E27;Lourdes Colón;Occidente;1;46;true
+E28;San Jacinto;Sur;52;34;false
+E29;Bulevar del Ejército;Oriente;68;56;true
+E30;Hospital Rosales;Centro;37;53;false

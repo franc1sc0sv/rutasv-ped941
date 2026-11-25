@@ -138,9 +138,9 @@ class AplicacionTest {
         Sesion admin = sistema.iniciarSesion("admin", "clave-sintetica-9");
         Sesion s = sistema.registrar("usuario_prueba", "clave-sintetica-1");
 
-        assertEquals(8, sistema.verRed(admin).estaciones().tamano());
+        assertEquals(30, sistema.verRed(admin).estaciones().tamano());
         assertTrue(sistema.calcularRuta(s, "E07", "E05").isPresent());
-        assertEquals(8, sistema.verRed(s).estaciones().tamano());
+        assertEquals(30, sistema.verRed(s).estaciones().tamano());
         assertThrows(AccesoDenegadoException.class, () -> sistema.verRed(s).agregarTramo("E07", "E05", 1, 1.0));
         sistema.agregarTramo(admin, "E07", "E05", 1, 1.0);
         assertEquals(1, sistema.calcularRuta(s, "E07", "E05").orElseThrow().minutos());
@@ -168,16 +168,16 @@ class AplicacionTest {
         Sesion admin = sistema.iniciarSesion("admin", "clave-sintetica-9");
         Sesion s = sistema.registrar("usuario_prueba", "clave-sintetica-1");
 
-        sistema.crearEstacion(admin, new Estacion("E20", "Terminal Sur", "Sur", 50, 5, true));
-        sistema.crearEstacion(admin, new Estacion("E21", "Terminal Cerrada", "Sur", 60, 5, false));
+        sistema.crearEstacion(admin, new Estacion("E40", "Terminal Nueva", "Sur", 50, 5, true));
+        sistema.crearEstacion(admin, new Estacion("E41", "Terminal Cerrada", "Sur", 60, 5, false));
 
         List<String> sugeridas = new java.util.ArrayList<>();
         for (String nombre : sistema.sugerirEstaciones(s, "terminal")) {
             sugeridas.add(nombre);
         }
-        assertTrue(sugeridas.contains("Terminal Sur"));
+        assertTrue(sugeridas.contains("Terminal Nueva"));
         assertTrue(!sugeridas.contains("Terminal Cerrada"), "una estacion inactiva no se sugiere");
-        assertEquals(10, sistema.verRed(s).estaciones().tamano());
+        assertEquals(32, sistema.verRed(s).estaciones().tamano());
     }
 
     @Test

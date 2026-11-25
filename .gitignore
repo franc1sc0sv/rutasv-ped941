@@ -12,3 +12,4 @@ data/usuarios*
 data/historial*
 .env*
 .claude/worktrees/
+.demo-data/
