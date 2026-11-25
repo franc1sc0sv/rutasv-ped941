@@ -20,7 +20,7 @@ Cada rol entregó su estructura. El rol **Paradas** tenía como pendiente reempl
 
 ## 2. Estructura implementada: `TablaHash<K,V>`
 
-**Ubicación:** `core/src/main/java/edu/udb/rutasv/paradas/estructuras/TablaHash.java`
+**Ubicación:** `core/src/main/java/edu/udb/rutasv/nucleo/estructuras/impl/TablaHash.java`
 **Interfaz:** implementa `edu.udb.rutasv.nucleo.estructuras.Mapa<K,V>`
 
 ### 2.1 Decisiones de diseño
@@ -59,7 +59,7 @@ Sean **n** pares almacenados y **m** cubos. Bajo el supuesto de hash uniforme, l
 - `TablaHashContratoTest` (7 pruebas del `MapaContractTest` del equipo) activo al quitar `@Disabled`.
 - `DirectorioEstacionesTest` (6 pruebas) valida alta/búsqueda por código y nombre normalizado usando la tabla.
 
-Resultado: **15/15 pruebas de la tabla (8 específicas + 7 de contrato) y 6/6 del directorio pasan**.
+Resultado: **21/21 pruebas de la tabla (14 específicas + 7 de contrato) y 6/6 del directorio pasan**.
 
 ```mermaid
 classDiagram

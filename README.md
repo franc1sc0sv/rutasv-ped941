@@ -30,6 +30,11 @@ Las cinco genéricas viven en `nucleo/estructuras/impl`, el `java.util` propio d
 El grafo y el AVL son de un solo dominio y se quedan en su módulo.
 Mediciones reales contra el Big-O: [docs/rendimiento.md](docs/rendimiento.md).
 
+## Entregable final de la Fase 3
+
+- [Reporte técnico final](docs/reporte-final-fase3.md): problema, diseño, estructuras, Big-O, evidencia de pruebas, bitácora, demo y limitaciones.
+- [Documento de la tabla hash](docs/tabla-hash.md) y [mediciones de rendimiento](docs/rendimiento.md).
+
 ## Probar la demo (para la defensa)
 
 ```bash
