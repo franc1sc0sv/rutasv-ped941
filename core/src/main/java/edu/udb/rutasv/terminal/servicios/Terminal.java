@@ -4,94 +4,97 @@ import edu.udb.rutasv.nucleo.estructuras.Cola;
 import edu.udb.rutasv.nucleo.estructuras.ColaPrioridad;
 import edu.udb.rutasv.nucleo.estructuras.Lista;
 import edu.udb.rutasv.nucleo.estructuras.Mapa;
+import edu.udb.rutasv.nucleo.estructuras.impl.ColaEnlazada;
+import edu.udb.rutasv.nucleo.estructuras.impl.ListaDinamica;
+import edu.udb.rutasv.nucleo.estructuras.impl.MonticuloBinario;
+import edu.udb.rutasv.nucleo.estructuras.impl.TablaHash;
 import edu.udb.rutasv.nucleo.excepciones.ValidacionException;
 import edu.udb.rutasv.nucleo.modelo.Pasajero;
+import edu.udb.rutasv.nucleo.modelo.TipoRuta;
 import edu.udb.rutasv.nucleo.modelo.UnidadTransporte;
-import edu.udb.rutasv.nucleo.estructuras.impl.ListaDinamica;
-import edu.udb.rutasv.nucleo.estructuras.impl.TablaHash;
-import edu.udb.rutasv.nucleo.estructuras.impl.MonticuloBinario;
 import java.util.function.Supplier;
 
 /**
- * Una terminal: sus unidades esperan en una cola de prioridad (RN-4) y sus pasajeros en una fila
- * FIFO (RN-5). Las dos colas llegan por el constructor, como interfaces de {@code nucleo}, para que
- * la terminal no dependa de una implementación concreta.
+ * Una terminal de buses (rol Terminal). Junta las dos reglas del negocio:
+ *
+ * <ul>
+ *   <li>RN-4: las unidades salen por prioridad. Esperan en una cola de prioridad (montículo binario):
+ *       primero las EXPRES, luego por hora programada y, si empatan, por id. Ver {@link ReglaDespacho}.
+ *   <li>RN-5: los pasajeros se atienden en orden de llegada. Hay una fila FIFO (cola enlazada) por
+ *       cada tipo de ruta, guardadas en una tabla hash {@code TipoRuta -> Cola}.
+ * </ul>
+ *
+ * <p>Dos tablas hash evitan búsquedas lineales: {@code unidadesEnEspera} (id -> unidad) detecta una
+ * unidad repetida en O(1) y permite ver el orden sin vaciar la cola real; {@code pasajerosEnFila}
+ * (id -> tipo) impide que un pasajero esté dos veces en las filas.
  */
 public class Terminal {
+
     private final String nombre;
     private final ColaPrioridad<UnidadTransporte> unidadesDisponibles;
-    private final Cola<Pasajero> filaPasajeros;
-    /** Crea una cola vacia con la misma regla que {@code unidadesDisponibles}, para ver el orden sobre una copia. */
+    /** Crea una cola vacía con la misma regla que {@code unidadesDisponibles}, para ver el orden sobre una copia. */
     private final Supplier<ColaPrioridad<UnidadTransporte>> colaVacia;
-    private final Mapa<String, UnidadTransporte> unidadesEnEspera;
+    private final Mapa<String, UnidadTransporte> unidadesEnEspera = new TablaHash<>();
+    private final Mapa<TipoRuta, Cola<Pasajero>> filas = new TablaHash<>();
+    private final Mapa<String, TipoRuta> pasajerosEnFila = new TablaHash<>();
 
-    /** Terminal con la regla RN-4: {@code verOrdenDespacho} arma su copia con {@link ReglaDespacho}. */
-    public Terminal(
-            String nombre, ColaPrioridad<UnidadTransporte> unidadesDisponibles, Cola<Pasajero> filaPasajeros) {
-        this(nombre, unidadesDisponibles, filaPasajeros, () -> new MonticuloBinario<>(new ReglaDespacho()));
+    /** Terminal con la regla RN-4 y las estructuras propias del equipo. */
+    public Terminal(String nombre) {
+        this(nombre, new MonticuloBinario<>(new ReglaDespacho()));
+    }
+
+    /** Terminal con una cola de unidades dada; {@code verOrdenDespacho} ordena con {@link ReglaDespacho}. */
+    public Terminal(String nombre, ColaPrioridad<UnidadTransporte> unidadesDisponibles) {
+        this(nombre, unidadesDisponibles, () -> new MonticuloBinario<>(new ReglaDespacho()));
     }
 
     /**
-     * Terminal con la regla de despacho por defecto y el mapa de unidades en espera inyectado.
-     * Evita repetir {@code () -> new MonticuloBinario<>(new ReglaDespacho())} desde {@code app}.
-     */
-    public Terminal(String nombre, ColaPrioridad<UnidadTransporte> unidadesDisponibles, Cola<Pasajero> filaPasajeros,
-                    Mapa<String, UnidadTransporte> unidadesEnEspera) {
-        this(nombre, unidadesDisponibles, filaPasajeros,
-                () -> new MonticuloBinario<>(new ReglaDespacho()), unidadesEnEspera);
-    }
-
-    /**
-     * Terminal con una regla de despacho cualquiera. {@code colaVacia} debe crear colas vacias que
+     * Terminal con una regla de despacho cualquiera. {@code colaVacia} debe crear colas vacías que
      * ordenen igual que {@code unidadesDisponibles}.
      */
-    public Terminal(String nombre, ColaPrioridad<UnidadTransporte> unidadesDisponibles, Cola<Pasajero> filaPasajeros,
+    public Terminal(String nombre, ColaPrioridad<UnidadTransporte> unidadesDisponibles,
                     Supplier<ColaPrioridad<UnidadTransporte>> colaVacia) {
-        this(nombre, unidadesDisponibles, filaPasajeros, colaVacia, new TablaHash<>());
-    }
-
-    /**
-     * Terminal con el mapa de unidades en espera inyectado. Desde {@code app} se pasa la
-     * {@code TablaHash} del rol Paradas; este modulo solo conoce la interfaz {@link Mapa} de
-     * {@code nucleo}, asi que no depende de la implementacion concreta.
-     */
-    public Terminal(String nombre, ColaPrioridad<UnidadTransporte> unidadesDisponibles, Cola<Pasajero> filaPasajeros,
-                    Supplier<ColaPrioridad<UnidadTransporte>> colaVacia,
-                    Mapa<String, UnidadTransporte> unidadesEnEspera) {
-        if (nombre == null || nombre.trim().isEmpty()) {
-            throw new IllegalArgumentException("El nombre de la terminal no puede estar vacio");
+        if (nombre == null || nombre.isBlank()) {
+            throw new ValidacionException("El nombre de la terminal no puede estar vacío");
         }
-        if (unidadesDisponibles == null || filaPasajeros == null || colaVacia == null || unidadesEnEspera == null) {
-            throw new IllegalArgumentException("Las colas y el mapa de la terminal no pueden ser nulos");
+        if (unidadesDisponibles == null || colaVacia == null) {
+            throw new ValidacionException("La cola de unidades de la terminal no puede ser nula");
         }
         this.nombre = nombre.trim();
         this.unidadesDisponibles = unidadesDisponibles;
-        this.filaPasajeros = filaPasajeros;
         this.colaVacia = colaVacia;
-        this.unidadesEnEspera = unidadesEnEspera;
+        for (TipoRuta tipo : TipoRuta.values()) {
+            filas.poner(tipo, new ColaEnlazada<>());
+        }
     }
 
     public String getNombre() {
         return nombre;
     }
 
+    // ---- Unidades (RN-4) ----
+
+    /** Agrega una unidad a la cola de despacho. O(log n). */
     public void registrarUnidad(UnidadTransporte unidad) {
-        if (unidad == null) {
-            throw new IllegalArgumentException("La unidad no puede ser nula");
+        if (unidad == null || unidad.id() == null || unidad.id().isBlank()
+                || unidad.tipoRuta() == null || unidad.horaProgramada() == null) {
+            throw new ValidacionException("La unidad necesita id, tipo de ruta y hora programada");
         }
-        if (unidadesEnEspera.contiene(unidad.id())) {
-            throw new ValidacionException("La unidad " + unidad.id() + " ya esta registrada en la terminal");
+        String id = unidad.id().trim();
+        if (unidadesEnEspera.contiene(id)) {
+            throw new ValidacionException("La unidad " + id + " ya está registrada en la terminal");
         }
-        unidadesEnEspera.poner(unidad.id(), unidad);
-        unidadesDisponibles.insertar(unidad);
+        UnidadTransporte limpia = new UnidadTransporte(id, unidad.tipoRuta(), unidad.horaProgramada());
+        unidadesEnEspera.poner(id, limpia);
+        unidadesDisponibles.insertar(limpia);
     }
 
-    /** Unidad que saldría ahora, sin despacharla. Lanza ColeccionVaciaException si no hay. */
+    /** Unidad que saldría ahora, sin despacharla. O(1). Lanza ColeccionVaciaException si no hay. */
     public UnidadTransporte proximaUnidadASalir() {
         return unidadesDisponibles.ver();
     }
 
-    /** Despacha la siguiente unidad. Lanza ColeccionVaciaException si no hay. */
+    /** Despacha la siguiente unidad. O(log n). Lanza ColeccionVaciaException si no hay. */
     public UnidadTransporte despacharUnidad() {
         UnidadTransporte unidad = unidadesDisponibles.extraer();
         unidadesEnEspera.eliminar(unidad.id());
@@ -99,7 +102,7 @@ public class Terminal {
     }
 
     /**
-     * Unidades pendientes en el orden en que saldrian. Copia las unidades en espera a un monticulo
+     * Unidades pendientes en el orden en que saldrían. Copia las unidades en espera a un montículo
      * nuevo y extrae de la copia: la cola real no se toca. O(n log n). Pide un comparador sin
      * empates (como {@link ReglaDespacho}) para que el orden sea siempre el mismo.
      */
@@ -119,36 +122,56 @@ public class Terminal {
         return !unidadesDisponibles.estaVacia();
     }
 
-    /** Regla RN-5: la fila de pasajeros de la terminal es FIFO. */
-    public void registrarPasajeroFila(Pasajero pasajero) {
-        if (pasajero == null) {
-            throw new IllegalArgumentException("El pasajero no puede ser nulo");
+    // ---- Pasajeros (RN-5) ----
+
+    /** Pone al pasajero al final de la fila de su tipo de ruta. O(1). */
+    public void encolarPasajero(TipoRuta tipo, Pasajero pasajero) {
+        Cola<Pasajero> fila = fila(tipo);
+        if (pasajero == null || pasajero.id() == null || pasajero.id().isBlank()
+                || pasajero.nombre() == null || pasajero.nombre().isBlank()) {
+            throw new ValidacionException("El pasajero necesita id y nombre");
         }
-        filaPasajeros.encolar(pasajero);
+        String id = pasajero.id().trim();
+        TipoRuta yaEnFila = pasajerosEnFila.obtener(id);
+        if (yaEnFila != null) {
+            throw new ValidacionException("El pasajero " + id + " ya está en la fila " + yaEnFila);
+        }
+        fila.encolar(new Pasajero(id, pasajero.nombre().trim()));
+        pasajerosEnFila.poner(id, tipo);
     }
 
-    /** Atiende al primero de la fila. Lanza ColeccionVaciaException si no hay nadie. */
-    public Pasajero atenderSiguientePasajero() {
-        return filaPasajeros.desencolar();
+    /** Atiende al primero de la fila de ese tipo. O(1). Lanza ColeccionVaciaException si no hay nadie. */
+    public Pasajero atenderPasajero(TipoRuta tipo) {
+        Pasajero pasajero = fila(tipo).desencolar();
+        pasajerosEnFila.eliminar(pasajero.id());
+        return pasajero;
     }
 
-    public boolean hayPasajerosEnFila() {
-        return !filaPasajeros.estaVacia();
-    }
-
-    public int totalPasajerosEnFila() {
-        return filaPasajeros.tamano();
-    }
-
-    /** Pasajeros en la fila, en orden de llegada, sin atender a nadie. */
-    public Lista<Pasajero> verFila() {
-        Lista<Pasajero> fila = new ListaDinamica<>();
-        int total = filaPasajeros.tamano();
+    /**
+     * Pasajeros de la fila en orden de llegada, sin atender a nadie. Da una vuelta completa a la
+     * cola (desencolar y volver a encolar cada uno), así que la fila queda igual. O(n).
+     */
+    public Lista<Pasajero> verFila(TipoRuta tipo) {
+        Cola<Pasajero> fila = fila(tipo);
+        Lista<Pasajero> copia = new ListaDinamica<>();
+        int total = fila.tamano();
         for (int i = 0; i < total; i++) {
-            Pasajero pasajero = filaPasajeros.desencolar();
-            fila.agregar(pasajero);
-            filaPasajeros.encolar(pasajero);
+            Pasajero pasajero = fila.desencolar();
+            copia.agregar(pasajero);
+            fila.encolar(pasajero);
         }
-        return fila;
+        return copia;
+    }
+
+    /** Personas esperando en la fila de ese tipo. O(1). */
+    public int totalEnFila(TipoRuta tipo) {
+        return fila(tipo).tamano();
+    }
+
+    private Cola<Pasajero> fila(TipoRuta tipo) {
+        if (tipo == null) {
+            throw new ValidacionException("El tipo de ruta es obligatorio");
+        }
+        return filas.obtener(tipo);
     }
 }

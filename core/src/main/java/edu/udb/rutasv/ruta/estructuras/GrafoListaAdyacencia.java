@@ -110,6 +110,7 @@ public class GrafoListaAdyacencia implements RedVial {
     }
 
     /** Estacion por codigo, o {@code null} si no existe. O(1) promedio. */
+    @Override
     public Estacion estacion(String codigo) {
         return codigo == null ? null : estaciones.obtener(codigo);
     }

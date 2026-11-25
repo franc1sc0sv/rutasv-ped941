@@ -9,7 +9,6 @@ import edu.udb.rutasv.nucleo.excepciones.ColeccionVaciaException;
 import edu.udb.rutasv.nucleo.modelo.Pasajero;
 import edu.udb.rutasv.nucleo.modelo.TipoRuta;
 import edu.udb.rutasv.nucleo.modelo.UnidadTransporte;
-import edu.udb.rutasv.nucleo.estructuras.impl.ColaEnlazada;
 import edu.udb.rutasv.nucleo.estructuras.impl.MonticuloBinario;
 import java.time.LocalTime;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,7 +31,7 @@ class DespachoFigura10Test {
     @BeforeEach
     void registrarUnidadesDeLaFigura() {
         terminal = new Terminal("Terminal Occidente",
-                new MonticuloBinario<UnidadTransporte>(new ReglaDespacho()), new ColaEnlazada<Pasajero>());
+                new MonticuloBinario<UnidadTransporte>(new ReglaDespacho()));
         terminal.registrarUnidad(unidad("U-009", TipoRuta.NORMAL, "07:05"));
         terminal.registrarUnidad(unidad("U-031", TipoRuta.EXPRES, "07:30"));
         terminal.registrarUnidad(unidad("U-005", TipoRuta.NORMAL, "07:40"));

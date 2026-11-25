@@ -7,6 +7,7 @@ import edu.udb.rutasv.busqueda.estructuras.ArbolAvl;
 import edu.udb.rutasv.nucleo.estructuras.Lista;
 import edu.udb.rutasv.nucleo.modelo.Estacion;
 import edu.udb.rutasv.nucleo.estructuras.impl.TablaHash;
+import edu.udb.rutasv.nucleo.excepciones.ValidacionException;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -33,69 +34,59 @@ class BusquedaServiceTest {
 
     @Test
     void sugerirDevuelveCoincidencias() {
-        assertEquals(List.of("Terminal Occidente", "Terminal Oriente"), aJava(servicio.sugerir("ana", "ter")));
+        assertEquals(List.of("Terminal Occidente", "Terminal Oriente"), aJava(servicio.sugerir("ter")));
     }
 
     @Test
-    void sugerirIgnoraEspaciosAlInicio() {
-        assertEquals(List.of("Metrocentro"), aJava(servicio.sugerir("ana", "  metro")));
+    void sugerirIgnoraEspaciosYMayusculas() {
+        assertEquals(List.of("Metrocentro"), aJava(servicio.sugerir("  METRO")));
     }
 
     @Test
     void sugerirConTextoNuloLanza() {
-        assertThrows(IllegalArgumentException.class, () -> servicio.sugerir("ana", null));
+        assertThrows(ValidacionException.class, () -> servicio.sugerir(null));
     }
 
     @Test
-    void textoEnBlancoNoSeGuarda() {
-        servicio.sugerir("ana", "   ");
-        servicio.sugerir("ana", "́");
+    void sugerirNoGuardaLoQueSeTeclea() {
+        servicio.sugerir("metro");
+        assertEquals(List.of(), aJava(servicio.recientes("ana")));
+    }
+
+    @Test
+    void busquedaEnBlancoNoSeGuarda() {
+        servicio.registrarBusqueda("ana", "   ");
+        servicio.registrarBusqueda("ana", null);
         assertEquals(List.of(), aJava(servicio.recientes("ana")));
     }
 
     @Test
     void recientesDeLaMasRecienteALaMasAntigua() {
-        servicio.sugerir("ana", "metro");
-        servicio.sugerir("ana", "ter");
-        assertEquals(List.of("ter", "metro"), aJava(servicio.recientes("ana")));
-    }
-
-    @Test
-    void escribirLetraPorLetraGuardaUnaSola() {
-        servicio.sugerir("ana", "t");
-        servicio.sugerir("ana", "te");
-        servicio.sugerir("ana", "ter");
-        assertEquals(List.of("ter"), aJava(servicio.recientes("ana")));
-    }
-
-    @Test
-    void borrarLetrasNoGuardaFragmentos() {
-        servicio.sugerir("ana", "metrocentro");
-        servicio.sugerir("ana", "metrocentr");
-        servicio.sugerir("ana", "metrocent");
-        servicio.sugerir("ana", "m");
-        assertEquals(List.of("metrocentro"), aJava(servicio.recientes("ana")));
+        servicio.registrarBusqueda("ana", "Metrocentro → Terminal Oriente");
+        servicio.registrarBusqueda("ana", "Terminal Occidente → Metrocentro");
+        assertEquals(List.of("Terminal Occidente → Metrocentro", "Metrocentro → Terminal Oriente"),
+                aJava(servicio.recientes("ana")));
     }
 
     @Test
     void repetirUnaBusquedaLaSubeSinDuplicarla() {
-        servicio.sugerir("ana", "metro");
-        servicio.sugerir("ana", "ter");
-        servicio.sugerir("ana", "Metro");
-        assertEquals(List.of("Metro", "ter"), aJava(servicio.recientes("ana")));
+        servicio.registrarBusqueda("ana", "A → B");
+        servicio.registrarBusqueda("ana", "C → D");
+        servicio.registrarBusqueda("ana", "a → b");
+        assertEquals(List.of("a → b", "C → D"), aJava(servicio.recientes("ana")));
     }
 
     @Test
     void guardaComoMaximoCinco() {
         for (String texto : new String[] {"a", "b", "c", "d", "e", "f"}) {
-            servicio.sugerir("ana", texto);
+            servicio.registrarBusqueda("ana", texto);
         }
         assertEquals(List.of("f", "e", "d", "c", "b"), aJava(servicio.recientes("ana")));
     }
 
     @Test
     void recientesSonPorUsuario() {
-        servicio.sugerir("ana", "metro");
+        servicio.registrarBusqueda("ana", "A → B");
         assertEquals(List.of(), aJava(servicio.recientes("bob")));
     }
 }

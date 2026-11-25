@@ -21,4 +21,7 @@ public interface RedVial {
 
     /** Todas las estaciones de la red. O(n). */
     Lista<Estacion> estaciones();
+
+    /** Estacion con ese codigo, o {@code null} si no existe. O(1) promedio en la implementacion con tabla hash. */
+    Estacion estacion(String codigo);
 }

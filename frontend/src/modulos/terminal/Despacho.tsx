@@ -1,11 +1,8 @@
 // Despacho (Fig. 10). Rol dueno: Terminal. Solo ADMIN.
 // Endpoints: POST /terminal/unidades, GET /terminal/orden, POST /terminal/despachar,
-//            POST /terminal/filas/{NORMAL|EXPRES}/pasajeros, POST /terminal/filas/{NORMAL|EXPRES}/atender.
-//
-// LIMITACION: la API no tiene un GET para ver el contenido de las filas de pasajeros.
-// Esta pantalla lleva una copia local (FIFO) de lo que se encola/atiende desde AQUI;
-// si otro cliente usa las filas, o se recarga la pagina, la copia local no coincide con el servidor.
-// Cuando exista GET /terminal/filas/{tipo}, reemplaza `filas` por ese pedido.
+//            GET /terminal/filas/{NORMAL|EXPRES}, POST /terminal/filas/{NORMAL|EXPRES}/pasajeros,
+//            POST /terminal/filas/{NORMAL|EXPRES}/atender.
+// Las filas se leen del servidor despues de cada cambio: lo que se ve es la cola real.
 import { useState, type FormEvent } from 'react';
 import { api, ApiError, mensajeDe } from '../../api/cliente';
 import type { Pasajero, TipoRuta, Unidad } from '../../api/tipos';
@@ -96,9 +93,11 @@ export function Despacho() {
     }
   }
 
-  // ---- Filas de pasajeros (copia local, ver LIMITACION arriba) ----
-  const [filas, setFilas] = useState<Record<TipoRuta, Pasajero[]>>({ NORMAL: [], EXPRES: [] });
-  const [contador, setContador] = useState(1);
+  // ---- Filas de pasajeros (leidas del servidor) ----
+  const filaNormal = usePedido(() => api.get<Pasajero[]>('/terminal/filas/NORMAL'), []);
+  const filaExpres = usePedido(() => api.get<Pasajero[]>('/terminal/filas/EXPRES'), []);
+  const filas = { NORMAL: filaNormal, EXPRES: filaExpres };
+  const [contador, setContador] = useState(() => Number(String(Date.now()).slice(-4)));
   const unidades = orden.datos ?? [];
 
   return (
@@ -196,27 +195,21 @@ export function Despacho() {
       <section aria-labelledby="filas-titulo" className="pila">
         <div className="despacho__filas-cabeza">
           <h2 id="filas-titulo">Filas de pasajeros</h2>
-          <p className="texto-suave">El primero en llegar es el primero en subir (FIFO). La lista muestra lo que se agregó desde esta pantalla.</p>
+          <p className="texto-suave">El primero en llegar es el primero en subir (FIFO). Hay una fila por tipo de ruta.</p>
         </div>
         <div className="rejilla-2 rejilla-2--pareja">
           {TIPOS.map((t) => (
             <Fila
               key={t}
               tipo={t}
-              pasajeros={filas[t]}
-              sugerido={`P${contador}`}
-              alEncolar={(p) => {
-                setFilas((f) => ({ ...f, [t]: [...f[t], p] }));
+              pasajeros={filas[t].datos ?? []}
+              sugerido={`P-${contador}`}
+              alEncolar={() => {
+                filas[t].recargar();
                 setContador((c) => c + 1);
               }}
-              alAtender={(p) =>
-                setFilas((f) => {
-                  // Quita al atendido de la copia local (normalmente es el primero).
-                  const i = f[t].findIndex((x) => x.id === p.id);
-                  return { ...f, [t]: i >= 0 ? f[t].filter((_, j) => j !== i) : f[t].slice(1) };
-                })
-              }
-              alVaciar={() => setFilas((f) => ({ ...f, [t]: [] }))}
+              alAtender={() => filas[t].recargar()}
+              alVaciar={() => filas[t].recargar()}
             />
           ))}
         </div>

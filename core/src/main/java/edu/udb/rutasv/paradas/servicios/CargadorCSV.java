@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Locale;
 
 /**
  * Carga de los CSV de datos (rol Paradas). Separador {@code ;}, como en {@code data/}:
@@ -26,10 +27,10 @@ public class CargadorCSV {
     public static class TramoCSV {
         public String origen;
         public String destino;
-        public double minutos;
+        public int minutos;
         public double km;
 
-        public TramoCSV(String origen, String destino, double minutos, double km) {
+        public TramoCSV(String origen, String destino, int minutos, double km) {
             this.origen = origen;
             this.destino = destino;
             this.minutos = minutos;
@@ -56,7 +57,7 @@ public class CargadorCSV {
 
                 if (primeraLinea) {
                     primeraLinea = false;
-                    String lower = linea.toLowerCase();
+                    String lower = linea.toLowerCase(Locale.ROOT);
                     if (lower.contains("codigo") || lower.contains("nombre")) {
                         continue;
                     }
@@ -80,7 +81,12 @@ public class CargadorCSV {
                 try {
                     double x = Double.parseDouble(partes[3].trim());
                     double y = Double.parseDouble(partes[4].trim());
-                    boolean activa = partes.length < 6 || partes[5].trim().isEmpty() || Boolean.parseBoolean(partes[5].trim());
+                    String textoActiva = partes.length < 6 ? "" : partes[5].trim().toLowerCase(Locale.ROOT);
+                    if (!textoActiva.isEmpty() && !textoActiva.equals("true") && !textoActiva.equals("false")) {
+                        resultado.errores.agregar("Línea " + numeroLinea + ": la columna activa debe ser true o false.");
+                        continue;
+                    }
+                    boolean activa = !textoActiva.equals("false");
                     resultado.estacionesValidas.agregar(new Estacion(codigo, nombre, zona, x, y, activa));
                 } catch (NumberFormatException e) {
                     resultado.errores.agregar("Línea " + numeroLinea + ": Error numérico en las coordenadas x o y.");
@@ -107,7 +113,7 @@ public class CargadorCSV {
 
                 if (primeraLinea) {
                     primeraLinea = false;
-                    String lower = linea.toLowerCase();
+                    String lower = linea.toLowerCase(Locale.ROOT);
                     if (lower.contains("origen") || lower.contains("destino")) {
                         continue;
                     }
@@ -122,7 +128,7 @@ public class CargadorCSV {
                 try {
                     String origen = partes[0].trim();
                     String destino = partes[1].trim();
-                    double minutos = Double.parseDouble(partes[2].trim());
+                    int minutos = Integer.parseInt(partes[2].trim());
                     double km = Double.parseDouble(partes[3].trim());
 
                     if (origen.isEmpty() || destino.isEmpty()) {
@@ -136,7 +142,7 @@ public class CargadorCSV {
 
                     resultado.tramosValidos.agregar(new TramoCSV(origen, destino, minutos, km));
                 } catch (NumberFormatException e) {
-                    resultado.errores.agregar("Línea " + numeroLinea + ": Error numérico en minutos o kilómetros.");
+                    resultado.errores.agregar("Línea " + numeroLinea + ": minutos debe ser entero y km un número.");
                 }
             }
         } catch (IOException e) {

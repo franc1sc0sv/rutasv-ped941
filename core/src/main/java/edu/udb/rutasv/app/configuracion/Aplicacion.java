@@ -71,12 +71,7 @@ public final class Aplicacion {
         cargarRed(dirDatos, red, directorio, indice);
 
         Dijkstra dijkstra = new Dijkstra(MonticuloBinario::new, TablaHash::new);
-        Terminal terminal = new Terminal("Terminal principal",
-                new MonticuloBinario<>(new ReglaDespacho()), new ColaEnlazada<>(), new TablaHash<>());
-        Mapa<TipoRuta, Cola<Pasajero>> filas = new TablaHash<>();
-        for (TipoRuta tipo : TipoRuta.values()) {
-            filas.poner(tipo, new ColaEnlazada<>());
-        }
+        Terminal terminal = new Terminal("Terminal principal");
 
         HistorialService historial =
                 new HistorialService(new HistorialRepositorioArchivo(dirDatos.resolve("historial.txt")));
@@ -88,7 +83,6 @@ public final class Aplicacion {
                 new RutaServiceImpl(red, dijkstra),
                 directorio,
                 terminal,
-                filas,
                 historial,
                 new EstadisticasService(historial, TablaHash::new, MonticuloBinario::new));
         return new SistemaTransporteImpl(auth, new Autorizador(auth), modulos);
@@ -107,15 +101,16 @@ public final class Aplicacion {
             LOG.warning("estaciones.csv: " + error);
         }
         for (Estacion e : estaciones.estacionesValidas) {
+            Estacion limpia;
             try {
-                directorio.darDeAlta(e.codigo(), e.nombre(), e.zona(), e.x(), e.y(), e.activa());
+                limpia = directorio.darDeAlta(e.codigo(), e.nombre(), e.zona(), e.x(), e.y(), e.activa());
             } catch (ValidacionException ex) {
                 LOG.warning("estaciones.csv: " + ex.getMessage());
                 continue;
             }
-            red.agregarEstacion(e);
-            if (e.activa()) {
-                indice.insertar(e.nombre(), e);
+            red.agregarEstacion(limpia);
+            if (limpia.activa()) {
+                indice.insertar(limpia.nombre(), limpia);
             }
         }
 
@@ -126,10 +121,8 @@ public final class Aplicacion {
         }
         for (CargadorCSV.TramoCSV t : tramos.tramosValidos) {
             try {
-                if (t.minutos != Math.rint(t.minutos)) {
-                    throw new ValidacionException("los minutos deben ser enteros: " + t.minutos);
-                }
-                red.agregarTramo(t.origen, t.destino, (int) t.minutos, t.km);
+                red.agregarTramo(DirectorioEstaciones.limpiarCodigo(t.origen),
+                        DirectorioEstaciones.limpiarCodigo(t.destino), t.minutos, t.km);
             } catch (ValidacionException ex) {
                 LOG.warning("tramos.csv " + t.origen + "->" + t.destino + ": " + ex.getMessage());
             }

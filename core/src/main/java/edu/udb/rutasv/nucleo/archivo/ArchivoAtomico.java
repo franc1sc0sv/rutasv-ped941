@@ -7,6 +7,7 @@ import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
 
 /** Utilidad interna: lee y escribe archivos de texto de forma atomica. */
@@ -24,6 +25,21 @@ public final class ArchivoAtomico {
             return Files.readAllLines(archivo, StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new PersistenciaException("No se pudo leer " + archivo.getFileName(), e);
+        }
+    }
+
+    /**
+     * Agrega una linea al final del archivo (lo crea si no existe). O(1) respecto al tamano del
+     * archivo: no lo lee ni lo reescribe. Para registros que solo crecen, como el historial.
+     */
+    public static void agregarLinea(Path archivo, String linea) {
+        try {
+            Path dir = archivo.toAbsolutePath().getParent();
+            Files.createDirectories(dir);
+            Files.writeString(archivo, linea + System.lineSeparator(), StandardCharsets.UTF_8,
+                    StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+        } catch (IOException e) {
+            throw new PersistenciaException("No se pudo escribir " + archivo.getFileName(), e);
         }
     }
 

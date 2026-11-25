@@ -1,4 +1,4 @@
-package edu.udb.rutasv.busqueda.servicios;
+package edu.udb.rutasv.nucleo.texto;
 
 import java.text.Normalizer;
 import java.util.Locale;

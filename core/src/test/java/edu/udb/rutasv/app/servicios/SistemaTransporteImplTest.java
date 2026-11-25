@@ -69,7 +69,7 @@ class SistemaTransporteImplTest {
         }
     });
     private final SistemaTransporte conHistorial = new SistemaTransporteImpl(auth, new Autorizador(auth),
-            new Modulos(null, null, null, null, null, null, null, historial,
+            new Modulos(null, null, null, null, null, null, historial,
                     new EstadisticasService(historial, TablaHash::new, MonticuloBinario::new)));
     private final Sesion pasajero;
     private final Sesion admin;
@@ -84,7 +84,7 @@ class SistemaTransporteImplTest {
 
     /** Solo Busqueda conectada: el resto de modulos debe responder "Pendiente". */
     private static Modulos soloBusqueda(BusquedaService busqueda) {
-        return new Modulos(busqueda, null, null, null, null, null, null, null, null);
+        return new Modulos(busqueda, null, null, null, null, null, null, null);
     }
 
     private Executable[] soloAdmin(Sesion s) {
@@ -169,8 +169,8 @@ class SistemaTransporteImplTest {
             sugeridas.add(nombre);
         }
         assertEquals(List.of("Centro"), sugeridas);
-        assertEquals("ce", sistema.busquedasRecientes(pasajero).obtener(0));
-        assertTrue(sistema.busquedasRecientes(admin).estaVacia());
+        // Sugerir no guarda lo tecleado: las recientes son rutas calculadas.
+        assertTrue(sistema.busquedasRecientes(pasajero).estaVacia());
     }
 
     @Test
@@ -203,7 +203,7 @@ class SistemaTransporteImplTest {
                         LocalDateTime.of(2026, 10, 23, 9, 0), 1000, usuario))
                 : Optional.empty();
         SistemaTransporte conRuta = new SistemaTransporteImpl(auth, new Autorizador(auth),
-                new Modulos(null, null, null, soloE1aE2, null, null, null, historial, null));
+                new Modulos(null, null, null, soloE1aE2, null, null, historial, null));
 
         assertTrue(conRuta.calcularRuta(pasajero, "E1", "E9").isEmpty());
         assertTrue(conRuta.miHistorial(pasajero).estaVacia());
@@ -218,7 +218,7 @@ class SistemaTransporteImplTest {
         RutaService siempre = (origen, destino, usuario) -> Optional.of(new RutaCalculada(origen, destino,
                 List.of(origen, destino), 5, 1.0, LocalDateTime.of(2026, 10, 23, 9, 0), 1000, usuario));
         SistemaTransporte soloRuta = new SistemaTransporteImpl(auth, new Autorizador(auth),
-                new Modulos(null, null, null, siempre, null, null, null, null, null));
+                new Modulos(null, null, null, siempre, null, null, null, null));
 
         assertTrue(soloRuta.calcularRuta(pasajero, "E1", "E2").isPresent());
     }

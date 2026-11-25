@@ -1,4 +1,4 @@
-package edu.udb.rutasv.busqueda.servicios;
+package edu.udb.rutasv.nucleo.texto;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

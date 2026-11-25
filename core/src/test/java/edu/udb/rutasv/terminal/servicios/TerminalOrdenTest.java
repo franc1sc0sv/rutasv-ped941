@@ -9,7 +9,6 @@ import edu.udb.rutasv.nucleo.excepciones.ValidacionException;
 import edu.udb.rutasv.nucleo.modelo.Pasajero;
 import edu.udb.rutasv.nucleo.modelo.TipoRuta;
 import edu.udb.rutasv.nucleo.modelo.UnidadTransporte;
-import edu.udb.rutasv.nucleo.estructuras.impl.ColaEnlazada;
 import edu.udb.rutasv.nucleo.estructuras.impl.MonticuloBinario;
 import java.time.LocalTime;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,7 +22,7 @@ class TerminalOrdenTest {
     @BeforeEach
     void preparar() {
         terminal = new Terminal(
-                "Terminal Oriente", new MonticuloBinario<UnidadTransporte>(new ReglaDespacho()), new ColaEnlazada<Pasajero>());
+                "Terminal Oriente", new MonticuloBinario<UnidadTransporte>(new ReglaDespacho()));
     }
 
     private static UnidadTransporte unidad(String id, TipoRuta tipo, String hora) {
@@ -59,7 +58,7 @@ class TerminalOrdenTest {
             @Override public boolean estaVacia() { return real.estaVacia(); }
             @Override public int tamano() { return real.tamano(); }
         };
-        Terminal t = new Terminal("Terminal Sur", espia, new ColaEnlazada<Pasajero>());
+        Terminal t = new Terminal("Terminal Sur", espia);
         t.registrarUnidad(unidad("N-1", TipoRuta.NORMAL, "06:00"));
         t.registrarUnidad(unidad("X-1", TipoRuta.EXPRES, "09:00"));
         operaciones[0] = 0;
@@ -75,7 +74,6 @@ class TerminalOrdenTest {
     void verOrdenUsaLaReglaDeLaColaVaciaRecibida() {
         Terminal porId = new Terminal("Terminal Norte",
                 new MonticuloBinario<UnidadTransporte>(java.util.Comparator.comparing(UnidadTransporte::id)),
-                new ColaEnlazada<Pasajero>(),
                 () -> new MonticuloBinario<>(java.util.Comparator.comparing(UnidadTransporte::id)));
         porId.registrarUnidad(unidad("B", TipoRuta.EXPRES, "06:00"));
         porId.registrarUnidad(unidad("A", TipoRuta.NORMAL, "09:00"));
@@ -104,14 +102,14 @@ class TerminalOrdenTest {
 
     @Test
     void verFilaConservaElOrdenDeLlegada() {
-        terminal.registrarPasajeroFila(new Pasajero("P-1", "Ana"));
-        terminal.registrarPasajeroFila(new Pasajero("P-2", "Beto"));
-        terminal.registrarPasajeroFila(new Pasajero("P-3", "Carla"));
+        terminal.encolarPasajero(TipoRuta.NORMAL, new Pasajero("P-1", "Ana"));
+        terminal.encolarPasajero(TipoRuta.NORMAL, new Pasajero("P-2", "Beto"));
+        terminal.encolarPasajero(TipoRuta.NORMAL, new Pasajero("P-3", "Carla"));
 
-        Lista<Pasajero> fila = terminal.verFila();
+        Lista<Pasajero> fila = terminal.verFila(TipoRuta.NORMAL);
         assertEquals("P-1", fila.obtener(0).id());
         assertEquals("P-3", fila.obtener(2).id());
-        assertEquals(3, terminal.totalPasajerosEnFila());
-        assertEquals("P-1", terminal.atenderSiguientePasajero().id());
+        assertEquals(3, terminal.totalEnFila(TipoRuta.NORMAL));
+        assertEquals("P-1", terminal.atenderPasajero(TipoRuta.NORMAL).id());
     }
 }
