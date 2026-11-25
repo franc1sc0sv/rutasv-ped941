@@ -48,8 +48,9 @@ public class DirectorioEstaciones {
         if (porCodigo.contiene(nueva.codigo())) {
             throw new ValidacionException("Ya existe una estación con el código " + nueva.codigo());
         }
-        if (porNombreNormalizado.contiene(Normalizador.normalizar(nueva.nombre()))) {
-            throw new ValidacionException("Ya existe una estación con el nombre " + nueva.nombre());
+        Estacion mismoNombre = porNombreNormalizado.obtener(Normalizador.normalizar(nueva.nombre()));
+        if (mismoNombre != null) {
+            throw nombreRepetido(nueva.nombre(), mismoNombre);
         }
         guardar(nueva);
         return nueva;
@@ -71,7 +72,7 @@ public class DirectorioEstaciones {
         String claveNueva = Normalizador.normalizar(nueva.nombre());
         Estacion conEseNombre = porNombreNormalizado.obtener(claveNueva);
         if (conEseNombre != null && !conEseNombre.codigo().equals(nueva.codigo())) {
-            throw new ValidacionException("Ya existe una estación con el nombre " + nueva.nombre());
+            throw nombreRepetido(nueva.nombre(), conEseNombre);
         }
         porNombreNormalizado.eliminar(Normalizador.normalizar(anterior.nombre()));
         guardar(nueva);
@@ -108,6 +109,13 @@ public class DirectorioEstaciones {
     /** Código sin espacios y en mayúsculas, el formato en que se guarda. */
     public static String limpiarCodigo(String codigo) {
         return codigo == null ? "" : codigo.strip().toUpperCase(Locale.ROOT);
+    }
+
+    /** El mensaje nombra la estacion que ya existe: "Soyapangó" choca con "Soyapango (E10)". */
+    private static ValidacionException nombreRepetido(String pedido, Estacion existente) {
+        String detalle = existente.nombre().equals(pedido) ? "" : " (sin contar mayúsculas ni tildes)";
+        return new ValidacionException("El nombre " + pedido + " ya lo usa la estación " + existente.nombre()
+                + " (" + existente.codigo() + ")" + detalle);
     }
 
     private Estacion exigir(String codigo) {

@@ -88,7 +88,7 @@ export function RedVial() {
         <div className="pila pila--grande">
           <Tarjeta
             titulo="Mapa de la red"
-            detalle={red.datos ? `${estaciones.length} estaciones · ${activas} activas · ${pares.length} tramos` : undefined}
+            detalle={red.datos ? `${estaciones.length} estaciones · ${activas} activas · ${red.datos.tramos.length} tramos dirigidos (${pares.length} conexiones)` : undefined}
           >
             {red.cargando && !red.datos ? (
               <Esqueleto alto={320} etiqueta="Cargando la red…" />
