@@ -4,7 +4,7 @@ Planificador de rutas de transporte publico para el proyecto PED941 (equipo de 5
 El nucleo esta hecho en Java 21 con Maven (`core`), con una capa HTTP delgada (`api`) y una interfaz en React (`frontend`).
 
 Funcionan de punta a punta: login y roles, busqueda con autocompletado, calculo de ruta con Dijkstra, red vial y despacho de unidades.
-La tabla hash, la lista dinamica y el historial estan implementados. Siguen pendientes la edicion y activacion/desactivacion de paradas. La guia de fase 2 es historica: [docs/entrega-fase2.md](docs/entrega-fase2.md).
+La tabla hash del rol Paradas ya esta implementada y conectada en lugar de `MapaTemporal` en **todo el cableado de `Aplicacion`** (estaciones, login, grafo, Dijkstra, filas, busqueda, estadisticas y terminal). Los constructores por defecto de `GrafoListaAdyacencia` y `Terminal` conservan `MapaTemporal` solo para pruebas de otros roles; la aplicacion real inyecta `TablaHash`. El estado completo y la guia del video estan en [docs/entrega-fase2.md](docs/entrega-fase2.md); el cierre tecnico esta en [docs/documento-tecnico-final.md](docs/documento-tecnico-final.md).
 
 ## Las 7 estructuras
 
@@ -100,29 +100,4 @@ docs/                    documentacion del equipo
 - [docs/api.md](docs/api.md): endpoints HTTP
 - [docs/entrega-fase2.md](docs/entrega-fase2.md): estado, guion del video, bitacora, correcciones del documento y pendientes por rol
 - [docs/documento-ruta.md](docs/documento-ruta.md): texto del rol Ruta para el documento (pseudocodigo y complejidad)
-
-## Integracion de TablaHash (22/11/2026)
-
-La tabla usa cubetas con cadenas propias, capacidad inicial 16 y duplicacion al superar
-una carga de 0.75. Admite claves/valores nulos y reemplaza valores sin aumentar el tamano.
-Una cadena doble de entradas permite copiar las claves en O(n), incluso tras muchos borrados.
-No usa colecciones java.util para almacenar datos.
-
-Aplicacion inyecta TablaHash en usuarios, grafo, Dijkstra, busquedas recientes, filas,
-estadisticas y Terminal. DirectorioEstaciones la usa por defecto. Los constructores anteriores
-de Terminal y el grafo sin argumentos conservan el adaptador temporal por compatibilidad;
-la aplicacion real usa la tabla propia. Asi se mantiene la separacion entre modulos.
-
-Con hash/equals constantes: obtener, contiene y eliminar son O(1) esperado y O(n) peor caso;
-poner es O(1) esperado amortizado y O(n) peor caso. Claves es O(n), tamano O(1) y memoria
-O(capacidad + n). No se reduce la capacidad al borrar. Las cadenas agregan el costo de su
-longitud. La tabla requiere sincronizacion externa para acceso concurrente.
-
-Pruebas: contrato habilitado, umbral de crecimiento, 1000 claves, colisiones forzadas,
-hash Integer.MIN_VALUE, nulos, copia independiente y 20000 operaciones contra HashMap.
-Ejecutar mvn -B verify; en frontend, npm ci y npm run build.
-
-Limitaciones anteriores al cambio: editarEstacion y activarDesactivarEstacion lanzan
-NoImplementadoException; directorio y AVL normalizan nombres de manera diferente;
-el CSV interpreta valores desconocidos de activa como false. Quedan ListaTemporal en
-otros modulos. Deben resolverse o declararse antes de considerar terminada la fase 3.
+- [docs/documento-tecnico-final.md](docs/documento-tecnico-final.md): documento técnico final (Tabla Hash, Big-O, diagramas, pruebas y arranque)

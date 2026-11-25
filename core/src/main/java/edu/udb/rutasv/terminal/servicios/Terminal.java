@@ -15,7 +15,7 @@ import java.util.function.Supplier;
 /**
  * Una terminal: sus unidades esperan en una cola de prioridad (RN-4) y sus pasajeros en una fila
  * FIFO (RN-5). Las dos colas llegan por el constructor, como interfaces de {@code nucleo}, para que
- * la terminal no dependa de una implementaciÃ³n concreta.
+ * la terminal no dependa de una implementación concreta.
  */
 public class Terminal {
     private final String nombre;
@@ -32,6 +32,16 @@ public class Terminal {
     }
 
     /**
+     * Terminal con la regla de despacho por defecto y el mapa de unidades en espera inyectado.
+     * Evita repetir {@code () -> new MonticuloBinario<>(new ReglaDespacho())} desde {@code app}.
+     */
+    public Terminal(String nombre, ColaPrioridad<UnidadTransporte> unidadesDisponibles, Cola<Pasajero> filaPasajeros,
+                    Mapa<String, UnidadTransporte> unidadesEnEspera) {
+        this(nombre, unidadesDisponibles, filaPasajeros,
+                () -> new MonticuloBinario<>(new ReglaDespacho()), unidadesEnEspera);
+    }
+
+    /**
      * Terminal con una regla de despacho cualquiera. {@code colaVacia} debe crear colas vacias que
      * ordenen igual que {@code unidadesDisponibles}.
      */
@@ -40,24 +50,25 @@ public class Terminal {
         this(nombre, unidadesDisponibles, filaPasajeros, colaVacia, new MapaTemporal<>());
     }
 
-    /** Permite inyectar el indice propio desde la raiz de composicion. */
+    /**
+     * Terminal con el mapa de unidades en espera inyectado. Desde {@code app} se pasa la
+     * {@code TablaHash} del rol Paradas; este modulo solo conoce la interfaz {@link Mapa} de
+     * {@code nucleo}, asi que no depende de la implementacion concreta.
+     */
     public Terminal(String nombre, ColaPrioridad<UnidadTransporte> unidadesDisponibles, Cola<Pasajero> filaPasajeros,
                     Supplier<ColaPrioridad<UnidadTransporte>> colaVacia,
                     Mapa<String, UnidadTransporte> unidadesEnEspera) {
-        if (unidadesEnEspera == null || unidadesEnEspera.tamano() != 0) {
-            throw new IllegalArgumentException("El indice de unidades debe estar vacio y no ser nulo");
-        }
-        this.unidadesEnEspera = unidadesEnEspera;
         if (nombre == null || nombre.trim().isEmpty()) {
             throw new IllegalArgumentException("El nombre de la terminal no puede estar vacio");
         }
-        if (unidadesDisponibles == null || filaPasajeros == null || colaVacia == null) {
-            throw new IllegalArgumentException("Las colas de la terminal no pueden ser nulas");
+        if (unidadesDisponibles == null || filaPasajeros == null || colaVacia == null || unidadesEnEspera == null) {
+            throw new IllegalArgumentException("Las colas y el mapa de la terminal no pueden ser nulos");
         }
         this.nombre = nombre.trim();
         this.unidadesDisponibles = unidadesDisponibles;
         this.filaPasajeros = filaPasajeros;
         this.colaVacia = colaVacia;
+        this.unidadesEnEspera = unidadesEnEspera;
     }
 
     public String getNombre() {
@@ -75,7 +86,7 @@ public class Terminal {
         unidadesDisponibles.insertar(unidad);
     }
 
-    /** Unidad que saldrÃ­a ahora, sin despacharla. Lanza ColeccionVaciaException si no hay. */
+    /** Unidad que saldría ahora, sin despacharla. Lanza ColeccionVaciaException si no hay. */
     public UnidadTransporte proximaUnidadASalir() {
         return unidadesDisponibles.ver();
     }

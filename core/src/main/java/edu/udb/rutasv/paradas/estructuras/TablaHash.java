@@ -2,159 +2,251 @@ package edu.udb.rutasv.paradas.estructuras;
 
 import edu.udb.rutasv.nucleo.estructuras.Lista;
 import edu.udb.rutasv.nucleo.estructuras.Mapa;
-import edu.udb.rutasv.nucleo.excepciones.IndiceFueraDeRangoException;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
-import java.util.Objects;
+import edu.udb.rutasv.nucleo.temporal.ListaTemporal;
 
 /**
- * Tabla propia con encadenamiento separado y carga maxima de 0.75.
- * Admite clave y valores null, igual que el adaptador anterior.
- * Buscar/eliminar: O(1) esperado, O(n) peor caso; insertar: O(1) esperado
- * amortizado, O(n) al redimensionar o con colisiones. Hash/equals se suponen O(1).
- * No es segura para acceso concurrente sin sincronizacion externa.
+ * Tabla hash propia (rol Paradas). Tambien la usa el login y la usaran Ruta e Historial.
+ *
+ * <p>Guarda los pares en un arreglo de cubos con <em>encadenamiento</em>: cada cubo es una lista
+ * enlazada de nodos, asi que las colisiones no se pierden ni desplazan a otras claves. La funcion
+ * hash mezcla los 16 bits altos del {@code hashCode} con los bajos antes de aplicar la mascara
+ * {@code tamano - 1}; el arreglo siempre tiene tamano potencia de dos. Cuando la relacion entre
+ * pares y cubos supera {@value #FACTOR_CARGA_MAXIMO}, se duplica la capacidad y se reinsertan
+ * todos los nodos (rehash).
+ *
+ * <p>Ademas, cada nodo pertenece a una segunda lista doblemente enlazada que guarda el
+ * <em>orden de insercion</em> (idea del PR #41). Asi {@code claves} recorre solo los pares vivos,
+ * en O(n) aunque el arreglo tenga muchos cubos vacios, y devuelve siempre el mismo orden. Borrar
+ * sigue siendo O(1) porque el nodo conoce a su anterior y a su siguiente en ese orden.
+ *
+ * <p>Complejidad: {@code poner}, {@code obtener}, {@code contiene} y {@code eliminar} son O(1) en
+ * promedio y O(n) en el peor caso (todas las claves colisionan en el mismo cubo). El rehash es
+ * O(n), pero amortizado no cambia el O(1) promedio de {@code poner}. {@code claves} es O(n) y
+ * {@code tamano} es O(1).
+ *
+ * @param <K> tipo de la clave
+ * @param <V> tipo del valor
  */
 public class TablaHash<K, V> implements Mapa<K, V> {
+
+    /** Capacidad inicial: potencia de dos para poder usar la mascara en vez de {@code %}. */
+    private static final int CAPACIDAD_INICIAL = 16;
+
+    /** Factor de carga maximo antes de duplicar el arreglo. */
+    private static final double FACTOR_CARGA_MAXIMO = 0.75;
+
+    /**
+     * Capacidad maxima: 2^30, la ultima potencia de dos positiva. Duplicarla desbordaria
+     * {@code int} (pasaria a negativo o a cero) y echaria a perder la tabla a medias.
+     */
+    static final int MAX_CAPACIDAD = 1 << 30;
+
+    private Nodo<K, V>[] cubos;
+    private int tamano;
+    /** Primer y ultimo nodo en orden de insercion. */
+    private Nodo<K, V> primero;
+    private Nodo<K, V> ultimo;
+
+    /** Nodo de la cadena de un cubo y, a la vez, de la lista de orden de insercion. */
     private static final class Nodo<K, V> {
-        final K clave;
-        V valor;
-        Nodo<K, V> siguiente;
-        Nodo<K, V> anteriorOrden;
-        Nodo<K, V> siguienteOrden;
-        Nodo(K clave, V valor, Nodo<K, V> siguiente) {
+        private final K clave;
+        private V valor;
+        private Nodo<K, V> siguiente;
+        private Nodo<K, V> anteriorOrden;
+        private Nodo<K, V> siguienteOrden;
+
+        private Nodo(K clave, V valor, Nodo<K, V> siguiente) {
             this.clave = clave;
             this.valor = valor;
             this.siguiente = siguiente;
         }
     }
 
-    private Nodo<K, V>[] cubetas = crearCubetas(16);
-    private int tamano;
-    private Nodo<K, V> primero;
-
-    @SuppressWarnings("unchecked")
-    private static <K, V> Nodo<K, V>[] crearCubetas(int capacidad) {
-        return (Nodo<K, V>[]) new Nodo<?, ?>[capacidad];
+    /** Crea la tabla con la capacidad inicial por defecto. */
+    public TablaHash() {
+        this(CAPACIDAD_INICIAL);
     }
 
-    private int indice(K clave) {
-        int hash = clave == null ? 0 : clave.hashCode();
-        return (hash ^ (hash >>> 16)) & (cubetas.length - 1);
+    /**
+     * Crea la tabla con una capacidad inicial concreta (redondeada a potencia de dos). Util para
+     * forzar colisiones o redimensiones en pruebas.
+     *
+     * @param capacidadInicial capacidad deseada, mayor que cero
+     */
+    @SuppressWarnings("unchecked")
+    public TablaHash(int capacidadInicial) {
+        if (capacidadInicial <= 0) {
+            throw new IllegalArgumentException("La capacidad inicial debe ser mayor que cero");
+        }
+        this.cubos = (Nodo<K, V>[]) new Nodo[siguientePotenciaDeDos(capacidadInicial)];
+        this.tamano = 0;
+    }
+
+    /**
+     * Asocia la clave con el valor; si ya existia, reemplaza el valor sin aumentar el tamano.
+     * O(1) promedio, O(n) peor caso; O(n) el rehash cuando se supera el factor de carga.
+     */
+    @Override
+    public void poner(K clave, V valor) {
+        int indice = indice(clave);
+        for (Nodo<K, V> nodo = cubos[indice]; nodo != null; nodo = nodo.siguiente) {
+            if (iguales(nodo.clave, clave)) {
+                nodo.valor = valor;
+                return;
+            }
+        }
+        Nodo<K, V> nuevo = new Nodo<>(clave, valor, cubos[indice]);
+        cubos[indice] = nuevo;
+        enlazarAlFinal(nuevo);
+        tamano++;
+        if ((double) tamano / cubos.length > FACTOR_CARGA_MAXIMO) {
+            redimensionar();
+        }
+    }
+
+    /** Devuelve el valor de la clave o {@code null} si no existe. O(1) promedio, O(n) peor caso. */
+    @Override
+    public V obtener(K clave) {
+        Nodo<K, V> nodo = buscar(clave);
+        return nodo == null ? null : nodo.valor;
+    }
+
+    /** Indica si la clave existe, aunque su valor sea {@code null}. O(1) promedio, O(n) peor caso. */
+    @Override
+    public boolean contiene(K clave) {
+        return buscar(clave) != null;
+    }
+
+    /** Quita la clave y devuelve su valor, o {@code null} si no existia. O(1) promedio, O(n) peor caso. */
+    @Override
+    public V eliminar(K clave) {
+        int indice = indice(clave);
+        Nodo<K, V> anterior = null;
+        Nodo<K, V> actual = cubos[indice];
+        while (actual != null) {
+            if (iguales(actual.clave, clave)) {
+                V valorAnterior = actual.valor;
+                if (anterior == null) {
+                    cubos[indice] = actual.siguiente;
+                } else {
+                    anterior.siguiente = actual.siguiente;
+                }
+                desenlazar(actual);
+                tamano--;
+                return valorAnterior;
+            }
+            anterior = actual;
+            actual = actual.siguiente;
+        }
+        return null;
+    }
+
+    /**
+     * Copia de las claves en orden de insercion. O(n): recorre la lista de orden, no los cubos,
+     * asi que no depende de la capacidad. Cambiar la copia no cambia la tabla.
+     */
+    @Override
+    public Lista<K> claves() {
+        Lista<K> resultado = new ListaTemporal<>();
+        for (Nodo<K, V> nodo = primero; nodo != null; nodo = nodo.siguienteOrden) {
+            resultado.agregar(nodo.clave);
+        }
+        return resultado;
+    }
+
+    /** Cantidad de pares guardados. O(1). */
+    @Override
+    public int tamano() {
+        return tamano;
+    }
+
+    /** Numero actual de cubos; util para comprobar el redimension en pruebas. */
+    int capacidad() {
+        return cubos.length;
+    }
+
+    /** Pone el nodo al final de la lista de orden. O(1). */
+    private void enlazarAlFinal(Nodo<K, V> nodo) {
+        nodo.anteriorOrden = ultimo;
+        if (ultimo == null) {
+            primero = nodo;
+        } else {
+            ultimo.siguienteOrden = nodo;
+        }
+        ultimo = nodo;
+    }
+
+    /** Saca el nodo de la lista de orden. O(1) porque conoce a sus dos vecinos. */
+    private void desenlazar(Nodo<K, V> nodo) {
+        if (nodo.anteriorOrden == null) {
+            primero = nodo.siguienteOrden;
+        } else {
+            nodo.anteriorOrden.siguienteOrden = nodo.siguienteOrden;
+        }
+        if (nodo.siguienteOrden == null) {
+            ultimo = nodo.anteriorOrden;
+        } else {
+            nodo.siguienteOrden.anteriorOrden = nodo.anteriorOrden;
+        }
+        nodo.anteriorOrden = null;
+        nodo.siguienteOrden = null;
     }
 
     private Nodo<K, V> buscar(K clave) {
-        for (Nodo<K, V> n = cubetas[indice(clave)]; n != null; n = n.siguiente) {
-            if (Objects.equals(clave, n.clave)) return n;
+        for (Nodo<K, V> nodo = cubos[indice(clave)]; nodo != null; nodo = nodo.siguiente) {
+            if (iguales(nodo.clave, clave)) {
+                return nodo;
+            }
         }
         return null;
     }
 
-    @Override
-    public void poner(K clave, V valor) {
-        Nodo<K, V> existente = buscar(clave);
-        if (existente != null) {
-            existente.valor = valor;
+    /** Mezcla los bits altos y usa mascara porque la capacidad siempre es potencia de dos. */
+    private int indice(K clave) {
+        int hash = (clave == null) ? 0 : clave.hashCode();
+        return indiceDe(hash, cubos.length);
+    }
+
+    /** Calculo puro del cubo; separado para poder probar la mezcla de bits altos. */
+    static int indiceDe(int hash, int capacidad) {
+        hash ^= (hash >>> 16);
+        return hash & (capacidad - 1);
+    }
+
+    private static boolean iguales(Object a, Object b) {
+        return a == b || (a != null && a.equals(b));
+    }
+
+    /** Duplica los cubos y reinserta los nodos existentes. O(n). */
+    @SuppressWarnings("unchecked")
+    private void redimensionar() {
+        if (cubos.length >= MAX_CAPACIDAD) {
+            // No se puede duplicar 2^30 en un int: se conserva el arreglo y se acepta una cadena mas larga.
             return;
         }
-        if (tamano + 1 > cubetas.length - cubetas.length / 4) crecer();
-        int i = indice(clave);
-        Nodo<K, V> nuevo = new Nodo<>(clave, valor, cubetas[i]);
-        cubetas[i] = nuevo;
-        nuevo.siguienteOrden = primero;
-        if (primero != null) primero.anteriorOrden = nuevo;
-        primero = nuevo;
-        tamano++;
-    }
-
-    private void crecer() {
-        Nodo<K, V>[] anteriores = cubetas;
-        cubetas = crearCubetas(anteriores.length * 2);
-        for (Nodo<K, V> cabeza : anteriores) {
-            for (Nodo<K, V> n = cabeza; n != null;) {
-                Nodo<K, V> siguiente = n.siguiente;
-                int i = indice(n.clave);
-                n.siguiente = cubetas[i];
-                cubetas[i] = n;
-                n = siguiente;
+        Nodo<K, V>[] anteriores = cubos;
+        cubos = (Nodo<K, V>[]) new Nodo[anteriores.length * 2];
+        for (Nodo<K, V> cubo : anteriores) {
+            Nodo<K, V> actual = cubo;
+            while (actual != null) {
+                Nodo<K, V> siguiente = actual.siguiente;
+                int indice = indice(actual.clave);
+                actual.siguiente = cubos[indice];
+                cubos[indice] = actual;
+                actual = siguiente;
             }
         }
     }
 
-    @Override
-    public V obtener(K clave) {
-        Nodo<K, V> n = buscar(clave);
-        return n == null ? null : n.valor;
-    }
-
-    @Override
-    public boolean contiene(K clave) { return buscar(clave) != null; }
-
-    @Override
-    public V eliminar(K clave) {
-        int i = indice(clave);
-        Nodo<K, V> anterior = null;
-        for (Nodo<K, V> n = cubetas[i]; n != null; n = n.siguiente) {
-            if (Objects.equals(clave, n.clave)) {
-                if (anterior == null) cubetas[i] = n.siguiente;
-                else anterior.siguiente = n.siguiente;
-                if (n.anteriorOrden == null) primero = n.siguienteOrden;
-                else n.anteriorOrden.siguienteOrden = n.siguienteOrden;
-                if (n.siguienteOrden != null) n.siguienteOrden.anteriorOrden = n.anteriorOrden;
-                tamano--;
-                return n.valor;
-            }
-            anterior = n;
+    static int siguientePotenciaDeDos(int n) {
+        if (n > MAX_CAPACIDAD) {
+            // Sin este tope, 1 << 31 se desborda a Integer.MIN_VALUE y el while nunca termina.
+            return MAX_CAPACIDAD;
         }
-        return null;
-    }
-
-    /** Copia independiente O(n), recorriendo solo las entradas vivas. */
-    @Override
-    public Lista<K> claves() {
-        Lista<K> copia = new ListaClaves<>();
-        for (Nodo<K, V> n = primero; n != null; n = n.siguienteOrden) copia.agregar(n.clave);
-        return copia;
-    }
-
-    @Override
-    public int tamano() { return tamano; }
-
-    int capacidad() { return cubetas.length; }
-
-    /** Copia con arreglo propio para no acoplar Paradas al modulo Historial. */
-    private static final class ListaClaves<T> implements Lista<T> {
-        private Object[] datos = new Object[8];
-        private int cantidad;
-        public void agregar(T elemento) {
-            if (cantidad == datos.length) {
-                Object[] nuevos = new Object[datos.length * 2];
-                System.arraycopy(datos, 0, nuevos, 0, cantidad);
-                datos = nuevos;
-            }
-            datos[cantidad++] = elemento;
+        int potencia = 1;
+        while (potencia < n) {
+            potencia <<= 1;
         }
-        @SuppressWarnings("unchecked")
-        public T obtener(int indice) {
-            if (indice < 0 || indice >= cantidad) throw new IndiceFueraDeRangoException("Indice fuera de rango: " + indice);
-            return (T) datos[indice];
-        }
-        public T eliminar(int indice) {
-            T valor = obtener(indice);
-            System.arraycopy(datos, indice + 1, datos, indice, cantidad - indice - 1);
-            datos[--cantidad] = null;
-            return valor;
-        }
-        public int tamano() { return cantidad; }
-        public boolean estaVacia() { return cantidad == 0; }
-        public Iterator<T> iterator() {
-            return new Iterator<>() {
-                private int siguiente;
-                public boolean hasNext() { return siguiente < cantidad; }
-                public T next() {
-                    if (!hasNext()) throw new NoSuchElementException();
-                    return obtener(siguiente++);
-                }
-            };
-        }
+        return potencia;
     }
 }

@@ -8,7 +8,7 @@ import edu.udb.rutasv.paradas.estructuras.TablaHash;
 /**
  * Directorio de estaciones (rol Paradas): busqueda directa por codigo o por nombre. Codigo y nombre
  * son unicos. Los dos indices son tablas hash que llegan por el constructor como {@link Mapa}; el
- * constructor sin argumentos usa {@code TablaHash}.
+ * constructor sin argumentos usa {@link TablaHash}, la implementacion propia del rol.
  */
 public class DirectorioEstaciones {
 

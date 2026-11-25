@@ -18,19 +18,19 @@ git checkout -b feat/paradas-<tarea>
 - `servicios/DirectorioEstaciones.java`: alta y busqueda por codigo o nombre, codigo y nombre unicos (hecho). Falta edicion y activar/desactivar.
 - Conectado en `SistemaTransporteImpl`: `buscarEstacion` y `crearEstacion`. `Aplicacion` ya carga los CSV en el directorio, la red y el autocompletado.
 
+## Estado de la tabla hash (actualizado 17/11)
+
+- `estructuras/TablaHash.java` **ya esta implementada**: encadenamiento, capacidad potencia de dos, mezcla de 16 bits altos y rehash al superar factor de carga 0.75.
+- `TablaHashContratoTest` **ya no tiene `@Disabled`** y pasa junto con `TablaHashTest`.
+- `DirectorioEstaciones` usa `TablaHash` en sus dos indices (codigo y nombre normalizado).
+- `Aplicacion` usa `TablaHash` para el mapa de usuarios del login.
+- Los `MapaTemporal` del cableado de `Aplicacion` ya fueron reemplazados por `TablaHash` (usuarios, grafo, Dijkstra, filas, búsqueda, estadísticas y terminal). Solo quedan los constructores por defecto de `GrafoListaAdyacencia` y `Terminal` para compatibilidad con pruebas de otros roles.
+- Detalle completo en `docs/documento-tecnico-final.md`.
+
 ## Pendiente
 
-- `estructuras/TablaHash.java` implementada; contrato habilitado y pruebas de colisiones, redimension y operaciones mixtas.
 - `editar` y `activar/desactivar` en el directorio y en la fachada. Al desactivar, actualiza tambien la red (`red.agregarEstacion` con la estacion inactiva) para que Dijkstra la salte, y el indice de nombres.
 - Revision del 23/10: la unicidad de nombre usa `toLowerCase()` sin quitar tildes, mientras el AVL si las quita ("Estacion" y "Estación" chocan en el indice); la columna `activa` del CSV toma cualquier valor distinto de `true` como inactiva sin avisar.
-
-## Integracion actual de `TablaHash`
-
-La aplicacion usa `TablaHash` por inyeccion desde `Aplicacion` para evitar dependencias entre modulos:
-
-- `app/configuracion/Aplicacion.java`: usuarios (login), `MapaTemporal::new` de Dijkstra, `filas` y el mapa de `BusquedaService`.
-- Grafo: recibe las tablas desde `Aplicacion`. Directorio: usa tablas propias por defecto.
-- `terminal/servicios/Terminal.unidadesEnEspera`: nuevo constructor con mapa inyectado. Los constructores antiguos conservan compatibilidad.
 
 ## Tus tareas (de la Fase 2)
 
@@ -39,9 +39,9 @@ La aplicacion usa `TablaHash` por inyeccion desde `Aplicacion` para evitar depen
 - [ ] 3. Directorio de estaciones: alta, edicion, activar/desactivar (RN-1). Codigo y nombre unicos.
 - [x] 4. Carga CSV de estaciones y tramos con errores claros por linea.
 - [ ] 5. Pantalla Registro de paradas (Fig 9).
-- [ ] 6. Pruebas: 1000 claves antes y despues de redimensionar, colisiones, eliminar inexistente, codigos repetidos, CSV mal formado.
+- [x] 6. Pruebas: 1000 claves antes y despues de redimensionar, colisiones, eliminar inexistente, codigos repetidos, CSV mal formado.
 - [ ] 7. Tabla de casos de prueba del equipo.
-- [ ] 8. Documento seccion 2.2 tabla hash.
+- [x] 8. Documento seccion 2.2 tabla hash (ver `docs/documento-tecnico-final.md`).
 
 ## Reglas
 
