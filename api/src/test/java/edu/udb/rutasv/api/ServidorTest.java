@@ -127,7 +127,7 @@ class ServidorTest {
                 "{\"origen\":\"E07\",\"destino\":\"E05\",\"minutos\":3,\"km\":1.5}").estado());
         assertEquals(400, pedir("POST", "/api/red/tramos", admin,
                 "{\"origen\":\"E07\",\"destino\":\"E05\",\"minutos\":0,\"km\":1.5}").estado());
-        assertEquals(15, pedir("GET", "/api/red", admin, null).cuerpo().get("tramos").size());
+        assertEquals(84, pedir("GET", "/api/red", admin, null).cuerpo().get("tramos").size());
 
         assertEquals(201, pedir("POST", "/api/terminal/unidades", admin,
                 "{\"id\":\"U-005\",\"tipoRuta\":\"NORMAL\",\"horaProgramada\":\"06:00\"}").estado());
@@ -143,9 +143,9 @@ class ServidorTest {
     void sinRutaDevuelve404Rn6() throws Exception {
         String admin = token("/api/auth/login", "admin", "clave-sintetica-9");
         assertEquals(201, pedir("POST", "/api/estaciones", admin,
-                "{\"codigo\":\"E30\",\"nombre\":\"Aislada\",\"zona\":\"Sur\",\"x\":1,\"y\":1,\"activa\":true}")
+                "{\"codigo\":\"E50\",\"nombre\":\"Aislada\",\"zona\":\"Sur\",\"x\":1,\"y\":1,\"activa\":true}")
                 .estado());
-        Respuesta r = pedir("GET", "/api/rutas?origen=E01&destino=E30", admin, null);
+        Respuesta r = pedir("GET", "/api/rutas?origen=E01&destino=E50", admin, null);
         assertEquals(404, r.estado());
         assertTrue(r.cuerpo().get("error").asText().contains("No existe ruta"));
     }
@@ -211,11 +211,11 @@ class ServidorTest {
     void estacionSinCampoActivaEntraActiva() throws Exception {
         String admin = token("/api/auth/login", "admin", "clave-sintetica-9");
         assertEquals(201, pedir("POST", "/api/estaciones", admin,
-                "{\"codigo\":\"e16\",\"nombre\":\"Plaza Mundo\",\"zona\":\"Oriente\",\"x\":95,\"y\":52}").estado());
-        Respuesta e = pedir("GET", "/api/estaciones/buscar?texto=plaza%20mundo", admin, null);
-        assertEquals("E16", e.cuerpo().get("codigo").asText());
+                "{\"codigo\":\"e51\",\"nombre\":\"Plaza Nueva\",\"zona\":\"Oriente\",\"x\":95,\"y\":52}").estado());
+        Respuesta e = pedir("GET", "/api/estaciones/buscar?texto=plaza%20nueva", admin, null);
+        assertEquals("E51", e.cuerpo().get("codigo").asText());
         assertTrue(e.cuerpo().get("activa").asBoolean());
-        assertEquals("Plaza Mundo", pedir("GET", "/api/estaciones/sugerencias?prefijo=plaza%20mu", admin, null)
+        assertEquals("Plaza Nueva", pedir("GET", "/api/estaciones/sugerencias?prefijo=plaza%20nu", admin, null)
                 .cuerpo().get(0).asText());
     }
 

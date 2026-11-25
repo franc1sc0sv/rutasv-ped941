@@ -62,7 +62,7 @@ class CargadorCSVTest {
         CargadorCSV.ResultadoCargaTramos t = cargador.cargarTramosDesdeCSV("../data/tramos.csv");
         assertTrue(e.errores.estaVacia(), "errores en estaciones.csv");
         assertTrue(t.errores.estaVacia(), "errores en tramos.csv");
-        assertEquals(8, e.estacionesValidas.tamano());
-        assertEquals(14, t.tramosValidos.tamano());
+        assertEquals(30, e.estacionesValidas.tamano());
+        assertEquals(83, t.tramosValidos.tamano());
     }
 }

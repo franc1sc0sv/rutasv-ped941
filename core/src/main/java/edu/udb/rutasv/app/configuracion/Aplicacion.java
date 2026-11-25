@@ -16,22 +16,17 @@ import edu.udb.rutasv.busqueda.servicios.BusquedaService;
 import edu.udb.rutasv.historial.repositorios.HistorialRepositorioArchivo;
 import edu.udb.rutasv.historial.servicios.EstadisticasService;
 import edu.udb.rutasv.historial.servicios.HistorialService;
-import edu.udb.rutasv.nucleo.estructuras.Cola;
 import edu.udb.rutasv.nucleo.estructuras.IndiceNombres;
 import edu.udb.rutasv.nucleo.estructuras.Mapa;
 import edu.udb.rutasv.nucleo.excepciones.ValidacionException;
 import edu.udb.rutasv.nucleo.modelo.Estacion;
-import edu.udb.rutasv.nucleo.modelo.Pasajero;
-import edu.udb.rutasv.nucleo.modelo.TipoRuta;
 import edu.udb.rutasv.nucleo.estructuras.impl.TablaHash;
 import edu.udb.rutasv.paradas.servicios.CargadorCSV;
 import edu.udb.rutasv.paradas.servicios.DirectorioEstaciones;
 import edu.udb.rutasv.ruta.algoritmos.Dijkstra;
 import edu.udb.rutasv.ruta.estructuras.GrafoListaAdyacencia;
 import edu.udb.rutasv.ruta.servicios.RutaServiceImpl;
-import edu.udb.rutasv.nucleo.estructuras.impl.ColaEnlazada;
 import edu.udb.rutasv.nucleo.estructuras.impl.MonticuloBinario;
-import edu.udb.rutasv.terminal.servicios.ReglaDespacho;
 import edu.udb.rutasv.terminal.servicios.Terminal;
 import java.nio.file.Path;
 import java.util.Map;
@@ -85,7 +80,14 @@ public final class Aplicacion {
                 terminal,
                 historial,
                 new EstadisticasService(historial, TablaHash::new, MonticuloBinario::new));
-        return new SistemaTransporteImpl(auth, new Autorizador(auth), modulos);
+        SistemaTransporte sistema = new SistemaTransporteImpl(auth, new Autorizador(auth), modulos);
+        try {
+            DatosDemo.cargarSiSePide(sistema, entorno);
+        } catch (RuntimeException e) {
+            // La demo es opcional: si algo falla, el sistema arranca igual y se avisa en el log.
+            LOG.warning("No se pudieron cargar los datos de demo: " + e.getMessage());
+        }
+        return sistema;
     }
 
     /**
