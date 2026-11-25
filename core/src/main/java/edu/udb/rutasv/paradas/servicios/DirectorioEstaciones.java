@@ -3,12 +3,12 @@ package edu.udb.rutasv.paradas.servicios;
 import edu.udb.rutasv.nucleo.estructuras.Mapa;
 import edu.udb.rutasv.nucleo.excepciones.ValidacionException;
 import edu.udb.rutasv.nucleo.modelo.Estacion;
-import edu.udb.rutasv.nucleo.temporal.MapaTemporal;
+import edu.udb.rutasv.paradas.estructuras.TablaHash;
 
 /**
  * Directorio de estaciones (rol Paradas): busqueda directa por codigo o por nombre. Codigo y nombre
  * son unicos. Los dos indices son tablas hash que llegan por el constructor como {@link Mapa}; el
- * constructor sin argumentos usa la version temporal hasta que este lista {@code TablaHash}.
+ * constructor sin argumentos usa {@link TablaHash}, la implementacion propia del rol.
  */
 public class DirectorioEstaciones {
 
@@ -16,7 +16,7 @@ public class DirectorioEstaciones {
     private final Mapa<String, Estacion> porNombreNormalizado;
 
     public DirectorioEstaciones() {
-        this(new MapaTemporal<>(), new MapaTemporal<>());
+        this(new TablaHash<>(), new TablaHash<>());
     }
 
     public DirectorioEstaciones(Mapa<String, Estacion> porCodigo, Mapa<String, Estacion> porNombreNormalizado) {

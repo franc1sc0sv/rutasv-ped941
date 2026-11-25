@@ -23,7 +23,7 @@ import edu.udb.rutasv.nucleo.excepciones.ValidacionException;
 import edu.udb.rutasv.nucleo.modelo.Estacion;
 import edu.udb.rutasv.nucleo.modelo.Pasajero;
 import edu.udb.rutasv.nucleo.modelo.TipoRuta;
-import edu.udb.rutasv.nucleo.temporal.MapaTemporal;
+import edu.udb.rutasv.paradas.estructuras.TablaHash;
 import edu.udb.rutasv.paradas.servicios.CargadorCSV;
 import edu.udb.rutasv.paradas.servicios.DirectorioEstaciones;
 import edu.udb.rutasv.ruta.algoritmos.Dijkstra;
@@ -58,22 +58,22 @@ public final class Aplicacion {
     public static SistemaTransporte crear(Path dirDatos, Map<String, String> entorno) {
         UsuarioRepositorio repo = new UsuarioRepositorioArchivo(dirDatos.resolve("usuarios.txt"));
         PasswordHasher hasher = new PasswordHasher();
-        Mapa<String, Usuario> usuarios = new MapaTemporal<>();
+        Mapa<String, Usuario> usuarios = new TablaHash<>();
         for (Usuario u : repo.cargar()) {
             usuarios.poner(u.nombre(), u);
         }
         new SeedAdmin(usuarios, repo, hasher, entorno).ejecutar();
         AuthService auth = new AuthServiceImpl(usuarios, repo, hasher);
 
-        GrafoListaAdyacencia red = new GrafoListaAdyacencia();
+        GrafoListaAdyacencia red = new GrafoListaAdyacencia(new TablaHash<>(), new TablaHash<>());
         DirectorioEstaciones directorio = new DirectorioEstaciones();
         IndiceNombres indice = new ArbolAvl();
         cargarRed(dirDatos, red, directorio, indice);
 
-        Dijkstra dijkstra = new Dijkstra(MonticuloBinario::new, MapaTemporal::new);
+        Dijkstra dijkstra = new Dijkstra(MonticuloBinario::new, TablaHash::new);
         Terminal terminal = new Terminal("Terminal principal",
-                new MonticuloBinario<>(new ReglaDespacho()), new ColaEnlazada<>());
-        Mapa<TipoRuta, Cola<Pasajero>> filas = new MapaTemporal<>();
+                new MonticuloBinario<>(new ReglaDespacho()), new ColaEnlazada<>(), new TablaHash<>());
+        Mapa<TipoRuta, Cola<Pasajero>> filas = new TablaHash<>();
         for (TipoRuta tipo : TipoRuta.values()) {
             filas.poner(tipo, new ColaEnlazada<>());
         }
@@ -82,7 +82,7 @@ public final class Aplicacion {
                 new HistorialService(new HistorialRepositorioArchivo(dirDatos.resolve("historial.txt")));
 
         Modulos modulos = new Modulos(
-                new BusquedaService(indice, new MapaTemporal<>()),
+                new BusquedaService(indice, new TablaHash<>()),
                 indice,
                 red,
                 new RutaServiceImpl(red, dijkstra),
@@ -90,7 +90,7 @@ public final class Aplicacion {
                 terminal,
                 filas,
                 historial,
-                new EstadisticasService(historial, MapaTemporal::new, MonticuloBinario::new));
+                new EstadisticasService(historial, TablaHash::new, MonticuloBinario::new));
         return new SistemaTransporteImpl(auth, new Autorizador(auth), modulos);
     }
 
