@@ -218,6 +218,8 @@ table.t.big td{padding:15px 18px}
 .pasos5 .p5{padding:20px 20px}
 #bo-tab td{padding:14px 16px}
 
+.quien{position:absolute;right:26px;top:50%;transform:translateY(-50%);writing-mode:vertical-rl;background:var(--qc);color:#fff;font-weight:700;font-size:22px;letter-spacing:.08em;padding:18px 9px;border-radius:12px;z-index:5;pointer-events:none}
+
 </style>
 </head>
 <body>
@@ -258,7 +260,7 @@ table.t.big td{padding:15px 18px}
 </section>
 
 <!-- 2 · Problema y solución -->
-<section class="slide" data-title="El problema y la solución" style="--sc:var(--grafo)">
+<section class="slide" data-title="El problema y la solución" data-quien="Francisco" style="--sc:var(--grafo)">
   <p class="kicker">El problema</p>
   <h2>¿Cuál es el camino más rápido entre dos paradas?</h2>
   <div class="body">
@@ -269,7 +271,7 @@ table.t.big td{padding:15px 18px}
           <li>El pasajero pide la ruta más rápida; el admin mantiene la red, despacha unidades y atiende filas.</li>
         </ul>
         <div class="box">
-          <span class="lb">Pruébalo: elige dos estaciones</span>
+          <span class="lb">Origen y destino</span>
           <div class="grid" style="grid-template-columns:1fr;gap:10px">
             <select class="inp" id="p-ori" aria-label="Origen"></select>
             <select class="inp" id="p-des" aria-label="Destino"></select>
@@ -277,7 +279,7 @@ table.t.big td{padding:15px 18px}
           <div class="ctl" style="margin-top:10px"><button class="btn sec mini" id="p-swap">⇄ Invertir</button><button class="btn reset" id="p-reset">Reiniciar</button></div>
         </div>
         <div class="msg ok" id="p-res" style="font-size:24px;white-space:pre-line"></div>
-        <p class="hint">También puedes tocar dos estaciones en el mapa. Borde punteado: inactiva. Arriba a la izquierda: grupo aislado (RN-6).</p>
+        <p class="hint">Borde punteado: inactiva. Arriba a la izquierda: grupo aislado (RN-6).</p>
       </div>
       <div class="box" style="padding:8px;min-height:0"><svg class="viz" id="p-map" viewBox="0 0 1000 720" aria-label="Mapa de la red"></svg></div>
     </div>
@@ -290,11 +292,10 @@ table.t.big td{padding:15px 18px}
 </section>
 
 <!-- 3 · Arquitectura -->
-<section class="slide" data-title="Arquitectura" style="--sc:var(--hash)">
+<section class="slide" data-title="Arquitectura" data-quien="Francisco" style="--sc:var(--hash)">
   <p class="kicker">Cómo está construido</p>
   <h2>Cuatro capas: cada módulo usa sus estructuras</h2>
   <div class="body">
-    <p class="hint" style="margin:-10px 0 14px">Toca un módulo, una vista, un endpoint o una estructura: se resalta todo lo que está conectado.</p>
     <div class="arq" id="arq">
       <div class="col"><h4>Frontend React</h4>
         <button class="ai" data-m="auth">Inicio de sesión<small>pasajero y admin</small></button>
@@ -349,7 +350,7 @@ table.t.big td{padding:15px 18px}
 </section>
 
 <!-- 4 · Mapa de estructuras -->
-<section class="slide" data-title="Las 7 estructuras" style="--sc:var(--avl)">
+<section class="slide" data-title="Las 7 estructuras" data-quien="Yoselyn" style="--sc:var(--avl)">
   <p class="kicker">Estructuras propias</p>
   <h2>Siete estructuras, cada una por la operación que más se repite</h2>
   <div class="body">
@@ -366,13 +367,12 @@ table.t.big td{padding:15px 18px}
 </section>
 
 <!-- 5 · Demo -->
-<section class="slide" data-title="Demo en vivo" style="--sc:var(--bad)">
+<section class="slide" data-title="Demo en vivo" data-quien="Francisco" style="--sc:var(--bad)">
   <p class="kicker"><span class="live"><i></i>EN VIVO</span></p>
   <h2 style="margin-top:10px">Demostración del sistema</h2>
   <div class="body">
     <div class="grid" style="grid-template-columns:640px 1fr;flex:1;min-height:0">
       <div style="display:flex;flex-direction:column;gap:14px">
-        <div class="term"><span class="c"># repo rutasv-ped941</span><br><span class="p">$</span> ./demo.sh --limpio<br><span class="c">API :7070 · interfaz http://localhost:5173</span></div>
         <ol class="guion">
           <h4>Pasajero</h4>
           <li style="--pc:var(--avl)">Escribir "ter": tres terminales, sin importar tildes.</li>
@@ -399,7 +399,7 @@ table.t.big td{padding:15px 18px}
 </section>
 
 <!-- 6 · Casos borde -->
-<section class="slide" data-title="Casos borde" style="--sc:var(--bad)">
+<section class="slide" data-title="Casos borde" data-quien="Rubel" style="--sc:var(--bad)">
   <p class="kicker">Robustez</p>
   <h2>Datos raros: respuesta clara, nunca un error 500</h2>
   <div class="body">
@@ -421,7 +421,7 @@ table.t.big td{padding:15px 18px}
 </section>
 
 <!-- 7 · Dijkstra -->
-<section class="slide" data-title="Grafo, Dijkstra y pila" style="--sc:var(--grafo)">
+<section class="slide" data-title="Grafo, Dijkstra y pila" data-quien="Francisco" style="--sc:var(--grafo)">
   <p class="kicker">Módulo ruta · grafo + montículo + tabla hash + pila</p>
   <h2>Dijkstra: siempre se cierra la estación más cercana</h2>
   <div class="body">
@@ -458,7 +458,7 @@ table.t.big td{padding:15px 18px}
 </section>
 
 <!-- 8 · Tabla hash -->
-<section class="slide" data-title="Tabla hash" style="--sc:var(--hash)">
+<section class="slide" data-title="Tabla hash" data-quien="Yoselyn" style="--sc:var(--hash)">
   <p class="kicker">nucleo · TablaHash con encadenamiento</p>
   <h2>Tabla hash: de la clave a la cubeta en O(1)</h2>
   <div class="body">
@@ -489,7 +489,7 @@ table.t.big td{padding:15px 18px}
 </section>
 
 <!-- 9 · AVL -->
-<section class="slide" data-title="Árbol AVL" style="--sc:var(--avl)">
+<section class="slide" data-title="Árbol AVL" data-quien="Leandro" style="--sc:var(--avl)">
   <p class="kicker">Módulo busqueda · ArbolAvl</p>
   <h2>Árbol AVL: autocompletar por prefijo sin perder el equilibrio</h2>
   <div class="body">
@@ -523,7 +523,7 @@ table.t.big td{padding:15px 18px}
 </section>
 
 <!-- 10 · Montículo + cola -->
-<section class="slide" data-title="Montículo de despacho y cola FIFO" style="--sc:var(--heap)">
+<section class="slide" data-title="Montículo de despacho y cola FIFO" data-quien="Rubel" style="--sc:var(--heap)">
   <p class="kicker">Módulo terminal · RN-4 y RN-5</p>
   <h2>Unidades por prioridad, pasajeros por orden de llegada</h2>
   <div class="body">
@@ -560,7 +560,7 @@ table.t.big td{padding:15px 18px}
 </section>
 
 <!-- 11 · Lista dinámica + top 5 -->
-<section class="slide" data-title="Lista dinámica y top 5" style="--sc:var(--lista)">
+<section class="slide" data-title="Lista dinámica y top 5" data-quien="Carlos" style="--sc:var(--lista)">
   <p class="kicker">Módulo historial · ListaDinamica + montículo acotado</p>
   <h2>Historial que crece al doble y un top 5 que guarda solo 5</h2>
   <div class="body">
@@ -590,7 +590,7 @@ table.t.big td{padding:15px 18px}
 </section>
 
 <!-- 12 · Por qué estas -->
-<section class="slide" data-title="¿Por qué estas y no otras?" style="--sc:var(--avl)">
+<section class="slide" data-title="¿Por qué estas y no otras?" data-quien="Leandro" style="--sc:var(--avl)">
   <p class="kicker">Alternativas descartadas</p>
   <h2>¿Por qué estas estructuras y no otras?</h2>
   <div class="body">
@@ -618,7 +618,7 @@ table.t.big td{padding:15px 18px}
 </section>
 
 <!-- 13 · Big-O -->
-<section class="slide" data-title="Complejidad Big-O" style="--sc:var(--heap)">
+<section class="slide" data-title="Complejidad Big-O" data-quien="Leandro" style="--sc:var(--heap)">
   <p class="kicker">Análisis de complejidad</p>
   <h2>Big-O: cuántas operaciones cuesta cada cosa al crecer n</h2>
   <div class="body">
@@ -643,7 +643,7 @@ table.t.big td{padding:15px 18px}
 </section>
 
 <!-- 14 · Métricas -->
-<section class="slide" data-title="Métricas propias" style="--sc:var(--hash)">
+<section class="slide" data-title="Métricas propias" data-quien="Yoselyn" style="--sc:var(--hash)">
   <p class="kicker">Rendimiento medido · MedicionesRendimientoTest</p>
   <h2>La medición confirma la teoría (y corrige una idea)</h2>
   <div class="body">
@@ -664,7 +664,7 @@ table.t.big td{padding:15px 18px}
 </section>
 
 <!-- 15 · Calidad -->
-<section class="slide" data-title="Calidad del código" style="--sc:var(--pila)">
+<section class="slide" data-title="Calidad del código" data-quien="Rubel" style="--sc:var(--pila)">
   <p class="kicker">Buenas prácticas</p>
   <h2>Calidad del código: módulos, errores claros y pruebas</h2>
   <div class="body">
@@ -692,7 +692,7 @@ table.t.big td{padding:15px 18px}
 </section>
 
 <!-- 16 · Bitácora -->
-<section class="slide" data-title="Bitácora de dificultades" style="--sc:var(--avl)">
+<section class="slide" data-title="Bitácora de dificultades" data-quien="Carlos" style="--sc:var(--avl)">
   <p class="kicker">Bitácora · Fase 1 → Fase 2 → Fase 3</p>
   <h2>Lo que salió mal, por qué, y lo que aprendimos</h2>
   <div class="body">
@@ -711,7 +711,7 @@ table.t.big td{padding:15px 18px}
 </section>
 
 <!-- 17 · Lecciones -->
-<section class="slide" data-title="Lecciones aprendidas" style="--sc:var(--ok)">
+<section class="slide" data-title="Lecciones aprendidas" data-quien="Carlos" style="--sc:var(--ok)">
   <p class="kicker">Para las próximas materias</p>
   <h2>Seis lecciones que nos llevamos</h2>
   <div class="body">
@@ -730,7 +730,7 @@ table.t.big td{padding:15px 18px}
 </section>
 
 <!-- 18 · Limitaciones -->
-<section class="slide" data-title="Limitaciones y mejoras" style="--sc:var(--warn)">
+<section class="slide" data-title="Limitaciones y mejoras" data-quien="Leandro" style="--sc:var(--warn)">
   <p class="kicker">Con honestidad</p>
   <h2>Limitaciones y cómo escalaría RutaSV</h2>
   <div class="body">
@@ -755,7 +755,7 @@ table.t.big td{padding:15px 18px}
 </section>
 
 <!-- 19 · Conclusiones -->
-<section class="slide" data-title="Conclusiones" style="--sc:var(--grafo)">
+<section class="slide" data-title="Conclusiones" data-quien="Yoselyn" style="--sc:var(--grafo)">
   <p class="kicker">Cierre</p>
   <h2>Conclusiones</h2>
   <div class="body">
@@ -773,7 +773,7 @@ table.t.big td{padding:15px 18px}
 </section>
 
 <!-- 20 · Rúbrica -->
-<section class="slide" data-title="Cómo cubrimos la rúbrica" style="--sc:var(--hash)">
+<section class="slide" data-title="Cómo cubrimos la rúbrica" data-quien="Carlos" style="--sc:var(--hash)">
   <p class="kicker">Guía para la evaluación</p>
   <h2>Dónde se ve cada punto pedido</h2>
   <div class="body">
@@ -802,7 +802,6 @@ table.t.big td{padding:15px 18px}
           <tr><td>Presentación y comunicación (10 %)</td><td><a class="go" href="#2">2</a><a class="go" href="#3">3</a></td></tr>
           <tr><td>Defensa síncrona (15 %)</td><td><a class="go" href="#12">12</a><a class="go" href="#16">16</a><a class="go" href="#18">18</a></td></tr>
         </tbody></table>
-        <p class="hint" style="margin-top:10px">Los números son diapositivas: tócalos para ir.</p>
       </div>
     </div>
   </div>
@@ -812,7 +811,7 @@ table.t.big td{padding:15px 18px}
 </section>
 
 <!-- 21 · Preguntas -->
-<section class="slide" data-title="Preguntas" style="--sc:var(--grafo)">
+<section class="slide" data-title="Preguntas" data-quien="Todos" style="--sc:var(--grafo)">
   <div style="flex:1;display:flex;flex-direction:column;justify-content:center">
     <p class="kicker">Gracias</p>
     <h1 style="font-size:140px">¿Preguntas?</h1>
@@ -1067,21 +1066,21 @@ SIM.problema = (() => {
 SIM.arq = (() => {
   const box = $("#arq"), det = $("#arq-det");
   const DET = {
-    auth: "auth · POST /api/auth/login → SistemaTransporte → AuthService: TablaHash de usuarios y de sesiones (token → sesión), O(1). Contraseña con PBKDF2.",
-    ruta: "ruta · GET /api/rutas → calcularRuta → Dijkstra sobre GrafoListaAdyacencia, con MonticuloBinario, cuatro TablaHash y PilaEnlazada: O((V + E) log V).",
-    paradas: "paradas · /api/estaciones → DirectorioEstaciones: dos TablaHash (código y nombre normalizado). Al editar o desactivar, la fachada sincroniza el grafo y el AVL.",
-    busqueda: "busqueda · GET /api/estaciones/sugerencias → ArbolAvl.conPrefijo, O(L log n + k). Recientes: TablaHash usuario → arreglo fijo de 5.",
-    terminal: "terminal · POST /api/terminal/despachar → MonticuloBinario con ReglaDespacho (RN-4). Filas: ColaEnlazada por tipo dentro de una TablaHash (RN-5).",
-    historial: "historial · GET /api/historial → TablaHash usuario → ListaDinamica, O(k). /api/estadisticas: TablaHash de conteos y montículo acotado de 5.",
+    auth: "Inicio de sesión: busca al usuario y su sesión en una tabla hash, en tiempo constante.",
+    ruta: "Ruta: calcula el camino más rápido con Dijkstra sobre el grafo de la red.",
+    paradas: "Paradas: guarda las estaciones en tablas hash para encontrarlas al instante por código o por nombre. Si una estación cambia, también se actualizan el mapa y el buscador.",
+    busqueda: "Búsqueda: el árbol AVL sugiere estaciones mientras el usuario escribe.",
+    terminal: "Terminal: el montículo decide qué unidad sale primero; las colas ordenan a los pasajeros por llegada.",
+    historial: "Historial: guarda las rutas de cada usuario en una lista dinámica y calcula las 5 más consultadas.",
   };
   const EDET = {
-    TablaHash: "TablaHash · la usan los seis módulos: usuarios, sesiones, directorio, grafo, Dijkstra, filas y conteos. Búsqueda por clave en O(1) promedio.",
-    GrafoListaAdyacencia: "GrafoListaAdyacencia · la red de 30 estaciones y 83 tramos. Paradas la actualiza a través de la fachada.",
-    ArbolAvl: "ArbolAvl · autocompletado por prefijo. Paradas lo mantiene al día al editar o desactivar una estación.",
-    MonticuloBinario: "MonticuloBinario · despacho RN-4 (terminal), Dijkstra (ruta) y top 5 acotado (historial).",
-    ColaEnlazada: "ColaEnlazada · filas de pasajeros por tipo de ruta (RN-5), encolar y atender en O(1).",
-    PilaEnlazada: "PilaEnlazada · invierte el camino de Dijkstra al reconstruir la ruta, O(V).",
-    ListaDinamica: "ListaDinamica · historial por usuario, tramos de cada estación y listas de resultados.",
+    TablaHash: "Tabla hash: encuentra un dato por su clave en tiempo constante. La usan todos los módulos.",
+    GrafoListaAdyacencia: "Grafo: la red de 30 estaciones y 83 tramos.",
+    ArbolAvl: "Árbol AVL: sugiere estaciones por las primeras letras.",
+    MonticuloBinario: "Montículo: siempre entrega primero el elemento más prioritario (despacho, Dijkstra y top 5).",
+    ColaEnlazada: "Cola: el primero que llega es el primero que sale (filas de pasajeros).",
+    PilaEnlazada: "Pila: invierte el camino de Dijkstra para mostrarlo de origen a destino.",
+    ListaDinamica: "Lista dinámica: crece sola cuando se llena (historial y resultados).",
   };
   function select(btn) {
     const mods = new Set(btn.dataset.m.split(" "));
@@ -1255,7 +1254,7 @@ SIM.dj = (() => {
     else sk.append(H("span", {class: "hint"}, "Se usa al final, al cerrar el destino."));
     const rs = $("#dj-res"); rs.textContent = "";
     if (st.path) { rs.append(H("b", {style: "font-size:40px;color:var(--grafo)", "data-min": R.min}, `${R.min} min`), H("br"), st.path.join(" → "), H("br"), H("span", {class: "hint"}, `${fmt(R.km, 1)} km`)); }
-    else rs.append(H("span", {class: "hint"}, R.path ? "Avanza hasta el último paso." : "No hay ruta."));
+    else rs.append(H("span", {class: "hint"}, R.path ? "—" : "No hay ruta."));
     $("#dj-prev").disabled = +rng.value <= 0; $("#dj-next").disabled = +rng.value >= +rng.max;
   }
   function run() {
@@ -1303,7 +1302,7 @@ SIM.hash = (() => {
   function insertar(k) {
     const i = calc(k); hit = i; found = null;
     if (cub[i].includes(k)) { nuevo = k; say(m, `${k} ya existe en la cubeta ${i}: poner() reemplaza el valor y el tamaño no cambia.`, "info"); render(); return; }
-    if (orden.length >= LIM) { say(m, `Límite de la demo: ${LIM} claves. Usa Eliminar o Reiniciar.`, "bad"); render(); return; }
+    if (orden.length >= LIM) { say(m, `Límite: ${LIM} claves.`, "bad"); render(); return; }
     colision = cub[i].length > 0;
     cub[i].unshift(k); orden.push(k); nuevo = k;
     const n = orden.length, mm = cub.length;
@@ -1353,7 +1352,7 @@ SIM.hash = (() => {
   function reset() {
     cub = Array.from({length: 16}, () => []); orden = []; nuevo = hit = found = null;
     for (let n = 1; n <= 10; n++) { const k = "E" + String(n).padStart(2, "0"); cub[indiceDe(hashCode(k), 16)].unshift(k); orden.push(k); }
-    $("#h-calc").textContent = "Inserta una clave para ver el cálculo.";
+    $("#h-calc").textContent = "—";
     say(m, "10 estaciones cargadas (E01…E10). Agrega más para provocar una colisión y luego el rehash.");
     render();
   }
@@ -1390,7 +1389,7 @@ SIM.avl = (() => {
     if (!name) { say(m, "Escribe un nombre de estación.", "bad"); return; }
     if (/[;>]/.test(name)) { say(m, "400 · El nombre no puede tener ; ni >.", "bad"); return; }
     const k = normalizar(name);
-    if (total >= LIM && !buscar(k)) { say(m, `Límite de la demo: ${LIM} nombres. Pulsa Reiniciar.`, "bad"); return; }
+    if (total >= LIM && !buscar(k)) { say(m, `Límite: ${LIM} nombres.`, "bad"); return; }
     rot = []; dup = false;
     raiz = ins(raiz, k, name); ultimo = k;
     if (dup) say(m, `"${name}" ya existe (misma clave sin tildes ni mayúsculas): no se duplica.`, "info");
@@ -1445,7 +1444,7 @@ SIM.avl = (() => {
     if (pr) {
       r.dataset.res = pr.res.join("|");
       r.append(H("div", {}, H("b", {}, pr.res.length ? pr.res.join(", ") : "Sin coincidencias")), H("div", {class: "hint", style: "font-size:20px"}, `Visitó ${pr.vis.size} de ${total} nodos.`));
-    } else { r.dataset.res = ""; r.append(H("span", {class: "hint"}, "Escribe un prefijo, por ejemplo \"ter\" o \"san\".")); }
+    } else { r.dataset.res = ""; r.append(H("span", {class: "hint"}, "—")); }
   }
   $("#a-ins").onclick = () => { insertar(inp.value); inp.value = ""; };
   inp.addEventListener("keydown", e => { if (e.key === "Enter") $("#a-ins").click(); });
@@ -1516,7 +1515,7 @@ SIM.heap = (() => {
     H0 = new Monticulo(regla); ids = new Set(); log = []; last = null;
     FIG10.forEach(([id, tipo, hora]) => { H0.insertar({id, tipo, hora}); ids.add(id); });
     $("#m-id").value = "U-050"; $("#m-tipo").value = "EXPRES"; $("#m-hora").value = "07:10";
-    say(m, "Las 5 unidades de la Figura 10, registradas en el orden de DatosDemo. Pulsa Despachar.");
+    say(m, "Las 5 unidades de la Figura 10, en el orden de DatosDemo.");
     render();
   }
   $("#m-reset").onclick = () => { reset(); SIM.cola.reset(); };
@@ -1579,7 +1578,7 @@ SIM.lista = (() => {
   let datos, cap, size, copias, ultimoCrec, seed;
   const m = $("#l-msg");
   function agregar(par) {
-    if (size >= LIM) { say(m, `Límite de la demo: ${LIM} rutas. Pulsa Reiniciar.`, "bad"); return false; }
+    if (size >= LIM) { say(m, `Límite: ${LIM} rutas.`, "bad"); return false; }
     let txt = "";
     if (size === cap) { const viejo = cap; cap *= 2; copias += viejo; ultimoCrec = size; txt = `Lleno (${viejo}/${viejo}): se crea un arreglo de ${cap} y se copian ${viejo} elementos. `; }
     datos[size++] = par;
@@ -1750,6 +1749,8 @@ SIM.bitacora = (() => {
 
 // ---------- navegación ----------
 const slides = $$(".slide");
+const COLOR_QUIEN = {Francisco: "#0e8a79", Yoselyn: "#1760a8", Leandro: "#6a4c9c", Rubel: "#d9562a", Carlos: "#a86b00", Todos: "#13202d"};
+slides.forEach(sl => { const q = sl.dataset.quien; if (q) sl.append(H("div", {class: "quien", style: `--qc:${COLOR_QUIEN[q] || "#13202d"}`}, q)); });
 const N = slides.length;
 let cur = 0, buffer = "", bufT = null;
 const stage = $("#stage");
