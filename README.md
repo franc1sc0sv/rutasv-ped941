@@ -14,6 +14,19 @@ Todo funciona de punta a punta:
 
 Todas las estructuras son propias: no hay colecciones de `java.util` guardando datos del dominio.
 
+## Entrega final (Fase 3)
+
+| Qué | Enlace |
+|---|---|
+| Documento técnico final (PDF) | [RutaSV-Fase3-Documento-Final.pdf](https://drive.google.com/file/d/18_TyYaIIoKIK6_VnA_sRppKH9Th_1zWM/view) |
+| Presentación de la defensa | [franc1sc0sv.github.io/rutasv-ped941](https://franc1sc0sv.github.io/rutasv-ped941/) |
+| Video de los flujos del sistema (2:08) | [rutasv-flujos.mp4](https://drive.google.com/file/d/1AszW_-HkK9h7dKxDtdKRwE1c7R8lZTRO/view) |
+| Material del equipo | [Carpeta Fase 3 en Drive](https://drive.google.com/drive/folders/1HW44UuYTA3nvK5WOXRLdhJTcqeEs8Q09) |
+| Mediciones de rendimiento | [docs/rendimiento.md](docs/rendimiento.md) |
+
+Equipo: Yoselyn Aguilar (Paradas), Rubel Andrade (Terminal), Francisco Hernández (Ruta), Leandro Valencia (Búsqueda) y Carlos Saavedra (Historial).
+Defensa: lunes 30 de noviembre de 2026, 8:00 p. m.
+
 ## Las 7 estructuras
 
 | Estructura | Interfaz (`nucleo.estructuras`) | Implementación | Rol autor | Dónde se usa | Costo clave |
@@ -64,6 +77,8 @@ mvn -version                            # Maven 3.9 o superior
 ```
 
 Para el frontend: Node 20 o superior.
+
+En Windows, sigue la [guia de PowerShell](docs/windows.md) para compilar, iniciar ambos servicios y comprobar una ruta.
 
 ## Compilar y probar
 
